@@ -1,0 +1,63 @@
+// Modelo Entidad-Relación - Control de Gestión Transversal
+// Integrado con ERP base (ENTITY, DOCUMENT, AREA_ORGANIZATIVA, EMPLEADO, etc.)
+// Generado para dbdiagram.io / dbdocs
+
+Project Grupo16_Control_Gestion {
+  database_type: 'PostgreSQL'
+  Note: 'Sistema de Control de Gestión transversal a todas las áreas'
+}
+
+// ============================================
+// ESTRUCTURA ORGANIZATIVA
+// ============================================
+
+Table EMPRESA {
+  empresa_id varchar(36) [pk, not null, note: 'Identificador único']
+  codigo varchar(20) [unique, not null, note: 'Código único']
+  razon_social varchar(150) [not null]
+  nombre_comercial varchar(150)
+  rfc varchar(20) [unique]
+  direccion varchar(255)
+  telefono varchar(20)
+  email varchar(100)
+  activo boolean [not null, default: true]
+  createdAt timestamp [not null, default: `now()`]
+  updatedAt timestamp [not null, default: `now()`]
+  
+  Note: 'Empresas / Holding'
+}
+
+Table UNIDAD_NEGOCIO {
+  unidad_negocio_id varchar(36) [pk, not null]
+  empresa_id varchar(36) [not null, ref: > EMPRESA.empresa_id]
+  codigo varchar(20) [unique, not null]
+  nombre varchar(100) [not null]
+  activo boolean [not null, default: true]
+  createdAt timestamp [not null, default: `now()`]
+  updatedAt timestamp [not null, default: `now()`]
+}
+
+Table CENTRO_COSTO {
+  centro_costo_id varchar(36) [pk, not null]
+  unidad_negocio_id varchar(36) [not null, ref: > UNIDAD_NEGOCIO.unidad_negocio_id]
+  codigo varchar(20) [unique, not null]
+  nombre varchar(100) [not null]
+  responsable_id varchar(36) [ref: > EMPLEADO.empleado_id]
+  activo boolean [not null, default: true]
+  createdAt timestamp [not null, default: `now()`]
+  updatedAt timestamp [not null, default: `now()`]
+}
+
+Table CARGO {
+  cargo_id varchar(36) [pk, not null]
+  codigo varchar(20) [unique, not null]
+  nombre varchar(100) [not null]
+  nivel varchar(50)
+  activo boolean [not null, default: true]
+  createdAt timestamp [not null, default: `now()`]
+  updatedAt timestamp [not null, default: `now()`]
+}
+
+// Nota: AREA_ORGANIZATIVA ya existe en el ERP
+// Nota: EMPLEADO ya existe en ERP, aquí se complementan relaciones
+// Nota: ENTITY y DOCUMENT ya existen en ERP
