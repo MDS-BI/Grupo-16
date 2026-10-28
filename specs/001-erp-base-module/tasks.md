@@ -1,7 +1,7 @@
 # Tareas: Módulo Base de Software de Planificación de Recursos Empresariales (ERP)
 
 **Entrada**: Documentos de diseño desde `/specs/001-erp-base-module/`
-**Prerrequisitos**: plan.md (obligatorio), spec.md (obligatorio para las historias de usuario), research.md, data-model.md, contracts/
+**Prerrequisitos**: plan.md (obligatorio), spec.md (obligatorio para las historias de usuario), research.md, modelo_entidad_relacion_gestion_calidad.md, contracts/
 
 ## Formato: `[ID] [P?] [Historia] Descripción`
 

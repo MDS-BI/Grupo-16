@@ -36,7 +36,7 @@ Construir una aplicación web ligera con Vite que sirva como módulo base de sof
 specs/001-erp-base-module/
 ├── plan.md
 ├── research.md
-├── data-model.md
+├── modelo_entidad_relacion_gestion_calidad.md
 ├── quickstart.md
 ├── contracts/
 └── tasks.md
