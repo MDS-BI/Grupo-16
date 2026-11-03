@@ -18,7 +18,7 @@ Cada registro de entidad debe incluir:
 - `address`: cadena opcional
 - `category`: cadena opcional
 - `description`: cadena opcional
-- `targetDate`: cadena de fecha opcional (YYYY-MM-DD) válida cuando está presente
+- `targetDate`: cadena de fecha opcional (YYYY-MM-DD) válida cuando está presente; representa la fecha de vencimiento del área y se usa para clasificarla como vigente, próxima a vencer o vencida
 - `creditLimit`: número opcional no negativo
 - `paymentTerms`: cadena opcional
 - `createdAt`: cadena de marca de tiempo ISO
@@ -67,6 +67,7 @@ Operaciones:
 
 - Un `name` o `code` faltante debe rechazarse antes de la persistencia.
 - Un `email` presente debe tener formato de correo válido y un `creditLimit` presente debe ser un número no negativo.
+- Un `targetDate` presente debe ser una fecha de calendario válida (YYYY-MM-DD); una fecha inválida debe rechazarse antes de la persistencia. Las fechas anteriores a la actual se aceptan y se consideran vencidas.
 - Un documento sin `folio` entero positivo debe rechazarse; un `discount` mayor que el `subtotal` debe rechazarse.
 - Un entity_id debe generarse automáticamente y debe ser único.
 - Un documento sin un `entity_id` que coincida con una entidad existente debe rechazarse.

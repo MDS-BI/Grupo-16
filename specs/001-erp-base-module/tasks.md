@@ -180,22 +180,22 @@
 
 ---
 
-## Fase 11: Historia de Usuario 9 - Registrar una fecha objetivo (Prioridad: P2)
+## Fase 11: Historia de Usuario 9 - Registrar la fecha de vencimiento de cada área (Prioridad: P2)
 
-**Objetivo**: Permitir a los usuarios adjuntar una fecha objetivo opcional a una entidad.
+**Objetivo**: Permitir al auditor interno asignar y actualizar una fecha de vencimiento opcional a cada área (registro de entidad) y visualizar su estado de cumplimiento.
 
-**Prueba Independiente**: Un usuario puede fijar una fecha en una entidad y verla mostrada en la lista.
+**Prueba Independiente**: Un auditor interno puede fijar la fecha de vencimiento de un área y verla en la lista, identificando si está vigente, próxima a vencer o vencida.
 
 ### Pruebas para la Historia de Usuario 9
 
-- [X] T040 [P] [US9] Añadir pruebas unitarias para validación y persistencia de la fecha objetivo en tests/unit/storage.test.js
+- [X] T040 [P] [US9] Añadir pruebas unitarias para validación y persistencia de la fecha de vencimiento del área (targetDate), incluida la aceptación de fechas pasadas como vencidas y el rechazo de fechas inválidas, en tests/unit/storage.test.js
 
 ### Implementación de la Historia de Usuario 9
 
-- [X] T041 [P] [US9] Añadir la entrada de fecha objetivo al formulario de entidad en index.html
+- [X] T041 [P] [US9] Añadir la entrada de fecha de vencimiento al formulario de entidad/área en index.html
 - [X] T042 [US9] Incluir targetDate en la lógica de validación, creación, actualización y búsqueda en src/storage.js
 - [X] T043 [US9] Conectar targetDate al envío del formulario, poblado de edición y visualización de errores en src/app.js
-- [X] T044 [US9] Mostrar la fecha objetivo en la lista de entidades en src/app.js
+- [X] T044 [US9] Mostrar la fecha de vencimiento del área en la lista de entidades e indicar si está vigente, próxima a vencer o vencida en src/app.js
 
 **Punto de control**: La Historia de Usuario 9 debe estar completamente funcional y ser comprobable de forma independiente.
 

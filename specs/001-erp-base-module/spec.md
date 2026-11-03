@@ -146,21 +146,22 @@ Como usuario de negocio, quiero buscar mis entidades por detalles clave para enc
 
 ---
 
-### Historia de Usuario 9 - Registrar la fecha de vencimiento de las actividades de cumplimiento por área (Prioridad: P2)
+### Historia de Usuario 9 - Registrar la fecha de vencimiento de cada área (Prioridad: P2)
 
-Como auditor interno, quiero asignar una fecha de vencimiento a cada actividad de cumplimiento de un área, para controlar los plazos, priorizar las actividades próximas a vencer y evidenciar el cumplimiento oportuno de cada área.
+Como auditor interno, quiero asignar y actualizar una fecha de vencimiento a cada área, para controlar los plazos de cumplimiento, priorizar las áreas próximas a vencer y evidenciar el cumplimiento oportuno de cada área.
 
-**Por qué esta prioridad**: El seguimiento de vencimientos convierte los registros en un control real de cumplimiento y permite detectar retrasos por área, pero no es necesario para la gestión básica de entidades.
+**Por qué esta prioridad**: El seguimiento de vencimientos por área convierte los registros en un control real de cumplimiento y permite detectar retrasos de forma agregada, pero no es necesario para la gestión básica de entidades.
 
-**Prueba Independiente**: Un auditor interno puede fijar la fecha de vencimiento de una actividad de un área y verla mostrada en la lista, identificando a simple vista si está vigente, próxima a vencer o vencida.
+**Prueba Independiente**: Un auditor interno puede fijar la fecha de vencimiento de un área y verla mostrada en la lista, identificando a simple vista si el área está vigente, próxima a vencer o vencida.
 
 **Escenarios de Aceptación**:
 
-1. **Dado** que un auditor interno está creando o editando una actividad de cumplimiento de un área, **cuando** introduce su fecha de vencimiento, **entonces** la fecha se guarda asociada a esa actividad y se muestra en la lista.
-2. **Dada** una actividad con fecha de vencimiento asignada, **cuando** el auditor interno consulta la lista, **entonces** puede identificar de un vistazo el área, la fecha de vencimiento y si la actividad está vigente, próxima a vencer o vencida.
-3. **Dado** que un auditor interno deja la fecha de vencimiento en blanco, **cuando** guarda la actividad, **entonces** la actividad se guarda sin fecha (campo opcional) y se indica que no tiene plazo definido.
-4. **Dado** que se introduce una fecha de vencimiento anterior a la fecha actual, **cuando** el auditor interno guarda la actividad, **entonces** el sistema la acepta como vencida y la resalta para su seguimiento, sin impedir el registro.
+1. **Dado** que un auditor interno está creando o editando un área, **cuando** introduce o modifica su fecha de vencimiento, **entonces** la fecha se guarda asociada a esa área y se muestra en la lista.
+2. **Dada** un área con fecha de vencimiento asignada, **cuando** el auditor interno consulta la lista, **entonces** puede identificar de un vistazo el área, su fecha de vencimiento y si está vigente, próxima a vencer o vencida.
+3. **Dado** que un auditor interno deja la fecha de vencimiento en blanco, **cuando** guarda el área, **entonces** el área se guarda sin fecha (campo opcional) y se indica que no tiene plazo definido.
+4. **Dado** que se introduce una fecha de vencimiento anterior a la fecha actual, **cuando** el auditor interno guarda el área, **entonces** el sistema la acepta como vencida y la resalta para su seguimiento, sin impedir el registro.
 5. **Dado** que se introduce una fecha de vencimiento que no es una fecha de calendario válida, **cuando** el auditor interno intenta guardar, **entonces** el sistema impide el guardado y explica que la fecha de vencimiento no es válida.
+6. **Dado** que un auditor interno modifica la fecha de vencimiento de un área existente, **cuando** guarda el cambio, **entonces** la nueva fecha reemplaza a la anterior y se refleja de inmediato en la lista.
 
 ---
 
@@ -238,7 +239,8 @@ Como usuario de negocio, quiero un espacio de trabajo estilo ERP consistente, co
 - ¿Qué ocurre cuando un usuario intenta guardar una entidad sin nombre o código obligatorio?
 - ¿Cómo gestiona el sistema una búsqueda que no devuelve coincidencias?
 - ¿Qué ocurre si un usuario intenta editar o eliminar una entidad que ya no existe?
-- ¿Qué ocurre cuando un usuario introduce una fecha objetivo que no es una fecha de calendario válida?
+- ¿Qué ocurre cuando un auditor interno introduce una fecha de vencimiento de área que no es una fecha de calendario válida?
+- ¿Qué ocurre cuando un área tiene una fecha de vencimiento anterior a la fecha actual?
 - ¿Qué ocurre con los documentos de una entidad cuando esta se elimina?
 - ¿Qué ocurre cuando un usuario introduce una fecha final anterior a la fecha inicial en un documento?
 - ¿Qué ocurre cuando la configuración declara un campo personalizado cuya clave choca con un nombre de campo base?
@@ -275,7 +277,7 @@ Como usuario de negocio, quiero un espacio de trabajo estilo ERP consistente, co
 - **FR-017**: La pantalla de gestión DEBE proporcionar la funcionalidad de crear, editar y eliminar entidades.
 - **FR-018**: La pantalla de gestión DEBE proporcionar la funcionalidad de crear, editar y eliminar documentos.
 - **FR-019**: El sistema DEBE navegar a una pantalla de búsqueda dedicada cuando se selecciona el botón Buscar en la barra lateral.
-- **FR-020**: La pantalla de búsqueda DEBE permitir buscar entidades por nombre, código, categoría, descripción o fecha objetivo.
+- **FR-020**: La pantalla de búsqueda DEBE permitir buscar entidades por nombre, código, categoría, descripción o fecha de vencimiento del área.
 - **FR-021**: La pantalla de búsqueda DEBE ser accesible tanto desde la barra lateral como desde la acción rápida de buscar registros del panel.
 - **FR-022**: El sistema DEBE mantener los datos de entidades y documentos intactos y consistentes durante la navegación entre pantallas.
 - **FR-023**: El sistema DEBE cargar la configuración del módulo al arrancar y aplicarla en todas las pantallas.
@@ -295,6 +297,10 @@ Como usuario de negocio, quiero un espacio de trabajo estilo ERP consistente, co
 - **FR-037**: La barra lateral DEBE resaltar visualmente el módulo activo en cada pantalla.
 - **FR-038**: La configuración PUEDE definir un color de acento; el sistema DEBE aplicarlo consistentemente en todo el marco y retroceder de forma segura a los valores integrados cuando esté ausente o sea inválido.
 - **FR-039**: En ventanas gráficas estrechas, la barra lateral DEBE contraerse a una columna de iconos manteniéndose operable.
+- **FR-040**: El sistema DEBE permitir asignar y actualizar una fecha de vencimiento opcional a cada área.
+- **FR-041**: El sistema DEBE validar que la fecha de vencimiento del área sea una fecha de calendario válida cuando esté presente, impidiendo guardar valores inválidos.
+- **FR-042**: El sistema DEBE mostrar la fecha de vencimiento del área en las listas e indicar si está vigente, próxima a vencer o vencida.
+- **FR-043**: El sistema DEBE aceptar fechas de vencimiento anteriores a la fecha actual como áreas vencidas y resaltarlas para su seguimiento, sin impedir el registro.
 
 ### Requisitos de Extensibilidad *(obligaciones del módulo base)*
 
@@ -308,7 +314,7 @@ Los módulos personalizados construidos sobre esta base DEBEN poder:
 
 ### Entidades Clave *(incluir si la funcionalidad implica datos)*
 
-- **Entidad**: Un registro de datos maestros gestionado por el módulo, que incluye su nombre, código de negocio, detalles descriptivos, categoría de clasificación, una fecha objetivo opcional y un entity_id autogenerado. Los módulos personalizados definen qué representa una Entidad en el mundo real (p. ej., cliente, producto, activo).
+- **Entidad**: Un registro de datos maestros gestionado por el módulo, que incluye su nombre, código de negocio, detalles descriptivos, categoría de clasificación, una fecha de vencimiento opcional (campo `targetDate`, que en el módulo de control de gestión representa el vencimiento de un área) y un entity_id autogenerado. Los módulos personalizados definen qué representa una Entidad en el mundo real (p. ej., cliente, producto, activo, área).
 - **Documento**: Detalles transaccionales adjuntos a una entidad, vinculados a ella por el entity_id de la entidad. Los módulos personalizados definen qué representa un Documento (p. ej., pedido, factura, contrato).
 - **ModuleConfig**: El objeto de adaptación cargado al arrancar que define el nombre del módulo, las etiquetas de terminología, las definiciones de campos personalizados y el ciclo de vida de estados de documentos. Consulte data-model.md para su forma completa.
 

@@ -39,7 +39,7 @@ erDiagram
         varchar(255) address
         varchar(50) category
         text description
-        date targetDate
+        date targetDate "fecha de vencimiento del área"
         decimal(15,2) creditLimit
         varchar(50) paymentTerms
         timestamp createdAt "NOT NULL"
@@ -166,7 +166,7 @@ Catálogo de módulos del sistema (base para agrupar entidades configurables).
 Entidades configurables por módulo. Define qué entidades soportan pestañas, campos personalizados y documentos.
 
 ### ENTITY
-Maestro de entidades (clientes/proveedores/otros) utilizado como base para el ERP.
+Maestro de entidades (clientes/proveedores/áreas/otros) utilizado como base para el ERP. El campo `targetDate` almacena la fecha de vencimiento opcional del área en el módulo de control de gestión; se usa para clasificarla como vigente, próxima a vencer o vencida.
 
 ### DOCUMENT
 Documentos transaccionales asociados a una `ENTITY`.
