@@ -146,18 +146,21 @@ Como usuario de negocio, quiero buscar mis entidades por detalles clave para enc
 
 ---
 
-### Historia de Usuario 9 - Registrar una fecha objetivo (Prioridad: P2)
-Como usuario de negocio, quiero adjuntar una fecha objetivo opcional a una entidad para planificar y ordenar los registros según cuándo vence algo.
+### Historia de Usuario 9 - Registrar la fecha de vencimiento de las actividades de cumplimiento por área (Prioridad: P2)
 
-**Por qué esta prioridad**: La planificación consciente de fechas mejora el valor central cuando el conjunto de datos crece, pero no es necesaria para la gestión básica.
+Como auditor interno, quiero asignar una fecha de vencimiento a cada actividad de cumplimiento de un área, para controlar los plazos, priorizar las actividades próximas a vencer y evidenciar el cumplimiento oportuno de cada área.
 
-**Prueba Independiente**: Un usuario puede fijar una fecha en una entidad y verla mostrada en la lista.
+**Por qué esta prioridad**: El seguimiento de vencimientos convierte los registros en un control real de cumplimiento y permite detectar retrasos por área, pero no es necesario para la gestión básica de entidades.
+
+**Prueba Independiente**: Un auditor interno puede fijar la fecha de vencimiento de una actividad de un área y verla mostrada en la lista, identificando a simple vista si está vigente, próxima a vencer o vencida.
 
 **Escenarios de Aceptación**:
 
-1. **Dado** que un usuario está creando o editando una entidad, **cuando** introduce una fecha objetivo, **entonces** la fecha se guarda y se muestra en la lista.
-2. **Dada** una entidad con fecha fijada, **cuando** el usuario ve la lista, **entonces** las entidades con fechas pueden identificarse de un vistazo.
-3. **Dado** que un usuario deja la fecha en blanco, **cuando** guarda la entidad, **entonces** la entidad igualmente se guarda sin fecha (campo opcional).
+1. **Dado** que un auditor interno está creando o editando una actividad de cumplimiento de un área, **cuando** introduce su fecha de vencimiento, **entonces** la fecha se guarda asociada a esa actividad y se muestra en la lista.
+2. **Dada** una actividad con fecha de vencimiento asignada, **cuando** el auditor interno consulta la lista, **entonces** puede identificar de un vistazo el área, la fecha de vencimiento y si la actividad está vigente, próxima a vencer o vencida.
+3. **Dado** que un auditor interno deja la fecha de vencimiento en blanco, **cuando** guarda la actividad, **entonces** la actividad se guarda sin fecha (campo opcional) y se indica que no tiene plazo definido.
+4. **Dado** que se introduce una fecha de vencimiento anterior a la fecha actual, **cuando** el auditor interno guarda la actividad, **entonces** el sistema la acepta como vencida y la resalta para su seguimiento, sin impedir el registro.
+5. **Dado** que se introduce una fecha de vencimiento que no es una fecha de calendario válida, **cuando** el auditor interno intenta guardar, **entonces** el sistema impide el guardado y explica que la fecha de vencimiento no es válida.
 
 ---
 
