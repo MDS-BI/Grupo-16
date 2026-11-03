@@ -126,22 +126,24 @@ Asignado a: [Josefa Guzmán]
 
 ---
 
-### Historia de Usuario 7 - Declarar campos personalizados para los registros maestros y operativos (Prioridad: P1)
+### Historia de Usuario 7 - Declarar campos personalizados de gobernanza, trazabilidad y control de calidad empresarial (Prioridad: P1)
 
-Como Gestor de Calidad, quiero declarar campos adicionales para Lotes, Productos, Áreas Organizativas o Empleados y para Inspecciones de Calidad, No Conformidades (NCR) o Acciones CAPA en la configuración, para que aparezcan automáticamente en formularios, listas, validación y búsqueda sin escribir código de interfaz.
+Como Gestor de Calidad, quiero declarar campos adicionales de gobernanza de datos para Lotes, Productos, Áreas Organizativas o Empleados y para Inspecciones de Calidad, No Conformidades (NCR) o Acciones CAPA en la configuración, para que el módulo capture atributos de trazabilidad, origen, temporalidad, métricas cuantitativas de fallas, severidad y disposición final de forma consistente en formularios, listas, validación y búsqueda, sin escribir código de interfaz.
 
-**Por qué esta prioridad**: Los módulos personalizados existen porque sus registros contienen datos específicos del dominio (la fecha de vencimiento de un lote, la gravedad de una NCR). Si añadir campos requiere editar formularios y validación a mano, la adaptación es propensa a errores y no escala. Esta historia depende del perfil de configuración (Historia de Usuario 5).
+**Por qué esta prioridad**: Los módulos de Gestión de Calidad existen porque sus registros deben sostener auditorías y decisiones directivas, no solo almacenar datos. La gobernanza de datos exige atributos de trazabilidad del lote y su origen, métricas objetivas de fallas y un dictamen final auditable; si estos campos se añaden a mano en cada formulario, la adaptación es propensa a errores, pierde control y no escala. Esta historia depende del perfil de configuración (Historia de Usuario 5).
 
-**Prueba Independiente**: Un Gestor de Calidad declara un campo numérico obligatorio personalizado en las Inspecciones de Calidad; se muestra como entrada numérica en el formulario, bloquea el guardado cuando está en blanco, muestra los valores guardados en las listas y coincide en las búsquedas.
+**Prueba Independiente**: Un Gestor de Calidad declara campos personalizados de trazabilidad para Lotes/Productos (parámetros de lote, origen/proveedor y temporalidad del proceso) y de control para Inspecciones/NCR (métricas cuantitativas de fallas, impacto/severidad y dictamen final), incluyendo al menos uno obligatorio y numérico; los campos se muestran con el tipo de entrada correspondiente, los obligatorios incompletos bloquean el guardado con una alerta de validación comprensible, y los valores guardados quedan visibles y consultables en listas y búsquedas.
 
 **Escenarios de Aceptación**:
 
-1. **Dado** un campo personalizado de Lote, Producto, Área Organizativa, Empleado o Inspección, NCR, CAPA de tipo número declarado como obligatorio, **cuando** el Inspector de Planta crea o edita un registro maestro o registro operativo, **entonces** el campo se muestra como entrada numérica y un valor en blanco impide guardar con una explicación clara.
-2. **Dado** un campo personalizado con un valor guardado, **cuando** el Inspector de Planta ve la lista o la vista de detalle, **entonces** el valor se muestra.
-3. **Dados** campos personalizados declarados, **cuando** el Inspector de Planta busca usando un término que coincide con un valor de campo personalizado, **entonces** se devuelven los registros coincidentes.
-4. **Dado** que no hay campos personalizados declarados, **cuando** la aplicación se ejecuta, **entonces** el comportamiento es idéntico al del módulo base sin modificar.
+1. **Dados** campos personalizados de trazabilidad y gobernanza de origen declarados para Lotes o Productos (por ejemplo, parámetros de lote, origen/proveedor y temporalidad del proceso), **cuando** el Gestor de Calidad crea o edita un Lote o Producto, **entonces** el sistema muestra esos campos en el formulario con el tipo de entrada declarado (texto, número, fecha o selección) y los guarda como parte del registro maestro.
+2. **Dados** campos personalizados de control de calidad declarados para Inspecciones de Calidad o NCR (por ejemplo, métricas cuantitativas de fallas, clasificación de impacto/severidad operativa y dictamen o disposición final: aprobación, retrabajo o descarte), **cuando** el Gestor de Calidad crea o edita una Inspección o NCR, **entonces** el sistema muestra esos campos en el formulario con el tipo de entrada declarado y los guarda asociados al registro operativo.
+3. **Dado** que un campo personalizado está declarado como obligatorio y el usuario lo deja incompleto, **cuando** intenta guardar un registro maestro u operativo, **entonces** el sistema bloquea el guardado y despliega una alerta de validación comprensible que identifica el campo y el valor requerido, conforme a FR-026 y FR-027.
+4. **Dados** campos personalizados con valores guardados, **cuando** el Gestor de Calidad consulta las listas o las vistas de detalle, **entonces** los valores de trazabilidad, origen, temporalidad, métricas de fallas, severidad y dictamen se muestran de forma legible conforme a FR-028.
+5. **Dados** campos personalizados declarados y poblados, **cuando** el Gestor de Calidad busca usando un término que coincide con un valor de campo personalizado, **entonces** el sistema devuelve los registros coincidentes y permite consultar esos valores en los resultados, conforme a FR-028.
+6. **Dado** que no hay campos personalizados declarados, **cuando** la aplicación se ejecuta, **entonces** el comportamiento es idéntico al del módulo base sin modificar.
 
-Asignado a: [Joaquin Quiñones]
+Asignado a: [Joaquin Quiñones - Gestor de Calidad]
 
 ---
 
@@ -197,22 +199,24 @@ Asignado a: [Nombre]
 
 ---
 
-### Historia de Usuario 11 - Buscar Lotes, Productos, Áreas Organizativas o Empleados en una pantalla dedicada (Prioridad: P2)
+### Historia de Usuario 11 - Estación dedicada de consulta, auditoría y trazabilidad integral para el Gestor de Calidad (Prioridad: P2)
 
-Como Inspector de Planta, quiero una pantalla de búsqueda dedicada para encontrar rápidamente Lotes, Productos, Áreas Organizativas o Empleados sin que los formularios de edición saturen la vista.
+Como Gestor de Calidad, quiero una pantalla dedicada de consulta, auditoría y trazabilidad integral, separada del flujo transaccional de registro, para localizar ágilmente los registros maestros por identificadores clave y por los campos personalizados definidos en la Historia de Usuario 7, revisar su información en tablas de resumen legibles y auditar su estado sin interferir con la creación o edición de registros.
 
-**Por qué esta prioridad**: La recuperación rápida es valiosa cuando el conjunto de datos de calidad crece, y una pantalla separada mantiene enfocada la experiencia de gestión, pero la búsqueda no es necesaria para la gestión básica.
+**Por qué esta prioridad**: La supervisión directiva y la auditoría requieren una vista de consulta independiente del flujo de captura, donde el Gestor de Calidad pueda rastrear lotes, productos, áreas y empleados por sus datos clave y por atributos de gobernanza (parámetros de lote, origen/proveedor y temporalidad del proceso). Una pantalla separada mantiene enfocada la experiencia transaccional y evita mezclar la auditoría con la edición; aunque no es necesaria para la gestión básica, aporta valor cuando el volumen y las exigencias de trazabilidad crecen.
 
-**Prueba Independiente**: Un Inspector de Planta puede abrir la pantalla de búsqueda desde la barra lateral o una acción rápida, introducir un término de búsqueda y ver solo los Lotes, Productos, Áreas Organizativas o Empleados coincidentes.
+**Prueba Independiente**: Un Gestor de Calidad puede abrir la pantalla de consulta desde la barra lateral o una acción rápida, buscar por un identificador clave o por un valor de campo personalizado declarado en la Historia de Usuario 7, ver únicamente los registros maestros coincidentes en tablas de resumen legibles y obtener un estado vacío claro cuando no hay coincidencias.
 
 **Escenarios de Aceptación**:
 
-1. **Dado** que el Inspector de Planta está en la pantalla de búsqueda, **cuando** introduce un término coincidente, **entonces** solo se muestran los Lotes, Productos, Áreas Organizativas o Empleados coincidentes.
-2. **Dada** una búsqueda sin coincidencias, **cuando** el Inspector de Planta envía la búsqueda, **entonces** se muestra un estado vacío claro y puede volver a intentarlo.
-3. **Dados** cientos de Lotes, Productos, Áreas Organizativas o Empleados almacenados, **cuando** el Inspector de Planta busca desde la pantalla de búsqueda, **entonces** los resultados aparecen con prontitud sin retraso perceptible.
-4. **Dado** que el Inspector de Planta está en la pantalla de búsqueda, **cuando** activa el botón Panel en la barra lateral, **entonces** vuelve al panel de inicio.
+1. **Dado** que el Gestor de Calidad está en la pantalla dedicada de consulta, **cuando** introduce un identificador clave (por ejemplo, nombre, código, número de lote o número de nómina), **entonces** el sistema muestra únicamente los registros maestros coincidentes en tablas de resumen legibles, conforme a FR-019 y FR-020.
+2. **Dados** los campos personalizados declarados en la Historia de Usuario 7 y poblados en los registros maestros, **cuando** el Gestor de Calidad realiza una consulta por un valor de campo personalizado (por ejemplo, parámetros de lote, origen/proveedor o temporalidad del proceso), **entonces** el sistema devuelve los registros maestros coincidentes y muestra esos valores de forma legible en las tablas de resumen, conforme a FR-028.
+3. **Dada** una consulta sin coincidencias, **cuando** el Gestor de Calidad la envía, **entonces** el sistema muestra un estado vacío claro que explica que no hay resultados y permite modificar o borrar la consulta para intentarlo de nuevo.
+4. **Dados** al menos 500 registros maestros almacenados, **cuando** el Gestor de Calidad consulta desde la pantalla dedicada, **entonces** los resultados aparecen con prontitud y las tablas de resumen mantienen legibilidad y orden, conforme a FR-032.
+5. **Dado** que el Gestor de Calidad está en la pantalla dedicada de consulta, **cuando** revisa los resultados, **entonces** puede auditar y rastrear la información de los registros maestros sin habilitar la edición transaccional, que permanece en la pantalla de gestión.
+6. **Dado** que el Gestor de Calidad está en la pantalla dedicada de consulta, **cuando** activa el botón Panel en la barra lateral, **entonces** vuelve al panel de inicio.
 
-Asignado a: [Joaquin Quiñones]
+Asignado a: [Joaquin Quiñones - Gestor de Calidad]
 
 ---
 
@@ -298,7 +302,7 @@ Asignado a: [Nombre]
 - **FR-017**: La pantalla de gestión DEBE proporcionar la funcionalidad de crear, editar y eliminar datos maestros (Lote, Producto, Área Organizativa, Empleado).
 - **FR-018**: La pantalla de gestión DEBE proporcionar la funcionalidad de crear, editar y eliminar registros operativos (Inspección de Calidad, No Conformidad NCR, Acción CAPA).
 - **FR-019**: El sistema DEBE navegar a una pantalla de búsqueda dedicada cuando se selecciona el botón Buscar en la barra lateral.
-- **FR-020**: La pantalla de búsqueda DEBE permitir buscar Lotes, Productos, Áreas Organizativas o Empleados por nombre, código, categoría, descripción o fecha objetivo.
+- **FR-020**: La pantalla de búsqueda DEBE permitir buscar Lotes, Productos, Áreas Organizativas o Empleados por nombre, código, categoría, descripción, fecha objetivo y por los valores de los campos personalizados declarados en la configuración (conforme a FR-028).
 - **FR-021**: La pantalla de búsqueda DEBE ser accesible tanto desde la barra lateral como desde la acción rápida de buscar registros del panel.
 - **FR-022**: El sistema DEBE mantener los datos maestros (Lote, Producto, Área Organizativa, Empleado) y registros operativos (Inspección de Calidad, NCR, CAPA) intactos y consistentes durante la navegación entre pantallas.
 - **FR-023**: El sistema DEBE cargar la configuración del módulo al arrancar y aplicarla en todas las pantallas.
@@ -356,7 +360,7 @@ Los módulos personalizados construidos sobre esta base DEBEN poder:
 - La adaptación a un módulo específico de Gestión de Calidad se realiza mediante un archivo de configuración del módulo en lugar de editando archivos fuente centrales.
 - Cada registro maestro (Lote, Producto, Área Organizativa, Empleado) incluye información básica suficiente para identificación y seguimiento; los módulos personalizados aportan los campos específicos del dominio.
 - La versión inicial se centra en la gestión central de datos maestros y registros operativos en lugar de capacidades ERP avanzadas como flujos de aprobación, períodos de contabilización o informes.
-- La búsqueda se realiza sobre los Lotes, Productos, Áreas Organizativas o Empleados almacenados.
+- La búsqueda se realiza sobre los Lotes, Productos, Áreas Organizativas o Empleados almacenados, incluidos los valores de los campos personalizados de gobernanza y trazabilidad declarados en la configuración (Historia de Usuario 7).
 - La pantalla de gestión consolida los formularios de añadir/editar Lote, Producto, Área Organizativa o Empleado y añadir/editar Inspección de Calidad, NCR o Acción CAPA en una sola pantalla de gestión.
 - La navegación entre áreas ocurre mediante una barra lateral persistente; la pantalla de gestión aloja ambos paneles de gestión y no muestra la lista de datos maestros.
 - El logotipo se genera como un monograma SVG en línea derivado del nombre del módulo; no se requieren recursos de imagen externos.
@@ -364,5 +368,5 @@ Los módulos personalizados construidos sobre esta base DEBEN poder:
 - Solo se muestra una pantalla a la vez; no hay diseño lado a lado del contenido de gestión y búsqueda.
 - La navegación entre pantallas se maneja dentro de la aplicación (p. ej., cambio de vistas), y el botón atrás del navegador debe comportarse de forma predecible.
 - Los datos siguen persistiéndose en el localStorage del navegador y no se ven afectados por la navegación entre pantallas.
-- La pantalla de búsqueda se centra en encontrar y ver Lotes, Productos, Áreas Organizativas o Empleados; la edición permanece en la pantalla de gestión.
+- La pantalla de búsqueda es una estación de consulta, auditoría y trazabilidad enfocada en encontrar y ver Lotes, Productos, Áreas Organizativas o Empleados, incluidos sus campos personalizados; la edición permanece en la pantalla de gestión y fuera del flujo transaccional de consulta.
 - El contenido del usuario introducido por el usuario (nombres, descripciones, notas de Inspecciones/NCR/CAPA) DEBE sanitizarse antes de renderizarse en el DOM para prevenir ataques de inyección de scripts (XSS). El módulo base DEBE escapar HTML y atributos de eventos al mostrar datos de localStorage.
