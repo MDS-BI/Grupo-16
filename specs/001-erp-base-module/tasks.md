@@ -56,24 +56,26 @@
 
 ## Fase 4: Historia de Usuario 2 - Editar y Eliminar Entidades (Prioridad: P1)
 
-**Objetivo**: Permitir a los usuarios actualizar o eliminar entidades maestras almacenadas, manteniendo la capacidad de respuesta con conjuntos de datos grandes.
+**Responsable**: Joaquín Quilodrán - Analista de Calidad
 
-**Prueba Independiente**: Un usuario puede editar una entidad existente o eliminarla, y la lista se actualiza correctamente.
+**Objetivo**: Permitir al Analista de Calidad actualizar o eliminar entidades maestras almacenadas, manteniendo la capacidad de respuesta con conjuntos de datos grandes.
+
+**Prueba Independiente**: Un Analista de Calidad puede editar una entidad existente o eliminarla, y la lista se actualiza correctamente.
 
 ### Pruebas para la Historia de Usuario 2
 
-- [ ] T020 [P] [US2] Añadir pruebas unitarias para actualizar y eliminar entidades en tests/unit/storage.test.js
-- [ ] T021 [P] [US2] Añadir pruebas de integración para editar y eliminar una entidad en tests/integration/edit-delete-entity.test.js
+- [x] T020 [P] [US2] Verificar actualización, identidad estable y eliminación de maestros en tests/unit/storage.test.js y tests/unit/quality-records.test.js
+- [x] T021 [P] [US2] Verificar edición y eliminación desde el formulario en tests/integration/edit-delete-entity.test.js y tests/integration/quality-management.test.js
 
 ### Implementación de la Historia de Usuario 2
 
-- [ ] T022 [P] [US2] Añadir controles de edición y eliminación a la interfaz de la lista de entidades en src/components/quality-entity-list.js
-- [ ] T023 [US2] Conectar las acciones de edición para poblar el formulario y actualizar los datos persistidos en src/app.js
-- [ ] T024 [US2] Gestionar las acciones de eliminación y quitar registros del almacenamiento y la interfaz en src/app.js
-- [ ] T025 [US2] Implementar eliminación en cascada: al eliminar un Área, eliminar sus Empleados; al eliminar un Producto, eliminar sus Lotes
-- [ ] T026 [P] [US2] Añadir pruebas de integración para eliminación en cascada en tests/integration/cascade-delete.test.js
+- [x] T022 [P] [US2] Integrar selección, edición y eliminación de maestros en index.html, src/components/entity-form.js y src/app.js
+- [x] T023 [US2] Cargar el maestro seleccionado en el formulario y guardar correcciones sin cambiar id, entity_id ni createdAt en src/app.js y src/storage.js
+- [x] T024 [US2] Confirmar la eliminación, permitir cancelarla y refrescar selectores y búsqueda en src/app.js
+- [x] T025 [US2] Eliminar Área→Empleados y Producto→Lotes, incluidos sus registros operativos, mediante relaciones estables en src/quality-records.js y src/storage.js
+- [x] T026 [P] [US2] Verificar cascadas y conservación de maestros ajenos en tests/unit/quality-records.test.js; verificar cancelación en tests/integration/quality-management.test.js
 
-**Punto de control**: Las Historias de Usuario 1 y 2 deben funcionar de forma independiente. Las operaciones de edit/delete deben respetar las FK relationships del modelo.
+**Punto de control**: Las Historias de Usuario 1 y 2 deben funcionar de forma independiente. Las operaciones de edición y eliminación deben respetar las relaciones del modelo.
 
 ---
 
@@ -102,25 +104,27 @@
 
 ## Fase 6: Historia de Usuario 4 - Gestionar Entidades y Documentos en una Pantalla Dedicada (Prioridad: P1)
 
+**Responsable**: Joaquín Quilodrán - Analista de Calidad
+
 **Objetivo**: Proporcionar una pantalla dedicada donde pueda añadir, editar y eliminar entidades y sus documentos, para gestionar los datos del módulo en un lugar enfocado.
 
-**Prueba Independiente**: Un usuario puede navegar a la pantalla de gestión mediante la barra lateral o una acción rápida, alternar entre la gestión de entidades y documentos, y volver al panel, añadiendo, editando y eliminando con éxito una entidad y un documento.
+**Prueba Independiente**: Un Analista de Calidad puede navegar a la pantalla de gestión mediante la barra lateral o una acción rápida, alternar entre la gestión de entidades y documentos, y volver al panel, añadiendo, editando y eliminando con éxito una entidad y un documento.
 
 ### Pruebas para la Historia de Usuario 4
 
-- [ ] T034 [P] [US4] Añadir pruebas de integración para la funcionalidad de gestión completa en tests/integration/manage-entities-docs.test.js
+- [x] T034 [P] [US4] Verificar gestión por maestro, navegación, estado vacío y conservación de datos en tests/integration/quality-management.test.js y tests/integration/manage-tabs.test.js
 
 ### Implementación de la Historia de Usuario 4
 
-- [ ] T035 [P] [US4] Añadir navegación de barra lateral con botones Entidades, Documentos, Panel, Buscar en src/components/shell.js
-- [ ] T036 [US4] Mostrar el contenido de gestión de entidades cuando el usuario activa el botón Entidades en la barra lateral
-- [ ] T037 [US4] Mostrar el contenido de gestión de documentos cuando el usuario activa el botón Documentos en la barra lateral
-- [ ] T038 [US4] Añadir funcionalidad de crear, editar y eliminar entidades en la pantalla de gestión
-- [ ] T039 [US4] Añadir funcionalidad de crear, editar y eliminar documentos asociados a entidades en la pantalla de gestión
-- [ ] T040 [US4] Implementar eliminación en cascada: al eliminar una entidad, sus documentos asociados también se eliminan
-- [ ] T041 [P] [US4] Añadir estilos para la barra lateral, regiones de contenido y navegación en src/styles.css
+- [x] T035 [P] [US4] Integrar la navegación de la plantilla original y mantener el módulo activo en src/app.js, reutilizando src/components/shell.js sin cambiar su identidad visual
+- [x] T036 [US4] Mostrar la sección de gestión de maestros desde la barra lateral y las acciones rápidas existentes en src/app.js
+- [x] T037 [US4] Mostrar los registros operativos y el nombre/código del maestro seleccionado, sin mezclar registros de otro maestro, en src/app.js
+- [x] T038 [US4] Integrar los flujos de alta base y edición/eliminación de HU2 en la sección de maestros de index.html y src/app.js
+- [x] T039 [US4] Integrar creación, edición y eliminación de HU10 en la sección de registros operativos en index.html y src/app.js
+- [x] T040 [US4] Refrescar los registros operativos y quitar referencias al maestro eliminado después de la cascada en src/app.js y src/storage.js
+- [x] T041 [P] [US4] Añadir estilos de campos, estados y lista de registros vinculados sin sustituir el tema común, en src/styles.css
 
-**Punto de control**: Las Historias de Usuario 1-4 deben estar completamente funcionales y ser comprobables de forma independiente. La pantalla de gestión debe consolidar ambos formularios (entidad y documento) en una sola pantalla.
+**Punto de control**: Las Historias de Usuario 1-4 deben estar completamente funcionales y ser comprobables de forma independiente. El espacio de gestión debe permitir alternar entre maestros y registros operativos, conservando la asociación y los datos guardados.
 
 ---
 
@@ -240,24 +244,26 @@
 
 ## Fase 12: Historia de Usuario 10 - Registrar los Detalles de Documentos de una Entidad (Prioridad: P2)
 
-**Objetivo**: Permitir a los usuarios registrar detalles de documentos para una entidad y mantener la actividad transaccional organizada junto a cada registro de datos maestros, con eliminación en cascada protegiendo la integridad referencial.
+**Responsable**: Joaquín Quilodrán - Analista de Calidad
 
-**Prueba Independiente**: Un usuario puede añadir un documento a una entidad y ver los detalles del documento mostrados junto a esa entidad; eliminar la entidad elimina sus documentos.
+**Objetivo**: Permitir al Analista de Calidad registrar detalles de documentos para una entidad y mantener la actividad transaccional organizada junto a cada registro de datos maestros, con eliminación en cascada protegiendo la integridad referencial.
+
+**Prueba Independiente**: Un Analista de Calidad puede añadir un documento a una entidad y ver los detalles del documento mostrados junto a esa entidad; eliminar la entidad elimina sus documentos.
 
 ### Pruebas para la Historia de Usuario 10
 
-- [ ] T076 [P] [US10] Añadir pruebas unitarias para generación de entity_id y validación de documentos en tests/unit/storage.test.js
-- [ ] T077 [P] [US10] Añadir pruebas de integración para añadir un documento a una entidad en tests/integration/add-document.test.js
-- [ ] T078 [P] [US10] Añadir pruebas de integración para edición, eliminación y eliminación en cascada de documentos en tests/integration/manage-document.test.js
+- [x] T076 [P] [US10] Verificar entity_id estable y validación de registros operativos en tests/unit/storage.test.js y tests/unit/quality-records.test.js
+- [x] T077 [P] [US10] Verificar alta de registros asociados y validación del maestro en tests/integration/add-document.test.js y tests/integration/quality-management.test.js
+- [x] T078 [P] [US10] Verificar edición, eliminación, cascada y conservación del maestro de origen en tests/integration/manage-document.test.js y tests/unit/quality-records.test.js
 
 ### Implementación de la Historia de Usuario 10
 
-- [ ] T079 [P] [US10] Crear la interfaz del formulario de documento en src/components/document-form.js (para tipos: NCR, Inspección, Auditoría, CAPA, Queja, Evaluación)
-- [ ] T080 [P] [US10] Crear la interfaz de la lista de documentos en src/components/document-list.js
-- [ ] T081 [US10] Conectar las acciones de crear, editar y eliminar documentos para persistirlos en src/app.js
-- [ ] T082 [US10] Añadir entity_id a la creación de entidades y mostrar los documentos con su entidad en src/app.js
-- [ ] T083 [US10] Implementar eliminación en cascada: al eliminar una entidad, sus documentos asociados también se eliminan en src/storage.js
-- [ ] T084 [US10] Implementar tipos de documento con campos específicos: NCR (folio, origen, gravedad), Inspección (tipo, resultado, fecha), etc.
+- [x] T079 [P] [US10] Integrar el formulario base de documentos y los tipos Inspección, NCR, CAPA, Auditoría, Queja y Evaluación en src/components/document-form.js y src/components/quality-fields.js
+- [x] T080 [P] [US10] Mostrar los detalles y campos específicos de los registros asociados en src/components/document-list.js
+- [x] T081 [US10] Conectar creación, edición, eliminación y mensajes de resultado con la persistencia en src/app.js
+- [x] T082 [US10] Mantener entity_id en los maestros y asociar cada registro operativo exactamente a su maestro en src/storage.js y src/app.js
+- [x] T083 [US10] Eliminar los registros operativos del maestro y sus dependientes al confirmar una cascada en src/storage.js
+- [x] T084 [US10] Validar y persistir Inspección (tipo, resultado, cantidades), NCR (folio, origen, gravedad, hallazgo) y CAPA (tipo, acción, responsable, fecha compromiso) en src/quality-records.js
 
 **Punto de control**: Los datos maestros y los documentos transaccionales deben estar completamente vinculados. La eliminación en cascada debe funcionar correctamente para todos los tipos de documento.
 
