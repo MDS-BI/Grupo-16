@@ -12,18 +12,18 @@ Este proyecto sirve como módulo base reutilizable para construir módulos ERP p
 ## Escenarios de Usuario y Pruebas *(obligatorio)*
 
 ### Historia de Usuario 1 - Crear y organizar datos maestros (Lote, Producto, Área Organizativa, Empleado) (Prioridad: P1)
-Como Inspector de Planta, quiero crear registros de datos maestros de Lote, Producto, Área Organizativa o Empleado con detalles claros para poder construir y mantener la información base del módulo de Gestión de Calidad.
+Como Inspector de Planta, quiero registrar y mantener información confiable de Lotes, Productos, Áreas Organizativas y Empleados, para identificar correctamente los elementos y responsables relacionados con las inspecciones y el control de calidad.
 
 **Por qué esta prioridad**: Este es el valor central del producto porque, sin registrar los Lotes, Productos, Áreas Organizativas o Empleados, el resto de la experiencia no puede aportar valor.
 
-**Prueba Independiente**: Un Inspector de Planta puede abrir el módulo, añadir un nuevo registro maestro (Lote, Producto, Área Organizativa o Empleado) y verlo aparecer en la lista.
+**Prueba Independiente**: El inspector de planta registra un lote, producto, área organizativa o empleado con su nombre y código, confirma que queda guardado y puede localizarlo para identificar los elementos o responsables vinculados a una actividad de inspección o control de calidad.
 
 **Escenarios de Aceptación**:
 
-1. **Dado** que un Inspector de Planta está viendo la lista de datos maestros (Lote, Producto, Área Organizativa o Empleado), **cuando** crea un nuevo Lote, Producto, Área Organizativa o Empleado con un nombre y un código, **entonces** el nuevo registro maestro se guarda y aparece en la lista.
-2. **Dado** que un Inspector de Planta está creando un registro de Lote, Producto, Área Organizativa o Empleado, **cuando** deja la información obligatoria en blanco, **entonces** el sistema impide guardar y explica qué se necesita.
+1. **Dado** que el Inspector de Planta está en la sección de datos maestros, **cuando** registra un Lote, Producto, Área Organizativa o Empleado con nombre y código, **entonces** el sistema guarda el registro y lo muestra en la lista con información suficiente para identificarlo.
+2. **Dado** que el Inspector de Planta está creando un registro maestro, **cuando** deja vacío el nombre o el código obligatorio, **entonces** el sistema impide guardarlo e indica qué dato debe completar.
 
-Asignado a: [Inserta aquí tu Nombre y Apellido]
+Asignado a: [José Mondaca]
 
 ---
 
@@ -146,7 +146,7 @@ Asignado a: [Nombre]
 ---
 
 ### Historia de Usuario 8 - Buscar y encontrar Lotes, Productos, Áreas Organizativas o Empleados rápidamente (Prioridad: P2)
-Como Inspector de Planta, quiero buscar mis Lotes, Productos, Áreas Organizativas o Empleados por detalles clave para encontrar rápidamente el registro maestro que necesito.
+Como Inspector de Planta, quiero buscar lotes, productos, áreas organizativas y empleados por sus datos identificativos, para encontrar el registro correcto al preparar una inspección y consultar los elementos y responsables relacionados con el control de calidad.
 
 **Por qué esta prioridad**: La recuperación rápida mejora la utilidad cuando el conjunto de datos de calidad crece más allá de un pequeño número de entradas.
 
@@ -154,11 +154,11 @@ Como Inspector de Planta, quiero buscar mis Lotes, Productos, Áreas Organizativ
 
 **Escenarios de Aceptación**:
 
-1. **Dados** múltiples Lotes, Productos, Áreas Organizativas o Empleados almacenados, **cuando** el Inspector de Planta busca con un término coincidente, **entonces** solo se muestran los registros maestros coincidentes.
-2. **Dada** una búsqueda sin coincidencias, **cuando** el Inspector de Planta envía la búsqueda, **entonces** el sistema muestra un estado vacío claro y permite volver a intentarlo.
-3. **Dados** cientos de Lotes, Productos, Áreas Organizativas o Empleados almacenados, **cuando** el Inspector de Planta busca, **entonces** los resultados coincidentes aparecen con prontitud sin retraso perceptible.
+1. **Dado** que el Inspector de Planta necesita localizar un lote, producto, área organizativa o empleado para preparar una inspección, **cuando** busca por nombre, código u otro dato descriptivo, **entonces** el sistema muestra los registros que coinciden y su información identificativa para que pueda reconocer el correcto.
+2. **Dado** que el Inspector de Planta busca un registro y no hay coincidencias, **cuando** se muestran los resultados, **entonces** el sistema indica que no encontró registros y permite modificar o borrar la búsqueda para intentarlo de nuevo.
+3. **Dado** que hay cientos de lotes, productos, áreas organizativas o empleados registrados, **cuando** el Inspector de Planta realiza una búsqueda por un dato identificativo, **entonces** los resultados relevantes aparecen con rapidez para no interrumpir su trabajo.
 
-Asignado a: [Nombre]
+Asignado a: [José Mondaca]
 
 ---
 
