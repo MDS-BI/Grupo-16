@@ -68,3 +68,17 @@ tests/
 ## Seguimiento de Complejidad
 
 Este plan no introdujo violaciones de la constitución.
+
+## Incremento HU2, HU4 y HU10 (2026-11-03)
+
+**Responsable**: Joaquín Quilodrán - Analista de Calidad, equipo incremental.
+
+Este incremento utiliza las historias y tareas existentes de `001-erp-base-module`, conservando la rama de trabajo actual. Recupera la base ejecutable del commit previo `501e9c6` del mismo repositorio, ya que `main` no contenía `src/` ni `index.html`, y añade únicamente los cambios de dominio necesarios para las tres historias asignadas.
+
+- HU2 / T020–T026: edición con identidad estable, validación y eliminación confirmada de maestros; cascadas Área→Empleados y Producto→Lotes con sus registros operativos.
+- HU4 / T034–T041: integración de las secciones de gestión, contexto del maestro seleccionado, estado vacío y navegación sin pérdida de registros guardados.
+- HU10 / T076–T084: formularios de Inspección, NCR y CAPA, validación por tipo y operaciones vinculadas al maestro de origen.
+
+La validación incluye las pruebas originales de la plantilla y las nuevas pruebas unitarias y de integración del incremento. Se ejecutan `npm test -- --run` y `npm run build`, además de comprobar en navegador la edición de un lote y el registro de una inspección asociada. El detalle de campos, dependencias, alcance y demostración se encuentra en [implementacion-hu2-hu4-hu10.md](implementacion-hu2-hu4-hu10.md).
+
+La identidad visual, la configuración específica y las demás historias continúan a cargo de sus responsables; sus tareas no se marcan como realizadas en este incremento.

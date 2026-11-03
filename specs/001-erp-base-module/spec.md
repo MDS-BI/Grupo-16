@@ -28,19 +28,21 @@ Asignado a: [José Mondaca]
 ---
 
 ### Historia de Usuario 2 - Editar y eliminar datos maestros (Lote, Producto, Área Organizativa, Empleado) (Prioridad: P1)
-Como Gestor de Calidad, quiero actualizar o eliminar registros de Lote, Producto, Área Organizativa o Empleado cuando cambien los datos maestros para que los registros se mantengan precisos.
+Como Analista de Calidad, quiero corregir los datos identificativos de Lotes, Productos, Áreas Organizativas y Empleados o eliminar registros que ya no correspondan, para que las inspecciones y el seguimiento de no conformidades utilicen información precisa y no queden vinculados a registros equivocados.
 
 **Por qué esta prioridad**: Mantener los Lotes, Productos, Áreas Organizativas y Empleados actualizados es esencial para la confianza en la herramienta y para soportar las operaciones diarias de control de calidad.
 
-**Prueba Independiente**: Un Gestor de Calidad puede seleccionar un Lote, Producto, Área Organizativa o Empleado existente, cambiar su información o eliminarlo, y la lista refleja el cambio.
+**Prueba Independiente**: El Analista de Calidad selecciona un lote existente, corrige su nombre o código y comprueba que conserva su identificador y sus registros operativos asociados al volver a abrir la aplicación. Después elimina un registro maestro de prueba, confirma que desaparece de la lista y de la búsqueda, y verifica que los demás registros permanecen intactos.
 
 **Escenarios de Aceptación**:
 
-1. **Dado** un registro maestro de Lote, Producto, Área Organizativa o Empleado que ya existe en la lista, **cuando** el Gestor de Calidad edita sus detalles, **entonces** la información actualizada se guarda y se muestra en la lista.
-2. **Dado** un registro de Lote, Producto, Área Organizativa o Empleado que ya no es relevante, **cuando** el Gestor de Calidad lo elimina, **entonces** desaparece de la lista y deja de aparecer en los resultados de búsqueda.
-3. **Dados** cientos de Lotes, Productos, Áreas Organizativas o Empleados almacenados, **cuando** el Gestor de Calidad edita o elimina uno, **entonces** la lista se actualiza correctamente y sigue siendo ágil.
+1. **Dado** un Lote, Producto, Área Organizativa o Empleado registrado, **cuando** el Analista de Calidad corrige sus datos y guarda, **entonces** se actualiza el mismo registro, conserva su identificador y sus vínculos con Inspecciones, NCR o CAPA, y la modificación permanece al recargar la aplicación.
+2. **Dado** que el Analista de Calidad está editando un registro maestro, **cuando** deja vacío un dato obligatorio, **entonces** el sistema identifica el campo que debe completar, impide guardar y conserva la última versión válida del registro.
+3. **Dado** un registro maestro que ya no corresponde, **cuando** el Analista de Calidad solicita eliminarlo, **entonces** el sistema pide confirmación e informa que también se eliminarán sus registros operativos asociados; al confirmar, elimina el registro y sus registros operativos, deja de mostrarlo en listas y búsquedas y conserva los registros de otros maestros.
+4. **Dada** una solicitud de eliminación, **cuando** el Analista de Calidad cancela la confirmación, **entonces** el registro maestro y sus registros operativos asociados permanecen sin cambios.
+5. **Dados** al menos 500 registros maestros almacenados, **cuando** el Analista de Calidad edita o elimina uno, **entonces** las listas y los resultados de búsqueda reflejan el cambio sin perder registros ajenos a la operación, conforme a FR-032 y SC-004.
 
-Asignado a: [Inserta aquí el Nombre y Apellido]
+Asignado a: [Joaquín Quilodrán - Analista de Calidad]
 
 ---
 
@@ -67,25 +69,24 @@ Asignado a: [Inserta aquí el Nombre y Apellido]
 
 ### Historia de Usuario 4 - Gestionar datos maestros y registros operativos en una pantalla dedicada (Prioridad: P1)
 
-Como Gestor de Calidad, quiero una pantalla dedicada donde pueda añadir, editar y eliminar datos maestros (Lote, Producto, Área Organizativa o Empleado) y sus registros operativos (Inspección de Calidad, No Conformidad NCR o Acción CAPA), para poder gestionar los datos del módulo en un lugar enfocado.
+Como Analista de Calidad, quiero acceder a un espacio de gestión con secciones de datos maestros y registros operativos, para mantener los Lotes, Productos, Áreas Organizativas y Empleados y consultar o actualizar sus Inspecciones, No Conformidades (NCR) y Acciones CAPA sin perder el contexto del registro seleccionado.
 
 **Por qué esta prioridad**: Esto preserva el valor central de las capacidades de gestión del módulo, presentado como una única pantalla de gestión accesible desde la barra lateral y las acciones rápidas del panel.
 
-**Prueba Independiente**: Un Gestor de Calidad puede navegar a la pantalla de gestión mediante la barra lateral o una acción rápida, alternar entre la gestión de datos maestros (Lote, Producto, Área Organizativa, Empleado) y registros operativos (Inspección de Calidad, NCR, CAPA), y volver al panel, añadiendo, editando y eliminando con éxito un registro maestro y un registro operativo.
+**Prueba Independiente**: El Analista de Calidad abre la gestión desde la barra lateral o una acción rápida, selecciona un lote registrado y consulta sus inspecciones y NCR en la sección de registros operativos. Realiza una modificación, cambia de sección y vuelve al panel; al regresar, verifica que los datos guardados y los vínculos entre registros se conservan.
 
 **Escenarios de Aceptación**:
 
-1. **Dado** que el Gestor de Calidad está en la pantalla de gestión, **cuando** mira la navegación, **entonces** la barra lateral del espacio de trabajo ofrece botones de módulo para Datos Maestros (Lote/Producto/Área/Empleado), Registros Operativos (Inspección/NCR/CAPA) y Panel con el módulo activo resaltado.
-2. **Dada** la barra lateral visible, **cuando** el Gestor de Calidad activa el botón de Datos Maestros (Lote/Producto/Área/Empleado), **entonces** se muestra el contenido de gestión de datos maestros.
-3. **Dada** la barra lateral visible, **cuando** el Gestor de Calidad activa el botón de Registros Operativos (Inspección/NCR/CAPA), **entonces** se muestra el contenido de gestión de registros operativos.
-4. **Dado** que el Gestor de Calidad está en la pantalla de gestión, **cuando** mira la pantalla, **entonces** la lista de datos maestros no se muestra.
-5. **Dado** que el Gestor de Calidad está en la pantalla de gestión, **cuando** crea un nuevo registro maestro (Lote, Producto, Área Organizativa o Empleado), **entonces** el registro se guarda.
-6. **Dado** un registro maestro (Lote, Producto, Área Organizativa o Empleado) existente, **cuando** el Gestor de Calidad edita sus detalles, **entonces** la información actualizada se guarda.
-7. **Dado** un registro maestro (Lote, Producto, Área Organizativa o Empleado) que ya no es relevante, **cuando** el Gestor de Calidad lo elimina, **entonces** se elimina junto con sus registros operativos (Inspecciones de Calidad, No Conformidades NCR, Acciones CAPA) asociados.
-8. **Dado** un registro maestro (Lote, Producto, Área Organizativa o Empleado) existente, **cuando** el Gestor de Calidad añade, edita o elimina una Inspección de Calidad, No Conformidad (NCR) o Acción CAPA, **entonces** los cambios del registro operativo se guardan y quedan asociados a ese registro maestro.
-9. **Dado** que el Gestor de Calidad está en la pantalla de gestión, **cuando** activa el botón Panel en la barra lateral, **entonces** vuelve al panel de inicio.
+1. **Dado** que el Analista de Calidad abre la gestión desde la barra lateral o una acción rápida del panel, **cuando** se muestra la sección solicitada, **entonces** puede identificar si está en Datos Maestros o Registros Operativos mediante el botón activo y el encabezado correspondiente.
+2. **Dada** la barra lateral visible, **cuando** el Analista de Calidad activa Datos Maestros, **entonces** accede a los controles para crear, seleccionar, editar y eliminar Lotes, Productos, Áreas Organizativas o Empleados, usando los flujos de HU1 y HU2.
+3. **Dado** un registro maestro existente seleccionado, **cuando** el Analista de Calidad abre Registros Operativos, **entonces** ve su nombre y código y únicamente las Inspecciones, NCR o CAPA vinculadas a ese registro maestro, sin mezclar registros de otro lote, producto, área o empleado.
+4. **Dado** que está activa la sección Registros Operativos, **cuando** el Analista de Calidad consulta la pantalla, **entonces** no se muestra la lista de gestión de datos maestros; se mantiene un selector o referencia al maestro para identificar a qué registro pertenecen las operaciones.
+5. **Dado** un registro maestro existente, **cuando** el Analista de Calidad crea, edita o elimina un registro operativo desde su sección de gestión, **entonces** se aplica el flujo de HU10 y el cambio se guarda con la asociación correcta al maestro.
+6. **Dado** que no existen datos maestros, **cuando** el Analista de Calidad abre Registros Operativos, **entonces** el sistema explica que debe registrar primero un Lote, Producto, Área Organizativa o Empleado e impide guardar registros operativos sin asociación.
+7. **Dado** un maestro con registros operativos asociados, **cuando** el Analista de Calidad confirma su eliminación desde Datos Maestros, **entonces** se aplica la eliminación en cascada de HU2 y HU10 y se actualiza la sección de registros operativos sin dejar referencias al maestro eliminado.
+8. **Dados** cambios guardados en cualquiera de las dos secciones, **cuando** el Analista de Calidad alterna entre ellas o vuelve al Panel, **entonces** los datos maestros y operativos guardados permanecen intactos y el botón activo corresponde a la sección visible, conforme a FR-022 y SC-007.
 
-Asignado a: [Inserta aquí el Nombre y Apellido]
+Asignado a: [Joaquín Quilodrán - Analista de Calidad]
 
 ---
 
@@ -182,20 +183,23 @@ Asignado a: [Nombre]
 ---
 
 ### Historia de Usuario 10 - Registrar los detalles de registros operativos (Inspección de Calidad, No Conformidad NCR, Acción CAPA) de un registro maestro (Prioridad: P2)
-Como Inspector de Planta, quiero registrar detalles de Inspección de Calidad, No Conformidad (NCR) o Acción CAPA para un Lote, Producto, Área Organizativa o Empleado, para mantener la actividad de control de calidad organizada junto a cada registro de datos maestros.
+Como Analista de Calidad, quiero registrar los resultados de una Inspección de Calidad y los detalles de una No Conformidad (NCR) o Acción CAPA asociados al Lote, Producto, Área Organizativa o Empleado correspondiente, para documentar los hallazgos y permitir que el Analista de Calidad consulte y dé seguimiento a cada caso desde su registro de origen.
 
 **Por qué esta prioridad**: Los registros operativos aportan valor operativo práctico una vez que los Lotes, Productos, Áreas Organizativas y Empleados están gestionados, pero no son necesarios para la gestión central.
 
-**Prueba Independiente**: Un Inspector de Planta puede añadir una Inspección de Calidad, No Conformidad (NCR) o Acción CAPA a un Lote, Producto, Área Organizativa o Empleado y ver los detalles del registro operativo mostrados junto a ese registro maestro.
+**Prueba Independiente**: El Analista de Calidad selecciona un lote existente, registra una inspección con su fecha y resultado y una NCR con su folio, origen y gravedad, según los campos declarados en el módulo. Comprueba que ambos registros aparecen asociados únicamente a ese lote, puede corregir sus detalles y los recupera al recargar la aplicación. La misma prueba se aplica a una Acción CAPA y a los demás tipos de maestro admitidos.
 
 **Escenarios de Aceptación**:
 
-1. **Dado** un Lote, Producto, Área Organizativa o Empleado en la lista, **cuando** el Inspector de Planta añade una Inspección de Calidad, No Conformidad (NCR) o Acción CAPA con detalles, **entonces** el registro operativo se guarda y queda asociado a ese registro maestro.
-2. **Dado** un registro operativo (Inspección de Calidad, NCR, CAPA) existente para un Lote, Producto, Área Organizativa o Empleado, **cuando** el Inspector de Planta selecciona ese registro maestro en la pantalla de gestión, **entonces** los detalles del registro operativo se muestran en la vista de gestión correspondiente.
-3. **Dado** un Lote, Producto, Área Organizativa o Empleado eliminado, **cuando** se confirma la eliminación, **entonces** sus registros operativos (Inspecciones de Calidad, NCR, Acciones CAPA) asociados también se eliminan.
-4. **Dado** que un Inspector de Planta está creando una Inspección de Calidad, No Conformidad (NCR) o Acción CAPA, **cuando** deja la información obligatoria en blanco, **entonces** el sistema impide guardar y explica qué se necesita.
+1. **Dado** un maestro existente seleccionado, **cuando** el Analista de Calidad registra una Inspección de Calidad, NCR o Acción CAPA con los datos obligatorios de su tipo, **entonces** el sistema guarda el registro operativo, le asigna un identificador y lo vincula exactamente a ese maestro mediante su identificador estable, conforme a FR-008 y FR-009.
+2. **Dada** la configuración de campos del módulo, **cuando** el Analista de Calidad registra una inspección o una NCR, **entonces** puede capturar los datos específicos declarados para ese tipo, como fecha y resultado de inspección o folio, origen y gravedad de la NCR, y consultar después esos valores junto con la referencia al maestro.
+3. **Dados** dos maestros con registros operativos distintos, **cuando** el Analista de Calidad selecciona uno en la gestión, **entonces** se muestran únicamente sus registros operativos y sus detalles; los datos guardados se conservan al navegar o recargar la aplicación.
+4. **Dado** un registro operativo existente, **cuando** el Analista de Calidad corrige sus detalles y guarda, **entonces** se actualiza el mismo registro sin duplicarlo ni perder su vínculo con el maestro, respetando las validaciones y el ciclo de vida que estén configurados en HU7 y HU12.
+5. **Dado** un registro operativo seleccionado, **cuando** el Analista de Calidad confirma su eliminación, **entonces** se elimina únicamente ese registro operativo, sin eliminar el maestro ni otros registros; si cancela, todos los datos permanecen sin cambios.
+6. **Dado** un maestro con Inspecciones, NCR o CAPA asociadas, **cuando** se confirma la eliminación del maestro, **entonces** se eliminan también sus registros operativos y permanecen intactos los de otros maestros, conforme a FR-009.
+7. **Dado** que falta un dato obligatorio, un valor no cumple el tipo declarado o no hay un maestro válido seleccionado, **cuando** el Analista de Calidad intenta guardar, **entonces** el sistema identifica el problema, impide el guardado y conserva los registros previamente almacenados.
 
-Asignado a: [Nombre]
+Asignado a: [Joaquín Quilodrán - Analista de Calidad]
 
 ---
 
@@ -298,7 +302,7 @@ Asignado a: [Nombre]
 - **FR-013**: El botón de módulo de Datos Maestros DEBE mostrar el contenido de gestión de Lotes, Productos, Áreas Organizativas y Empleados.
 - **FR-014**: El botón de módulo de Registros Operativos DEBE mostrar el contenido de gestión de Inspecciones de Calidad, No Conformidades (NCR) y Acciones CAPA en la pantalla de gestión.
 - **FR-015**: El botón de módulo Panel DEBE devolver al usuario al panel de inicio.
-- **FR-016**: La pantalla de gestión NO DEBE mostrar la lista de Lotes, Productos, Áreas Organizativas o Empleados.
+- **FR-016**: La sección de Registros Operativos NO DEBE mostrar la lista de gestión de Lotes, Productos, Áreas Organizativas o Empleados; DEBE conservar un selector o referencia al maestro para mostrar únicamente sus registros operativos asociados.
 - **FR-017**: La pantalla de gestión DEBE proporcionar la funcionalidad de crear, editar y eliminar datos maestros (Lote, Producto, Área Organizativa, Empleado).
 - **FR-018**: La pantalla de gestión DEBE proporcionar la funcionalidad de crear, editar y eliminar registros operativos (Inspección de Calidad, No Conformidad NCR, Acción CAPA).
 - **FR-019**: El sistema DEBE navegar a una pantalla de búsqueda dedicada cuando se selecciona el botón Buscar en la barra lateral.
