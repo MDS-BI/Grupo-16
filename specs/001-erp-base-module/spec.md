@@ -141,7 +141,7 @@ Como Gestor de Calidad, quiero declarar campos adicionales para Lotes, Productos
 3. **Dados** campos personalizados declarados, **cuando** el Inspector de Planta busca usando un término que coincide con un valor de campo personalizado, **entonces** se devuelven los registros coincidentes.
 4. **Dado** que no hay campos personalizados declarados, **cuando** la aplicación se ejecuta, **entonces** el comportamiento es idéntico al del módulo base sin modificar.
 
-Asignado a: [Nombre]
+Asignado a: [Joaquin Quiñones]
 
 ---
 
@@ -212,7 +212,7 @@ Como Inspector de Planta, quiero una pantalla de búsqueda dedicada para encontr
 3. **Dados** cientos de Lotes, Productos, Áreas Organizativas o Empleados almacenados, **cuando** el Inspector de Planta busca desde la pantalla de búsqueda, **entonces** los resultados aparecen con prontitud sin retraso perceptible.
 4. **Dado** que el Inspector de Planta está en la pantalla de búsqueda, **cuando** activa el botón Panel en la barra lateral, **entonces** vuelve al panel de inicio.
 
-Asignado a: [Nombre]
+Asignado a: [Joaquin Quiñones]
 
 ---
 
