@@ -297,24 +297,29 @@
 
 ---
 
-## Fase 17: Historia de Usuario 3 (revisada) - Panel de inicio con acciones rápidas y estadísticas (Prioridad: P1)
+## Fase 17: Historia de Usuario 3 (revisada) - Panel de inicio del auditor interno con acciones rápidas y estado de cumplimiento (Prioridad: P1)
 
-**Objetivo**: Reemplazar la vista de bienvenida de dos botones por un panel ERP que ofrece múltiples botones de acción rápida y estadísticas de registros en vivo.
+**Objetivo**: Reemplazar la vista de bienvenida por un panel de inicio centrado en el auditor interno que ofrece acciones rápidas para registrar áreas auditadas y hallazgos, gestionar y buscar, además de indicadores de cumplimiento y alertas de vencimiento.
 
-**Prueba Independiente**: La aplicación abre en un panel con acciones rápidas para nueva entidad, nuevo documento, gestión de entidades y buscar registros; activarlas aterriza en el lugar correcto listo para introducir datos, y las tarjetas de estadísticas coinciden con los registros almacenados.
+**Prueba Independiente**: Un auditor interno abre la aplicación y, sin navegar, identifica las áreas vencidas o próximas a vencer y los hallazgos registrados; activa las acciones rápidas para registrar área, registrar hallazgo, gestionar o buscar, y los indicadores coinciden con los registros almacenados.
 
 ### Pruebas para la Historia de Usuario 3
 
-- [X] T073 [P] [US3] Añadir pruebas de integración para las acciones rápidas del panel y las estadísticas en vivo en tests/integration/dashboard.test.js
+- [X] T073 [P] [US3] Añadir pruebas de integración para las acciones rápidas del panel y los recuentos en vivo de áreas/hallazgos en tests/integration/dashboard.test.js
+- [ ] T082 [P] [US3] Añadir pruebas de integración para los indicadores de cumplimiento, la sección de alertas de vencimiento y el estado vacío del panel en tests/integration/dashboard.test.js
 
 ### Implementación de la Historia de Usuario 3
 
-- [X] T074 [P] [US3] Añadir el marcado del panel (encabezado, cuadrícula de acciones rápidas, tarjetas de estadísticas) a index.html reemplazando la vista de bienvenida de dos botones
-- [X] T075 [US3] Conectar los botones de acción rápida para abrir la gestión de entidades, la gestión de documentos (formularios limpiados) y la búsqueda (entrada enfocada) en src/app.js
-- [X] T076 [US3] Renderizar y refrescar los recuentos de entidades/documentos desde el almacenamiento cada vez que se muestra el panel en src/components/dashboard.js
+- [X] T074 [P] [US3] Añadir el marcado del panel (encabezado, cuadrícula de acciones rápidas y tarjetas de estadísticas) a index.html reemplazando la vista de bienvenida de dos botones
+- [X] T075 [US3] Conectar los botones de acción rápida con etiquetas del auditor para abrir la gestión de áreas, la gestión de hallazgos (formularios limpiados) y la búsqueda (entrada enfocada) en src/app.js
+- [X] T076 [US3] Renderizar y refrescar los recuentos de áreas/hallazgos desde el almacenamiento cada vez que se muestra el panel en src/components/dashboard.js
 - [X] T077 [P] [US3] Dar estilo al encabezado del panel, las tarjetas de acción rápida y los mosaicos de estadísticas en src/styles.css
+- [ ] T083 [US3] Calcular y renderizar los indicadores de cumplimiento (áreas vigentes, próximas a vencer, vencidas y sin fecha de vencimiento) en src/components/dashboard.js
+- [ ] T084 [US3] Renderizar y dar estilo a la sección de alertas de vencimiento ordenada por criticidad (vencidas primero) con nombre/código y fecha en src/components/dashboard.js y src/styles.css
+- [ ] T085 [US3] Hacer configurable el umbral de “próxima a vencer” (30 días por defecto) y aplicarlo en la clasificación del panel en src/module-config.js y src/components/dashboard.js
+- [ ] T086 [US3] Mostrar los indicadores en cero y un mensaje de invitación cuando no existan áreas ni hallazgos en src/components/dashboard.js
 
-**Punto de control**: La aplicación abre en un panel funcional; cada tarea ERP clave está a un clic.
+**Punto de control**: La aplicación abre en un panel de inicio del auditor interno; cada tarea clave está a un clic y el estado de cumplimiento es visible de un vistazo.
 
 ---
 
@@ -322,10 +327,10 @@
 
 **Propósito**: Unificar el estilo visual en toda la aplicación rediseñada y protegerse contra regresiones.
 
-- [X] T078 [P] Rediseñar formularios, listas, insignias, mensajes de error y estados vacíos según el sistema de tokens de diseño en src/styles.css
-- [X] T079 [P] Verificar el orden de foco del teclado y aria-current en los botones de módulo de la barra lateral (pase de accesibilidad del nuevo marco)
-- [X] T080 Actualizar README.md con las secciones del marco del espacio de trabajo, panel y tematización
-- [X] T081 Ejecutar la suite completa de pruebas y la compilación de producción para verificar que no hay regresiones (FR-032, SC-004)
+- [X] T087 [P] Rediseñar formularios, listas, insignias, mensajes de error y estados vacíos según el sistema de tokens de diseño en src/styles.css
+- [X] T088 [P] Verificar el orden de foco del teclado y aria-current en los botones de módulo de la barra lateral (pase de accesibilidad del nuevo marco)
+- [X] T089 Actualizar README.md con las secciones del marco del espacio de trabajo, panel y tematización
+- [X] T090 Ejecutar la suite completa de pruebas y la compilación de producción para verificar que no hay regresiones (FR-032, SC-004)
 
 ---
 
@@ -349,7 +354,7 @@
 - Historia de Usuario 12 (Fase 14): Depende de la Historia de Usuario 5 (configuración) y la Historia de Usuario 10 (documentos)
 - Pulido (Fase 15): Depende de que todas las historias de usuario deseadas estén completas
 - Historia de Usuario 13 (Fase 16): Depende de que las Fases 1-15 estén completas; reestructura la navegación entregada por HU3/HU4 dentro del marco
-- Historia de Usuario 3 revisada (Fase 17): Depende de la Fase 16 (el enrutamiento por barra lateral debe existir antes de que las acciones del panel lo usen)
+- Historia de Usuario 3 revisada (Fase 17): Depende de la Fase 16 (el enrutamiento por barra lateral debe existir antes de que las acciones del panel lo usen) y de la Fase 11 (fecha de vencimiento del área) para los indicadores y alertas de cumplimiento
 - Pulido Aspecto ERP (Fase 18): Depende de que las Fases 16 y 17 estén completas
 
 ### Oportunidades Paralelas
@@ -361,5 +366,5 @@
 - HU8 (Fase 10) y HU9 (Fase 11) son independientes y pueden proceder en paralelo después de la Historia de Usuario 1
 - En la Fase 15, T058-T060 pueden ejecutarse en paralelo antes de las tareas finales de verificación T061-T063
 - En la Fase 16, T064-T067 y T069 pueden ejecutarse en paralelo; T072 aterriza junto al cambio de enrutamiento T068
-- En la Fase 17, T073/T074/T077 pueden ejecutarse en paralelo con T075/T076
-- En la Fase 18, T078 y T079 pueden ejecutarse en paralelo antes de la verificación final T080-T081
+- En la Fase 17, T073/T074/T077 pueden ejecutarse en paralelo con T075/T076; T082-T086 requieren los recuentos base de T076
+- En la Fase 18, T087 y T088 pueden ejecutarse en paralelo antes de la verificación final T089-T090

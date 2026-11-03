@@ -8,11 +8,12 @@
 
 ## Flujo de Usuario Principal
 
-1. Aterrice en el panel ERP y use un botón de acción rápida (nueva entidad, nuevo documento, gestión de entidades o buscar registros).
-2. Cree una entidad usando el formulario.
-3. Busque una entidad usando la pantalla de búsqueda.
-4. Edite o elimine una entidad desde el área de gestión.
-5. Cambie entre módulos usando la barra lateral; actualice la página para confirmar que las entidades persisten en el almacenamiento local y que el marco con marca (logotipo, nombre del módulo) permanece consistente.
+1. Aterrice en el panel de inicio del auditor interno y use una acción rápida (registrar área auditada, registrar hallazgo o no conformidad, gestionar áreas y hallazgos o buscar).
+2. Cree un área auditada usando el formulario, incluida su fecha de vencimiento.
+3. Registre un hallazgo o no conformidad asociado al área.
+4. Busque un área o hallazgo usando la pantalla de búsqueda.
+5. Edite o elimine un área o hallazgo desde el área de gestión.
+6. Cambie entre módulos usando la barra lateral; actualice la página para confirmar que las áreas y hallazgos persisten en el almacenamiento local y que el marco con marca (logotipo, nombre del módulo) permanece consistente.
 
 ## Validación
 
@@ -21,7 +22,9 @@
 - Verifique que un correo electrónico con formato inválido se rechaza con una explicación.
 - Verifique que los resultados de búsqueda se actualizan a medida que el usuario escribe.
 - Verifique que la lista permanece consistente tras las acciones de edición y eliminación.
-- Verifique que las estadísticas del panel coinciden con el número de registros almacenados.
+- Verifique que los indicadores de cumplimiento del panel coinciden con las áreas y hallazgos almacenados.
+- Verifique que las áreas vencidas y próximas a vencer aparecen en la sección de alertas ordenadas por criticidad.
+- Verifique que un área sin fecha de vencimiento se muestra como “sin plazo definido”.
 
 ## Extender el Módulo Base
 

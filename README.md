@@ -9,7 +9,7 @@ Entities carry standard ERP master-data fields (name, code, tax ID, email, phone
 The app presents itself as a coherent ERP workspace:
 
 - **Workspace shell** — every screen lives inside a branded chrome: a top bar with a logo (an SVG monogram derived from the module name) and module name, plus a persistent sidebar of module buttons (Panel, Entidades, Documentos, Búsqueda). The active module is highlighted (`aria-current="page"`), and the sidebar collapses to an icon rail on narrow viewports.
-- **Home dashboard** — the entry screen offers quick-action buttons for key ERP tasks (new entity, new document, open management areas, find records) and live statistic cards showing record counts.
+- **Home dashboard** — the entry screen is the internal auditor's command center: quick-action buttons to register an audited area, register a finding/non-conformity, manage areas and findings, and search, plus compliance status cards (total areas, current, due soon, overdue, no target date, findings) and an overdue/due-soon alert list.
 - **Design tokens** — styling is driven by CSS custom properties in `src/styles.css`, so branding changes apply globally.
 
 ## Setup

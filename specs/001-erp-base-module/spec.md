@@ -40,22 +40,26 @@ Como usuario de negocio, quiero actualizar o eliminar entidades cuando cambien l
 
 ---
 
-### Historia de Usuario 3 - Panel de inicio con acciones rápidas y estadísticas de registros (Prioridad: P1)
+### Historia de Usuario 3 - Panel de inicio del auditor interno con acciones rápidas y estado de cumplimiento (Prioridad: P1)
 
-Como usuario de negocio, quiero aterrizar en un panel estilo ERP con botones de acción rápida claramente etiquetados para las tareas clave y totales de registros de un vistazo al abrir la aplicación, para poder empezar a trabajar de inmediato.
+Como auditor interno del equipo de Control de Gestión, quiero aterrizar en un panel de inicio que me muestre el estado de cumplimiento de las áreas auditadas y me dé acceso de un clic a mis tareas de auditoría, para priorizar mi trabajo por vencimiento, registrar hallazgos sin fricción y evidenciar el seguimiento oportuno de cada área.
 
-**Por qué esta prioridad**: El panel es el punto de entrada de la aplicación. Nada más puede alcanzarse sin él, y las acciones rápidas son la ruta más rápida hacia cada flujo de trabajo central.
+**Por qué esta prioridad**: El auditor no necesita “empezar a usar el ERP”: necesita saber qué áreas requieren atención hoy. El panel es su bandeja de entrada operativa. Si no expone vencimientos y acciones clave, el auditor pierde tiempo navegando y puede dejar vencer controles sin evidencia de seguimiento.
 
-**Prueba Independiente**: Un usuario abre la aplicación, ve un panel con múltiples botones de acción rápida y estadísticas de registros, inicia una nueva entidad o documento con un solo clic y ve estadísticas que reflejan los datos almacenados.
+**Prueba Independiente**: Un auditor interno abre la aplicación y, sin navegar, identifica cuántas áreas están vencidas o próximas a vencer y cuántos hallazgos existen; con un solo clic puede registrar un área, registrar un hallazgo, abrir la gestión o buscar un registro.
 
 **Escenarios de Aceptación**:
 
-1. **Dado** que el usuario abre la aplicación, **cuando** la aplicación carga, **entonces** se muestra el panel de inicio con al menos cuatro botones de acción rápida claramente etiquetados que cubren las tareas ERP clave: crear una nueva entidad, crear un nuevo documento, abrir la gestión de entidades y buscar registros.
-2. **Dado** que se muestra el panel, **cuando** el usuario activa la acción de nueva entidad, **entonces** la aplicación abre el área de gestión de entidades con un formulario vacío listo para introducir datos.
-3. **Dado** que se muestra el panel, **cuando** el usuario activa la acción de nuevo documento, **entonces** la aplicación abre el área de gestión de documentos con un formulario vacío listo para introducir datos.
-4. **Dado** que se muestra el panel, **cuando** el usuario activa la acción de buscar registros, **entonces** la aplicación abre la pantalla de búsqueda con el campo de búsqueda enfocado.
-5. **Dadas** entidades y documentos almacenados, **cuando** el usuario ve el panel, **entonces** las tarjetas de estadísticas muestran el recuento actual de entidades y documentos.
-6. **Dado** que el usuario crea o elimina registros en otra parte de la aplicación, **cuando** vuelve al panel, **entonces** las estadísticas reflejan el cambio.
+1. **Dado** que el auditor interno abre la aplicación, **cuando** se carga la vista inicial, **entonces** ve un panel con al menos cuatro acciones rápidas etiquetadas en lenguaje de auditoría: registrar/actualizar área auditada, registrar hallazgo o no conformidad, gestionar áreas y hallazgos, y buscar área, hallazgo o evidencia.
+2. **Dado** que se muestra el panel, **cuando** el auditor activa la acción de registrar/actualizar área auditada, **entonces** se abre la gestión de áreas con un formulario vacío y listo para registrar nombre, código, categoría y fecha de vencimiento del área.
+3. **Dado** que se muestra el panel, **cuando** el auditor activa la acción de registrar hallazgo o no conformidad, **entonces** se abre la gestión de hallazgos con un formulario vacío, solicitando el área asociada y sin permitir guardar hasta completar los campos obligatorios.
+4. **Dado** que se muestra el panel, **cuando** el auditor activa la acción de gestionar áreas y hallazgos, **entonces** se abre la pantalla de gestión con los paneles de áreas y de hallazgos disponibles.
+5. **Dado** que se muestra el panel, **cuando** el auditor activa la acción de buscar, **entonces** se abre la pantalla de búsqueda con el campo enfocado y puede buscar por nombre, código, categoría o fecha de vencimiento del área, así como por detalles del hallazgo.
+6. **Dadas** áreas y hallazgos almacenados, **cuando** el auditor ve el panel, **entonces** las tarjetas de estado de cumplimiento muestran el total de áreas auditadas, áreas vigentes, áreas próximas a vencer, áreas vencidas, áreas sin fecha de vencimiento y total de hallazgos/no conformidades registrados.
+7. **Dado** que el auditor crea, edita o elimina un área o un hallazgo en la gestión, **cuando** vuelve al panel, **entonces** los indicadores reflejan el cambio en la siguiente visualización, sin recargar manualmente la aplicación.
+8. **Dado** que existen áreas vencidas o próximas a vencer, **cuando** el auditor ve el panel, **entonces** se muestran en una sección de alertas ordenadas por criticidad —primero vencidas, luego próximas a vencer— con nombre/código y fecha, y las vencidas se distinguen visualmente.
+9. **Dado** que no hay áreas ni hallazgos registrados, **cuando** el auditor abre el panel, **entonces** ve los indicadores en cero y un mensaje que lo invita a registrar la primera área, sin ocultar las acciones rápidas.
+10. **Dado** que un área no tiene fecha de vencimiento, **cuando** el auditor ve el panel, **entonces** se contabiliza como “sin plazo definido” y se muestra como pendiente de completar, sin bloquear el registro del área.
 
 ---
 
@@ -250,7 +254,9 @@ Como usuario de negocio, quiero un espacio de trabajo estilo ERP consistente, co
 - ¿Qué ocurre cuando un usuario pulsa el botón atrás del navegador estando en la pantalla de gestión o búsqueda?
 - ¿Qué ocurre si un usuario navega fuera de la pantalla de gestión mientras un formulario aún tiene cambios sin guardar?
 - ¿Permanecen intactas las entidades y los documentos al navegar entre el panel, la gestión y la búsqueda?
-- ¿Qué ocurre cuando el panel se abre con cero entidades o cero documentos (valores estadísticos)?
+- ¿Qué ocurre cuando el panel se abre con cero áreas auditadas o cero hallazgos (valores estadísticos)?
+- ¿Qué ocurre cuando un área no tiene fecha de vencimiento y aparece en el panel como “sin plazo definido”?
+- ¿Qué ocurre cuando todas las áreas están vencidas o no existe ninguna próxima a vencer?
 - ¿Qué ocurre cuando el color de acento configurado no es un valor de color válido?
 - ¿Cómo mantiene la barra lateral contraída las etiquetas de módulo accesibles en ventanas gráficas estrechas?
 
@@ -267,7 +273,7 @@ Como usuario de negocio, quiero un espacio de trabajo estilo ERP consistente, co
 - **FR-007**: El sistema DEBE mantener los datos de entidad consistentes tras operaciones de creación, edición y eliminación.
 - **FR-008**: El sistema DEBE permitir a los usuarios añadir, editar y eliminar detalles de documentos de una entidad.
 - **FR-009**: El sistema DEBE asociar cada documento exactamente a una entidad y eliminar los documentos asociados cuando la entidad se elimina.
-- **FR-010**: El sistema DEBE mostrar un panel de inicio como vista inicial, con botones de acción rápida claramente etiquetados para las tareas ERP clave.
+- **FR-010**: El sistema DEBE mostrar un panel de inicio como vista inicial, con botones de acción rápida claramente etiquetados para las tareas clave del auditor interno.
 - **FR-011**: El sistema DEBE envolver cada pantalla en un marco de espacio de trabajo persistente compuesto por una barra superior con marca y una barra lateral de navegación de módulos.
 - **FR-012**: La barra lateral DEBE proporcionar botones de módulo para Panel, Entidades, Documentos y Buscar, etiquetados desde la configuración del módulo.
 - **FR-013**: El botón de módulo Entidades DEBE mostrar el contenido de gestión de entidades.
@@ -290,9 +296,9 @@ Como usuario de negocio, quiero un espacio de trabajo estilo ERP consistente, co
 - **FR-030**: El sistema DEBE aplicar las transiciones de estado configuradas en los documentos independientemente de cómo se envíe un cambio.
 - **FR-031**: El sistema DEBE mantener el estado del documento como texto libre cuando no hay ciclo de vida configurado.
 - **FR-032**: El sistema DEBE mantener el renderizado de listas y la búsqueda ágiles y correctos para conjuntos de datos de al menos 500 registros de entidad.
-- **FR-033**: El panel DEBE ofrecer al menos cuatro botones de acción rápida: nueva entidad, nuevo documento, abrir gestión de entidades y buscar registros.
-- **FR-034**: Activar la acción rápida de nueva entidad o nuevo documento DEBE abrir el área de gestión correspondiente con un formulario vacío listo para introducir datos.
-- **FR-035**: El panel DEBE mostrar tarjetas de estadísticas con el número de entidades y documentos almacenados, actualizadas cada vez que se muestra el panel.
+- **FR-033**: El panel DEBE ofrecer al menos cuatro botones de acción rápida: registrar/actualizar área auditada, registrar hallazgo o no conformidad, gestionar áreas y hallazgos, y buscar área, hallazgo o evidencia.
+- **FR-034**: Activar la acción rápida de registrar área o hallazgo DEBE abrir el área de gestión correspondiente con un formulario vacío listo para introducir datos.
+- **FR-035**: El panel DEBE mostrar tarjetas de estado de cumplimiento con el número de áreas auditadas, áreas vigentes, próximas a vencer, vencidas, sin fecha de vencimiento y hallazgos registrados, actualizadas cada vez que se muestra el panel.
 - **FR-036**: La barra superior DEBE mostrar un logotipo derivado del nombre del módulo junto con el nombre del módulo configurado en cada pantalla.
 - **FR-037**: La barra lateral DEBE resaltar visualmente el módulo activo en cada pantalla.
 - **FR-038**: La configuración PUEDE definir un color de acento; el sistema DEBE aplicarlo consistentemente en todo el marco y retroceder de forma segura a los valores integrados cuando esté ausente o sea inválido.
@@ -301,6 +307,10 @@ Como usuario de negocio, quiero un espacio de trabajo estilo ERP consistente, co
 - **FR-041**: El sistema DEBE validar que la fecha de vencimiento del área sea una fecha de calendario válida cuando esté presente, impidiendo guardar valores inválidos.
 - **FR-042**: El sistema DEBE mostrar la fecha de vencimiento del área en las listas e indicar si está vigente, próxima a vencer o vencida.
 - **FR-043**: El sistema DEBE aceptar fechas de vencimiento anteriores a la fecha actual como áreas vencidas y resaltarlas para su seguimiento, sin impedir el registro.
+- **FR-044**: El panel DEBE clasificar las áreas como vigentes, próximas a vencer, vencidas o sin plazo definido usando un umbral configurable de 30 días para “próxima a vencer”.
+- **FR-045**: El panel DEBE mostrar una sección de alertas con las áreas vencidas y próximas a vencer, ordenadas por criticidad (vencidas primero) e incluyendo al menos nombre/código y fecha de vencimiento.
+- **FR-046**: El panel DEBE mostrar los indicadores en cero y un mensaje de invitación a registrar la primera área cuando no existan áreas ni hallazgos, sin ocultar las acciones rápidas.
+- **FR-047**: El panel NO DEBE permitir la edición de registros; las acciones de creación, edición y eliminación DEBEN permanecer en la pantalla de gestión.
 
 ### Requisitos de Extensibilidad *(obligaciones del módulo base)*
 
@@ -331,12 +341,18 @@ Los módulos personalizados construidos sobre esta base DEBEN poder:
 - **SC-007**: Los usuarios pueden navegar entre las pantallas de panel, gestión y búsqueda sin perder ninguna entidad ni documento almacenado.
 - **SC-008**: Un desarrollador puede producir un módulo adaptado usando solo el archivo de configuración, con cero modificaciones en archivos fuente centrales.
 - **SC-009**: Cada pantalla presenta el mismo marco con marca, y los usuarios pueden identificar en qué módulo están de un vistazo.
-- **SC-010**: Las estadísticas de registros mostradas en el panel siempre coinciden con el número de entidades y documentos almacenados.
+- **SC-010**: Los indicadores de cumplimiento mostrados en el panel siempre coinciden con las áreas y hallazgos almacenados.
+- **SC-011**: El auditor interno identifica las áreas vencidas o próximas a vencer en menos de 10 segundos desde que abre la aplicación.
+- **SC-012**: Al menos el 90% de los auditores internos inicia una tarea clave desde el panel con un solo clic.
+- **SC-013**: Las alertas de vencimiento del panel se mantienen correctas y utilizables con al menos 500 áreas registradas.
 
 ## Suposiciones
 
 - El módulo base gestiona datos para un único espacio de trabajo en lugar de una base de datos multiinquilino compartida.
 - La adaptación a un módulo específico se realiza mediante un archivo de configuración del módulo en lugar de editando archivos fuente centrales.
+- El módulo de Control de Gestión se configura con la terminología Área auditada (Entidad) y Hallazgo/no conformidad (Documento).
+- El umbral para clasificar un área como próxima a vencer es de 30 días y es configurable.
+- El panel de inicio es de solo consulta y navegación; la creación, edición y eliminación de áreas y hallazgos permanece en la pantalla de gestión.
 - Cada entidad incluye información básica suficiente para identificación y seguimiento; los módulos personalizados aportan los campos específicos del dominio.
 - La versión inicial se centra en la gestión central de datos maestros y documentos en lugar de capacidades ERP avanzadas como flujos de aprobación, períodos de contabilización o informes.
 - La búsqueda se realiza sobre los registros de entidad almacenados.
