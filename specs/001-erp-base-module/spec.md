@@ -177,7 +177,7 @@ Como Inspector de Planta, quiero adjuntar una fecha objetivo opcional a un Lote,
 2. **Dado** un Lote, Producto, Área Organizativa o Empleado con fecha fijada, **cuando** el Inspector de Planta ve la lista, **entonces** los registros maestros con fechas pueden identificarse de un vistazo.
 3. **Dado** que un Inspector de Planta deja la fecha en blanco, **cuando** guarda el registro maestro, **entonces** este igualmente se guarda sin fecha (campo opcional).
 
-Asignado a: [Nombre]
+Asignado a: [Andrea Vergara]
 
 ---
 
@@ -195,7 +195,7 @@ Como Inspector de Planta, quiero registrar detalles de Inspección de Calidad, N
 3. **Dado** un Lote, Producto, Área Organizativa o Empleado eliminado, **cuando** se confirma la eliminación, **entonces** sus registros operativos (Inspecciones de Calidad, NCR, Acciones CAPA) asociados también se eliminan.
 4. **Dado** que un Inspector de Planta está creando una Inspección de Calidad, No Conformidad (NCR) o Acción CAPA, **cuando** deja la información obligatoria en blanco, **entonces** el sistema impide guardar y explica qué se necesita.
 
-Asignado a: [Nombre]
+Asignado a: [Joaquin Quilodran]
 
 ---
 
@@ -235,7 +235,7 @@ Como Gestor de Calidad, quiero definir los estados permitidos de las Inspeccione
 3. **Dado** un ciclo de vida configurado, **cuando** el Inspector de Planta ve listas o detalles de registros operativos, **entonces** el estado actual es identificable de un vistazo.
 4. **Dado** que no hay ciclo de vida configurado, **cuando** se editan Inspecciones de Calidad, NCRs o Acciones CAPA, **entonces** el estado permanece como texto libre igual que en el módulo base sin modificar.
 
-Asignado a: [Nombre]
+Asignado a: [Martina Cuevas]
 
 ---
 
@@ -256,7 +256,7 @@ Como Gestor de Calidad, quiero un espacio de trabajo estilo ERP consistente, con
 5. **Dada** una configuración que define un color de acento, **cuando** cualquier pantalla carga, **entonces** el marco lo usa consistentemente para resaltados y controles principales; sin valor configurado o con un valor inválido, se usan los valores predeterminados integrados sin errores.
 6. **Dado** que el Gestor de Calidad navega entre módulos mediante la barra lateral, **cuando** inspecciona sus datos después, **entonces** todos los Lotes, Productos, Áreas Organizativas, Empleados e Inspecciones de Calidad, NCRs y Acciones CAPA almacenados permanecen intactos.
 
-Asignado a: [Nombre]
+Asignado a: [Martina Cuevas]
 
 ---
 
