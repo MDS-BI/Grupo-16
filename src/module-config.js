@@ -114,7 +114,7 @@ export function normalizeConfig(userConfig) {
         seenKeys[cf.target].add(cf.key);
 
         if (!FIELD_TYPES.includes(cf.type)) {
-          errors.push(`Tipo de campo personalizado desconocido: ${cf.type}`);
+          errors.push(`Tipo de campo personalizado desconocido (type): ${cf.type}`);
           continue;
         }
         if (cf.type === 'select') {

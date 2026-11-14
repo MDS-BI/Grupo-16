@@ -33,7 +33,13 @@ function applyRelabeling() {
 
   // Dashboard headings & actions
   if (qs('dashboard-heading')) qs('dashboard-heading').textContent = config.moduleName;
-  if (qs('action-new-entity-title')) qs('action-new-entity-title').textContent = `Nuevo ${labelFor('entity')}`;
+  const entityLabel = labelFor('entity');
+  const isFeminine = (entityLabel === 'Entidad' || entityLabel.endsWith('a'));
+  const newPrefix = isFeminine ? 'Nueva' : 'Nuevo';
+  const article = isFeminine ? 'la' : 'el';
+  const adjective = isFeminine ? 'seleccionada' : 'seleccionado';
+
+  if (qs('action-new-entity-title')) qs('action-new-entity-title').textContent = `${newPrefix} ${entityLabel}`;
   if (qs('action-new-document-title')) qs('action-new-document-title').textContent = `Nuevo ${labelFor('document')}`;
   if (qs('action-open-entities-title')) qs('action-open-entities-title').textContent = labelFor('entities');
   if (qs('action-find-title')) qs('action-find-title').textContent = 'Buscar registros';
@@ -44,9 +50,9 @@ function applyRelabeling() {
 
   // Entities view
   if (qs('entities-view-heading')) qs('entities-view-heading').textContent = labelFor('entities');
-  if (qs('entity-form-heading')) qs('entity-form-heading').textContent = `Agregar / Editar ${labelFor('entity')}`;
-  if (qs('edit-entity-heading')) qs('edit-entity-heading').textContent = `Editar o eliminar el ${labelFor('entity').toLowerCase()}`;
-  if (qs('delete-entity')) qs('delete-entity').textContent = `Eliminar el ${labelFor('entity').toLowerCase()} seleccionado`;
+  if (qs('entity-form-heading')) qs('entity-form-heading').textContent = `Agregar / Editar ${entityLabel}`;
+  if (qs('edit-entity-heading')) qs('edit-entity-heading').textContent = `Editar o eliminar ${article} ${entityLabel.toLowerCase()}`;
+  if (qs('delete-entity')) qs('delete-entity').textContent = `Eliminar ${article} ${entityLabel.toLowerCase()} ${adjective}`;
 
   // Documents view
   if (qs('documents-view-heading')) qs('documents-view-heading').textContent = labelFor('documents');
