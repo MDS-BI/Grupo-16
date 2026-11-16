@@ -281,25 +281,25 @@
 
 ---
 
-## Fase 14: Historia de Usuario 12 - Configurar el Ciclo de Vida de Estados de Documentos (Prioridad: P2)
+## Fase 14: Historia de Usuario 12 - Configurar el Ciclo de Vida de Estados de Hallazgos/No Conformidades (NCR) (Prioridad: P2)
 
-**Objetivo**: Aplicar los estados y transiciones configurados en los documentos manteniendo el estado de texto libre cuando no hay configuración.
+**Objetivo**: Permitir al administrador del módulo de calidad definir los estados permitidos de los hallazgos/no conformidades y sus transiciones, y aplicarlos en las NCR manteniendo el estado de texto libre cuando no hay configuración.
 
-**Prueba Independiente**: Con estados configurados (ABIERTA→EN_INVESTIGACIÓN→EN_CAPA→CERRADA/RECHAZADA), solo se ofrecen los estados siguientes válidos, los inválidos se rechazan con explicaciones, y el estado es visible de un vistazo; sin configuración, el estado permanece como texto libre.
+**Prueba Independiente**: El administrador del módulo de calidad configura un ciclo de vida (p. ej., abierta→en revisión→cerrada, compatible con la matriz del proyecto ABIERTA→EN_INVESTIGACIÓN→EN_CAPA→CERRADA/RECHAZADA); el control de estado de una NCR ofrece solo los estados siguientes válidos, una transición inválida (p. ej., cerrar una NCR sin pasar por revisión) se rechaza con explicación, y el estado de cada NCR es visible de un vistazo en las listas de gestión; sin configuración, el estado permanece como texto libre.
 
 ### Pruebas para la Historia de Usuario 12
 
-- [ ] T090 [P] [US12] Añadir pruebas unitarias para la aplicación de transiciones de estado en tests/unit/storage.test.js
+- [ ] T090 [P] [US12] Añadir pruebas unitarias para la aplicación de transiciones de estado en las NCR en tests/unit/storage.test.js (incluye rechazo de transición inválida tipo "cerrar una NCR sin pasar por revisión" con explicación clara)
 
 ### Implementación de la Historia de Usuario 12
 
-- [ ] T091 [US12] Restringir las opciones de estado de documento a las transiciones permitidas y aplicarlas al guardar en src/components/document-form.js y src/storage.js
-- [ ] T092 [US12] Implementar matriz de transiciones permitidas por tipo de documento: NCR (ABIERTE→INVESTIGACIÓN→EN_CAPA→CERRADA/RECHAZADA), Inspección (ACEPTADO/RECHAZADO/CONDICIONADO), etc.
-- [ ] T093 [US12] Aplicar transiciones de estado configuradas en los documentos independientemente de cómo se envíe un cambio (formulario, barra lateral, atajo)
-- [ ] T094 [US12] Cuando no hay ciclo de vida configurado, el estado permanece como texto libre igual que en el módulo base sin modificar
-- [ ] T095 [US12] Visualizar el estado actual identificable de un vistazo en listas y detalles de documentos
+- [ ] T091 [US12] Restringir las opciones de estado de los hallazgos/no conformidades a las transiciones permitidas y aplicarlas al guardar en src/components/document-form.js y src/storage.js
+- [ ] T092 [US12] Implementar matriz de transiciones permitidas por tipo de documento del dominio de calidad: NCR (ABIERTA→EN_INVESTIGACIÓN→EN_CAPA→CERRADA/RECHAZADA), Inspección (ACEPTADO/RECHAZADO/CONDICIONADO), etc., derivada del ciclo de vida configurado por el administrador del módulo de calidad
+- [ ] T093 [US12] Aplicar transiciones de estado configuradas en las NCR independientemente de cómo se envíe un cambio (formulario, barra lateral, atajo)
+- [ ] T094 [US12] Cuando no hay ciclo de vida configurado en el módulo de calidad, el estado del hallazgo permanece como texto libre igual que en el módulo base sin modificar
+- [ ] T095 [US12] Visualizar el estado actual de cada NCR identificable de un vistazo en listas y detalles de hallazgos/no conformidades
 
-**Punto de control**: La cadena de personalización (HU5→HU6/HU7/HU12) está completa de extremo a extremo. Las transiciones inválidas se rechazan con explicación clara.
+**Punto de control**: La cadena de personalización (HU5→HU6/HU7/HU12) está completa de extremo a extremo. Las transiciones inválidas en las NCR se rechazan con explicación clara que indique las transiciones válidas del ciclo de calidad.
 
 ---
 
@@ -316,27 +316,27 @@
 
 ---
 
-## Fase 16: Historia de Usuario 13 - Marco de Espacio de Trabajo ERP con Marca (Prioridad: P1)
+## Fase 16: Historia de Usuario 13 - Marco de Espacio de Trabajo del Módulo de Calidad con Marca (Prioridad: P1)
 
-**Objetivo**: Envolver cada pantalla en un marco ERP persistente: una barra superior con logotipo derivado y nombre del módulo, más una barra lateral de botones de módulo con resaltado de módulo activo y contracción responsiva.
+**Objetivo**: Permitir al administrador del módulo de calidad ofrecer a su equipo un marco ERP persistente en cada pantalla: una barra superior con logotipo derivado y nombre del módulo de calidad, más una barra lateral de botones de módulo con terminología del dominio (Áreas auditadas, Hallazgos/no conformidades), resaltado de módulo activo y contracción responsiva.
 
-**Prueba Independiente**: En cada pantalla la barra superior y la barra lateral son visibles, el módulo activo está resaltado, la navegación entre módulos preserva los datos, y la barra lateral se contrae a una columna de iconos en ventanas gráficas estrechas.
+**Prueba Independiente**: El administrador del módulo de calidad recorre todas las pantallas y en cada una ve la barra superior (logotipo SVG en línea + nombre del módulo configurado) y la barra lateral con botones para Panel, Áreas auditadas, Hallazgos/no conformidades y Buscar con el módulo activo resaltado; navegar entre módulos preserva las áreas y hallazgos almacenados, y la barra lateral se contrae a una columna de iconos en ventanas gráficas estrechas.
 
 ### Pruebas para la Historia de Usuario 13
 
-- [ ] T102 [P] [US13] Añadir pruebas de integración que afirmen que el marco (logotipo, nombre del módulo, botones de barra lateral, resaltado activo) aparece en todas las pantallas en tests/integration/workspace-shell.test.js
+- [ ] T102 [P] [US13] Añadir pruebas de integración que afirmen que el marco (logotipo, nombre del módulo de calidad, botones de barra lateral con terminología de calidad, resaltado activo) aparece en todas las pantallas en tests/integration/workspace-shell.test.js
 
 ### Implementación de la Historia de Usuario 13
 
 - [ ] T103 [P] [US13] Añadir el marcado del marco del espacio de trabajo (barra superior, montaje de logotipo SVG en línea, botones de módulo en barra lateral, región de contenido principal) a index.html
-- [ ] T104 [P] [US13] Crear src/components/shell.js para renderizar el logotipo monograma SVG a partir del nombre del módulo, aplicar las etiquetas configuradas a los botones de módulo, gestionar el resaltado de módulo activo y exponer eventos de navegación
+- [ ] T104 [P] [US13] Crear src/components/shell.js para renderizar el logotipo monograma SVG a partir del nombre del módulo de calidad, aplicar las etiquetas configuradas a los botones de módulo (Panel, Áreas auditadas, Hallazgos/no conformidades, Buscar), gestionar el resaltado de módulo activo y exponer eventos de navegación
 - [ ] T105 [P] [US13] Construir la hoja de estilos de tokens de diseño ERP (variables de color, escala de espaciado, tipografía) más estilos de barra superior, barra lateral y tarjetas en src/styles.css
-- [ ] T106 [US13] Soportar un theme.accentColor opcional en la validación de src/module-config.js y aplicarlo como propiedad personalizada de CSS en src/app.js
-- [ ] T107 [US13] Contraer la barra lateral a una columna de iconos en ventanas gráficas estrechas en src/styles.css
+- [ ] T106 [US13] Soportar un theme.accentColor opcional en la validación de src/module-config.js y aplicarlo como propiedad personalizada de CSS en src/app.js, con retroceso seguro a los valores integrados cuando esté ausente o sea inválido
+- [ ] T107 [US13] Contraer la barra lateral a una columna de iconos en ventanas gráficas estrechas, manteniéndola operable y etiquetada de forma accesible, en src/styles.css
 - [ ] T108 [P] [US13] Actualizar las pruebas de integración existentes para apuntar al marco de barra lateral en lugar de los botones de bienvenida
-- [ ] T109 [US13] Asegurar que la navegación entre módulos (Panel→Gestión→Búsqueda) preserve los datos almacenados en localStorage
+- [ ] T109 [US13] Asegurar que la navegación entre módulos (Panel→Gestión→Búsqueda) preserve las áreas auditadas y hallazgos/no conformidades almacenados en localStorage
 
-**Punto de control**: Todas las pantallas se renderizan dentro del marco con marca con navegación por barra lateral funcional y sin pérdida de datos. El marco debe ser visible en todas las pantallas y el botón del módulo activo debe estar resaltado visualmente.
+**Punto de control**: Todas las pantallas del módulo de calidad se renderizan dentro del marco con marca con navegación por barra lateral funcional y sin pérdida de áreas ni hallazgos. El marco debe ser visible en todas las pantallas y el botón del módulo activo debe estar resaltado visualmente.
 
 ---
 
