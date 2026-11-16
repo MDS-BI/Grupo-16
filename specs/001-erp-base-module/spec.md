@@ -220,6 +220,7 @@ Asignado a: [Joaquin Quiñones - Gestor de Calidad]
 
 ---
 
+<<<<<<< Updated upstream
 ### Historia de Usuario 12 - Configurar el ciclo de vida de estados de registros operativos (Inspección de Calidad, NCR, CAPA) (Prioridad: P2)
 
 Como Gestor de Calidad, quiero definir los estados permitidos de las Inspecciones de Calidad, No Conformidades (NCR) o Acciones CAPA y las transiciones permitidas, para que los registros operativos sigan el ciclo de vida de Gestión de Calidad en lugar de aceptar texto de estado arbitrario.
@@ -236,11 +237,28 @@ Como Gestor de Calidad, quiero definir los estados permitidos de las Inspeccione
 4. **Dado** que no hay ciclo de vida configurado, **cuando** se editan Inspecciones de Calidad, NCRs o Acciones CAPA, **entonces** el estado permanece como texto libre igual que en el módulo base sin modificar.
 
 Asignado a: [Martina Cuevas]
+=======
+### Historia de Usuario 12 - Configurar el ciclo de vida de estados de hallazgos/no conformidades (NCR) (Prioridad: P2)
+
+Como administrador del módulo de calidad, quiero definir los estados permitidos de los hallazgos/no conformidades y las transiciones permitidas entre ellos, para que cada NCR siga el ciclo de vida del proceso de gestión de calidad (p. ej., abierta → en revisión → cerrada) en lugar de aceptar un estado de texto arbitrario que impida evidenciar el seguimiento y el cierre oportuno de cada no conformidad.
+
+**Por qué esta prioridad**: El ciclo de vida controlado es lo que permite al equipo de Control de Gestión evidenciar que cada no conformidad fue revisada y cerrada dentro del proceso de calidad, pero el estado de texto libre sigue siendo aceptable para la gestión básica de áreas y hallazgos, así que esto mejora el módulo de calidad sin ser necesario para su puesta en marcha. Esta historia depende del perfil de configuración (Historia de Usuario 5).
+
+**Prueba Independiente**: El administrador del módulo de calidad configura un ciclo de vida abierta→en revisión→cerrada para los hallazgos/no conformidades; el control de estado de una NCR ofrece solo los estados siguientes válidos, una transición inválida (p. ej., cerrar una NCR sin pasar por revisión) se rechaza con una explicación, y el estado de cada NCR es visible de un vistazo en las listas de gestión.
+
+**Escenarios de Aceptación**:
+
+1. **Dado** un ciclo de vida configurado (p. ej., abierta → en revisión → cerrada), **cuando** el administrador del módulo de calidad edita el estado de un hallazgo/no conformidad, **entonces** solo se ofrecen los estados alcanzables mediante transiciones permitidas.
+2. **Dado** que se intenta una transición inválida en una NCR por cualquier vía de cambio de estado, **cuando** se envía, **entonces** el sistema la rechaza con una explicación clara que indique las transiciones válidas del ciclo de calidad.
+3. **Dado** un ciclo de vida configurado, **cuando** el administrador del módulo de calidad ve las listas o los detalles de hallazgos/no conformidades, **entonces** el estado actual de cada NCR es identificable de un vistazo.
+4. **Dado** que no hay ciclo de vida configurado en el módulo de calidad, **cuando** se editan hallazgos, **entonces** el estado permanece como texto libre igual que en el módulo base sin modificar.
+>>>>>>> Stashed changes
 
 ---
 
-### Historia de Usuario 13 - Marco de espacio de trabajo ERP con marca (Prioridad: P1)
+### Historia de Usuario 13 - Marco de espacio de trabajo del módulo de calidad con marca (Prioridad: P1)
 
+<<<<<<< Updated upstream
 Como Gestor de Calidad, quiero un espacio de trabajo estilo ERP consistente, con una barra superior con marca y una barra lateral de módulos presentes en cada pantalla, para que la aplicación se sienta como un sistema de Gestión de Calidad empresarial coherente en lugar de páginas sueltas.
 
 **Por qué esta prioridad**: El marco aporta la marca y la navegación de todas las demás pantallas; construirlo como envoltorio evita tocar cada historia por separado y da al módulo su identidad ERP de Calidad. Depende del perfil de configuración (Historia de Usuario 5) para el nombre del módulo y la terminología, y reestructura la navegación antes proporcionada por los botones de bienvenida y las pestañas de gestión (Historias de Usuario 3 y 4).
@@ -257,6 +275,22 @@ Como Gestor de Calidad, quiero un espacio de trabajo estilo ERP consistente, con
 6. **Dado** que el Gestor de Calidad navega entre módulos mediante la barra lateral, **cuando** inspecciona sus datos después, **entonces** todos los Lotes, Productos, Áreas Organizativas, Empleados e Inspecciones de Calidad, NCRs y Acciones CAPA almacenados permanecen intactos.
 
 Asignado a: [Martina Cuevas]
+=======
+Como administrador del módulo de calidad, quiero un espacio de trabajo estilo ERP consistente, con una barra superior con la marca del módulo y una barra lateral de módulos presentes en cada pantalla, para que el equipo de Control de Gestión trabaje en un sistema coherente donde siempre se identifique el módulo de calidad y se navegue sin fricción entre el panel de inicio, la gestión de áreas y hallazgos y la búsqueda.
+
+**Por qué esta prioridad**: El marco aporta la marca y la navegación de todas las demás pantallas del módulo de calidad; construirlo como envoltorio evita tocar cada historia por separado y da al módulo su identidad ERP. Depende del perfil de configuración (Historia de Usuario 5) para el nombre del módulo, la terminología de calidad y el color de acento, y reestructura la navegación antes proporcionada por los botones de bienvenida y las pestañas de gestión (Historias de Usuario 3 y 4).
+
+**Prueba Independiente**: El administrador del módulo de calidad recorre todas las pantallas y en cada una ve una barra superior con un logotipo derivado del nombre del módulo de calidad junto al nombre configurado, una barra lateral ofrece botones de módulo para Panel, Áreas auditadas, Hallazgos/no conformidades y Buscar con el módulo activo resaltado visualmente, y comprueba que navegar entre módulos nunca pierde áreas ni hallazgos almacenados.
+
+**Escenarios de Aceptación**:
+
+1. **Dada** cualquier pantalla del módulo de calidad mostrada, **cuando** el administrador mira la página, **entonces** es visible una barra superior que contiene un logotipo SVG en línea derivado del nombre del módulo y el nombre del módulo configurado.
+2. **Dada** cualquier pantalla mostrada, **cuando** el administrador mira la barra lateral, **entonces** se muestran botones de módulo para Panel, Entidades (Área auditada), Documentos (Hallazgo/no conformidad) y Buscar usando la terminología configurada del módulo de calidad.
+3. **Dado** que el administrador está en cualquier pantalla, **cuando** mira la barra lateral, **entonces** el botón del módulo activo está resaltado visualmente.
+4. **Dado** que la ventana gráfica es estrecha, **cuando** el administrador usa la aplicación en una pantalla pequeña, **entonces** la barra lateral se contrae a una columna de iconos manteniéndose utilizable y etiquetada de forma accesible.
+5. **Dada** una configuración del módulo de calidad que define un color de acento, **cuando** cualquier pantalla carga, **entonces** el marco lo usa consistentemente para resaltados y controles principales; sin valor configurado o con un valor inválido, se usan los valores predeterminados integrados sin errores.
+6. **Dado** que el administrador navega entre módulos mediante la barra lateral, **cuando** inspecciona sus datos después, **entonces** todas las áreas auditadas y hallazgos/no conformidades almacenados permanecen intactos.
+>>>>>>> Stashed changes
 
 ---
 
