@@ -174,11 +174,40 @@ function showView(viewId) {
   }
 }
 
+function formatTargetDate(value) {
+  if (!value) return '';
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return value;
+  return `${match[3]}/${match[2]}/${match[1]}`;
+}
+
+function classifyMasterEntity(entity) {
+  const text = `${entity.name || ''} ${entity.code || ''} ${entity.tipoItem || ''} ${entity.category || ''} ${entity.type || ''}`.toLowerCase();
+  if (text.includes('area') || text.includes('área')) return 'areas';
+  if (text.includes('emple')) return 'employees';
+  if (text.includes('product')) return 'products';
+  if (text.includes('lote') || text.includes('lot')) return 'lots';
+  return null;
+}
+
 function updateDashboardStats() {
   const entities = loadEntities();
   const docs = loadDocuments();
   if (qs('stat-entities')) qs('stat-entities').textContent = entities.length;
   if (qs('stat-documents')) qs('stat-documents').textContent = docs.length;
+
+  const counts = { areas: 0, employees: 0, products: 0, lots: 0 };
+  entities.forEach(e => {
+    const key = classifyMasterEntity(e);
+    if (key) counts[key] += 1;
+  });
+  if (qs('stat-areas')) qs('stat-areas').textContent = counts.areas;
+  if (qs('stat-employees')) qs('stat-employees').textContent = counts.employees;
+  if (qs('stat-products')) qs('stat-products').textContent = counts.products;
+  if (qs('stat-lots')) qs('stat-lots').textContent = counts.lots;
+
+  const empty = qs('dashboard-empty-state');
+  if (empty) empty.hidden = !(entities.length === 0 && docs.length === 0);
 }
 
 function populateEntitySelect() {
@@ -223,7 +252,7 @@ function renderEntitiesList() {
         }
       }
     }
-    return `<li><strong>${e.name}</strong> (${e.code})${e.targetDate ? ` - Fecha: ${e.targetDate}` : ''}${customText}</li>`;
+    return `<li><strong>${e.name}</strong> (${e.code})${e.targetDate ? ` - Fecha objetivo: ${formatTargetDate(e.targetDate)}` : ''}${customText}</li>`;
   }).join('');
 }
 
@@ -257,7 +286,7 @@ function performSearch() {
         }
       }
     }
-    return `<li class="entity-item"><strong>${e.name}</strong> (${e.code})${customText}</li>`;
+    return `<li class="entity-item"><strong>${e.name}</strong> (${e.code})${e.targetDate ? ` - Fecha objetivo: ${formatTargetDate(e.targetDate)}` : ''}${customText}</li>`;
   }).join('');
 }
 

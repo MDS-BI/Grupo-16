@@ -67,7 +67,7 @@ describe('entity storage', () => {
   it('rejects a malformed email address', () => {
     const res = validateEntity({name:'A', code:'B', email:'not-an-email'});
     expect(res.valid).toBe(false);
-    expect(res.errors.email).toContain('correo electrónico');
+    expect(res.errors.email).toContain('Correo electrónico');
     expect(validateEntity({name:'A', code:'B', email:'ventas@acme.mx'}).valid).toBe(true);
     expect(validateEntity({name:'A', code:'B', email:''}).valid).toBe(true);
   });
@@ -81,7 +81,7 @@ describe('entity storage', () => {
   });
 
   it('accepts a valid target date', () => {
-    const res = validateEntity({name:'A', code:'B', targetDate:'2026-08-06'});
+    const res = validateEntity({name:'A', code:'B', targetDate:'2099-08-06'});
     expect(res.valid).toBe(true);
   });
 
@@ -97,18 +97,24 @@ describe('entity storage', () => {
   });
 
   it('persists target date on create and update', () => {
-    const e = addEntity({name:'Acme', code:'AC-001', targetDate:'2026-09-01'});
-    expect(loadEntities()[0].targetDate).toBe('2026-09-01');
-    const updated = updateEntity(e.id, { targetDate:'2026-10-01' });
-    expect(updated.targetDate).toBe('2026-10-01');
+    const e = addEntity({name:'Acme', code:'AC-001', targetDate:'2099-09-01'});
+    expect(loadEntities()[0].targetDate).toBe('2099-09-01');
+    const updated = updateEntity(e.id, { targetDate:'2099-10-01' });
+    expect(updated.targetDate).toBe('2099-10-01');
   });
 
   it('searches by target date', () => {
-    addEntity({name:'Acme', code:'AC-001', targetDate:'2026-09-01'});
-    addEntity({name:'Globex', code:'GL-002', targetDate:'2026-11-20'});
-    const results = searchEntities('2026-09-01');
+    addEntity({name:'Acme', code:'AC-001', targetDate:'2099-09-01'});
+    addEntity({name:'Globex', code:'GL-002', targetDate:'2099-11-20'});
+    const results = searchEntities('2099-09-01');
     expect(results.length).toBe(1);
     expect(results[0].name).toBe('Acme');
+  });
+
+  it('rejects target date not after creation date', () => {
+    const res = validateEntity({name:'A', code:'B', targetDate:'2000-01-01', createdAt: new Date().toISOString()});
+    expect(res.valid).toBe(false);
+    expect(res.errors.targetDate).toContain('posterior');
   });
 
   it('searches by tax id and email', () => {
@@ -195,9 +201,9 @@ describe('document storage', () => {
 
   it('validates subtotal, discount, tax and their relationship', () => {
     const base = { entityId:entity.entity_id, folio:5, startDate:'2026-08-01', endDate:'2026-08-05' };
-    expect(validateDocument({...base, subtotal:-5}).errors.subtotal).toContain('no negativo');
-    expect(validateDocument({...base, discount:-1}).errors.discount).toContain('no negativo');
-    expect(validateDocument({...base, taxAmount:-2}).errors.taxAmount).toContain('no negativo');
+    expect(validateDocument({...base, subtotal:-5}).errors.subtotal).toContain('negativo');
+    expect(validateDocument({...base, discount:-1}).errors.discount).toContain('negativo');
+    expect(validateDocument({...base, taxAmount:-2}).errors.taxAmount).toContain('negativo');
     expect(validateDocument({...base, subtotal:100, discount:200}).valid).toBe(false);
     expect(validateDocument({...base, subtotal:100, discount:150}).errors.discount).toContain('superar el subtotal');
     expect(validateDocument({...base, subtotal:100, discount:16, taxAmount:13.44, totalAmount:97.44}).valid).toBe(true);

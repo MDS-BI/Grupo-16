@@ -73,6 +73,13 @@ export function validateEntity(data) {
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     if (!dateRegex.test(data.targetDate) || isNaN(Date.parse(data.targetDate))) {
       errors.targetDate = 'Fecha objetivo inválida';
+    } else {
+      const baseDate = data.createdAt ? new Date(data.createdAt) : new Date();
+      const target = new Date(`${data.targetDate}T00:00:00`);
+      const baseDay = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
+      if (target <= baseDay) {
+        errors.targetDate = 'La fecha objetivo debe ser posterior a la fecha de creación';
+      }
     }
   }
 
