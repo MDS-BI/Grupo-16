@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DEFAULT_CONFIG, BASE_FIELDS, FIELD_TYPES, normalizeConfig, loadModuleConfig, setActiveConfig, getConfig, labelFor } from '../../src/module-config.js';
+import { DEFAULT_CONFIG, QUALITY_CONFIG, BASE_FIELDS, FIELD_TYPES, normalizeConfig, loadModuleConfig, setActiveConfig, getConfig, labelFor } from '../../src/module-config.js';
 
 const salesConfig = {
   moduleName: 'Ventas',
@@ -34,6 +34,16 @@ describe('module-config', () => {
     expect(config.labels.entity).toBe('Cliente');
     expect(config.customFields.length).toBe(2);
     expect(config.statusLifecycle.statuses).toEqual(['cotización', 'pedido', 'facturado']);
+  });
+
+  it('accepts QUALITY_CONFIG profile with Lote, Producto, Inspección, and NCR terms', () => {
+    const { config, errors } = normalizeConfig(QUALITY_CONFIG);
+    expect(errors).toEqual([]);
+    expect(config.moduleName).toBe('Gestión de Calidad');
+    expect(config.labels.entity).toBe('Producto / Lote');
+    expect(config.labels.document).toBe('Inspección / NCR');
+    expect(config.statusLifecycle.statuses).toContain('ABIERTA');
+    expect(config.statusLifecycle.statuses).toContain('EN_INVESTIGACION');
   });
 
   it('reports an invalid module name instead of failing silently', () => {

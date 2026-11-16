@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Módulo Base ERP</title>
+  <link rel="stylesheet" href="/src/styles.css">
+</head>
+<body>
+  <div class="workspace-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div id="logo-mark"></div>
+        <span id="brand-name">Módulo Base ERP</span>
+      </div>
+    </header>
+
+    <div class="workspace-body">
+      <nav class="sidebar">
+        <button id="nav-dashboard" class="nav-module" data-module="dashboard" aria-current="page">
+          <span id="nav-dashboard-label" class="nav-label">Panel</span>
+        </button>
+        <button id="nav-entities" class="nav-module" data-module="entities">
+          <span id="nav-entities-label" class="nav-label">Entidades</span>
+        </button>
+        <button id="nav-documents" class="nav-module" data-module="documents">
+          <span id="nav-documents-label" class="nav-label">Documentos</span>
+        </button>
+        <button id="nav-search" class="nav-module" data-module="search">
+          <span id="nav-search-label" class="nav-label">Búsqueda</span>
+        </button>
+      </nav>
+
+      <main class="content-area">
+        <!-- Dashboard View -->
+        <section id="view-dashboard" class="view">
+          <h1 id="dashboard-heading">Panel</h1>
+          <div class="quick-actions">
+            <button id="action-new-entity" class="action-card">
+              <span id="action-new-entity-title">Nueva Entidad</span>
+            </button>
+            <button id="action-new-document" class="action-card">
+              <span id="action-new-document-title">Nuevo Documento</span>
+            </button>
+            <button id="action-open-entities" class="action-card">
+              <span id="action-open-entities-title">Entidades</span>
+            </button>
+            <button id="action-find" class="action-card">
+              <span id="action-find-title">Buscar registros</span>
+            </button>
+          </div>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span id="stat-entities" class="stat-value">0</span>
+              <span id="stat-entities-label" class="stat-label">Entidades</span>
+            </div>
+            <div class="stat-card">
+              <span id="stat-documents" class="stat-value">0</span>
+              <span id="stat-documents-label" class="stat-label">Documentos</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- Entities View -->
+        <section id="view-entities" class="view" hidden>
+          <h1 id="entities-view-heading">Entidades</h1>
+          <div class="form-container">
+            <h2 id="entity-form-heading">Agregar / Editar Entidad</h2>
+            <form id="entity-form">
+              <input type="hidden" id="entity-id">
+              <div class="field">
+                <label for="name">Nombre *</label>
+                <input type="text" id="name">
+                <span id="error-name" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="code">Código *</label>
+                <input type="text" id="code">
+                <span id="error-code" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="taxId">RFC / Identificador fiscal</label>
+                <input type="text" id="taxId">
+              </div>
+              <div class="field">
+                <label for="email">Correo electrónico</label>
+                <input type="email" id="email">
+                <span id="error-email" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="phone">Teléfono</label>
+                <input type="text" id="phone">
+              </div>
+              <div class="field">
+                <label for="address">Dirección</label>
+                <input type="text" id="address">
+              </div>
+              <div class="field">
+                <label for="creditLimit">Límite de crédito</label>
+                <input type="number" id="creditLimit">
+                <span id="error-creditLimit" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="paymentTerms">Condiciones de pago</label>
+                <input type="text" id="paymentTerms">
+              </div>
+              <div class="field">
+                <label for="targetDate">Fecha objetivo</label>
+                <input type="date" id="targetDate">
+                <span id="error-targetDate" class="error"></span>
+              </div>
+              <div id="entity-custom-fields" hidden>
+                <h3>Campos personalizados</h3>
+                <div id="entity-custom-fields-container"></div>
+              </div>
+              <button type="submit" id="save-entity">Guardar</button>
+            </form>
+          </div>
+
+          <div class="management-controls">
+            <h3 id="edit-entity-heading">Editar o eliminar la entidad</h3>
+            <select id="edit-entity">
+              <option value="">Seleccione una entidad...</option>
+            </select>
+            <button id="delete-entity" type="button">Eliminar la entidad seleccionada</button>
+          </div>
+
+          <div class="list-container">
+            <ul id="entities-list"></ul>
+          </div>
+        </section>
+
+        <!-- Documents View -->
+        <section id="view-documents" class="view" hidden>
+          <h1 id="documents-view-heading">Documentos</h1>
+          <div class="form-container">
+            <h2 id="document-form-heading">Agregar / Editar Documento</h2>
+            <form id="document-form">
+              <input type="hidden" id="document-id">
+              <div class="field">
+                <label for="document-entity">Entidad Asociada *</label>
+                <select id="document-entity">
+                  <option value="">Seleccione entidad...</option>
+                </select>
+                <span id="error-document-entity" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="folio">Folio *</label>
+                <input type="number" id="folio">
+                <span id="error-folio" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="startDate">Fecha inicial</label>
+                <input type="date" id="startDate">
+              </div>
+              <div class="field">
+                <label for="endDate">Fecha final</label>
+                <input type="date" id="endDate">
+                <span id="error-endDate" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="status">Estado</label>
+                <input type="text" id="status">
+                <select id="status-select" hidden></select>
+                <span id="error-status" class="error"></span>
+              </div>
+              <div id="document-custom-fields" hidden>
+                <div id="document-custom-fields-container"></div>
+              </div>
+              <button type="submit" id="save-document">Guardar Documento</button>
+            </form>
+          </div>
+
+          <div class="management-controls">
+            <h3 id="edit-document-heading">Editar o eliminar el documento</h3>
+            <select id="edit-document">
+              <option value="">Seleccione un documento...</option>
+            </select>
+            <button id="delete-document" type="button">Eliminar el documento seleccionado</button>
+          </div>
+
+          <div class="list-container">
+            <ul id="documents-list"></ul>
+          </div>
+        </section>
+
+        <!-- Search View -->
+        <section id="view-search" class="view" hidden>
+          <h1 id="search-view-heading">Buscar Entidades</h1>
+          <div class="search-container">
+            <input type="text" id="search-input" placeholder="Buscar...">
+          </div>
+          <div id="search-empty" class="empty-state" hidden>No se encontraron coincidencias.</div>
+          <ul id="search-results-list"></ul>
+        </section>
+      </main>
+    </div>
+  </div>
+  <script type="module" src="/src/app.js"></script>
+</body>
+</html>
