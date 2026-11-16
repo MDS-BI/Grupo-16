@@ -31,26 +31,26 @@
 
 ---
 
-## Fase 3: Historia de Usuario 1 - Crear y Organizar Entidades (Prioridad: P1) 🎯 MVP
+## Fase 3: Historia de Usuario 1 - Crear y organizar datos maestros (Lote, Producto, Área Organizativa, Empleado) (Prioridad: P1) 🎯 MVP
 
-**Objetivo**: Permitir a los usuarios añadir las entidades maestras del modelo de calidad y verlas en la lista.
+**Objetivo**: Permitir al Inspector de Planta registrar y mantener información confiable de Lotes, Productos, Áreas Organizativas y Empleados, con nombre y código, y localizarlos en la lista para identificar los elementos y responsables vinculados a las inspecciones y el control de calidad.
 
-**Prueba Independiente**: Un usuario puede abrir la aplicación, enviar un formulario de entidad (área, empleado, producto, lote) y ver la nueva entidad aparecer.
+**Prueba Independiente**: Un Inspector de Planta registra un Lote, Producto, Área Organizativa o Empleado con su nombre y código, confirma que queda guardado y puede localizarlo en la lista con información suficiente para identificarlo.
 
 ### Pruebas para la Historia de Usuario 1
 
-- [ ] T013 [P] [US1] Añadir pruebas unitarias para validación de entidades en tests/unit/storage.test.js
-- [ ] T014 [P] [US1] Añadir pruebas de integración para crear entidades en tests/integration/create-entity.test.js
+- [ ] T013 [P] [US1] Añadir pruebas unitarias para validación de datos maestros (nombre y código obligatorios) en tests/unit/storage.test.js
+- [ ] T014 [P] [US1] Añadir pruebas de integración para crear datos maestros (Lote, Producto, Área Organizativa, Empleado) en tests/integration/create-entity.test.js
 
 ### Implementación de la Historia de Usuario 1
 
-- [ ] T015 [P] [US1] Crear la interfaz del formulario de entidad en src/components/quality-entity-form.js (para los 4 tipos: área, empleado, producto, lote)
-- [ ] T016 [US1] Conectar el envío del formulario para crear y persistir una nueva entidad en src/app.js
-- [ ] T017 [US1] Renderizar la lista de entidades y mostrar retroalimentación de validación en src/components/quality-entity-list.js
-- [ ] T018 [US1] Implementar selección de tipo de entidad (área/empleado/producto/lote) en el formulario
-- [ ] T019 [US1] Añadir campos específicos por tipo de entidad en el formulario (módulo ENUM para áreas, ENUM puesto para empleados, etc.)
+- [ ] T015 [P] [US1] Crear la interfaz del formulario de datos maestros en src/components/quality-entity-form.js (para los 4 tipos: Lote, Producto, Área Organizativa, Empleado)
+- [ ] T016 [US1] Conectar el envío del formulario para validar nombre y código obligatorios, crear y persistir un nuevo dato maestro en src/app.js
+- [ ] T017 [US1] Renderizar la lista de datos maestros con información identificativa suficiente (nombre, código y datos propios del tipo) y mostrar retroalimentación de validación en src/components/quality-entity-list.js
+- [ ] T018 [US1] Implementar selección del tipo de dato maestro (Lote/Producto/Área Organizativa/Empleado) en el formulario
+- [ ] T019 [US1] Añadir campos específicos por tipo de dato maestro (número de lote y fechas de fabricación/caducidad para Lote; código, descripción, tipo y unidad de medida para Producto; código, nombre y módulo para Área Organizativa; número de nómina, puesto, área y estado para Empleado)
 
-**Punto de control**: La Historia de Usuario 1 debe estar completamente funcional y ser comprobable de forma independiente. Todas las 4 tipos de entidad (área, empleado, producto, lote) deben ser creables.
+**Punto de control**: La Historia de Usuario 1 debe estar completamente funcional y ser comprobable de forma independiente. Los 4 tipos de datos maestros (Lote, Producto, Área Organizativa, Empleado) deben ser creables, y el sistema debe impedir guardar cuando falte el nombre o el código e indicar qué dato debe completar.
 
 ---
 
@@ -191,27 +191,27 @@
 
 ---
 
-## Fase 10: Historia de Usuario 8 - Buscar y Encontrar Entidades Rápidamente (Prioridad: P2)
+## Fase 10: Historia de Usuario 8 - Buscar y encontrar Lotes, Productos, Áreas Organizativas o Empleados rápidamente (Prioridad: P2)
 
-**Objetivo**: Permitir a los usuarios buscar y filtrar entidades rápidamente, manteniendo la capacidad de respuesta con conjuntos de datos grandes.
+**Objetivo**: Permitir al Inspector de Planta buscar por datos identificativos (nombre, código u otros datos descriptivos) para encontrar el registro correcto al preparar una inspección, manteniendo la capacidad de respuesta con cientos de registros.
 
-**Prueba Independiente**: Un usuario puede introducir un término de búsqueda y ver solo las entidades coincidentes.
+**Prueba Independiente**: Un Inspector de Planta puede introducir un término de búsqueda y ver solo los Lotes, Productos, Áreas Organizativas o Empleados coincidentes, con su información identificativa.
 
 ### Pruebas para la Historia de Usuario 8
 
-- [ ] T061 [P] [US8] Añadir pruebas unitarias para la lógica de filtrado de búsqueda en tests/unit/storage.test.js
-- [ ] T062 [P] [US8] Añadir pruebas de integración para el comportamiento de búsqueda en tests/integration/search-entities.test.js
+- [ ] T061 [P] [US8] Añadir pruebas unitarias para la lógica de filtrado de datos maestros por nombre, código y datos descriptivos en tests/unit/storage.test.js
+- [ ] T062 [P] [US8] Añadir pruebas de integración para la búsqueda de datos maestros, incluidos los casos sin coincidencias y el rendimiento con 500+ registros, en tests/integration/search-entities.test.js
 
 ### Implementación de la Historia de Usuario 8
 
 - [ ] T063 [P] [US8] Crear la interfaz de la barra de búsqueda en src/components/search-bar.js
-- [ ] T064 [US8] Conectar la entrada de búsqueda al filtrado y al comportamiento de estado vacío en src/app.js
-- [ ] T065 [US8] Asegurar que los resultados de búsqueda permanezcan sincronizados con las acciones de crear, editar y eliminar en src/app.js
-- [ ] T066 [US8] Implementar filtrado sobre: nombre, código, descripción, tipo, módulo, estado, fecha para las 4 entidades principales
+- [ ] T064 [US8] Conectar la entrada de búsqueda al filtrado y mostrar la información identificativa de cada resultado en src/app.js
+- [ ] T065 [US8] Asegurar que los resultados de búsqueda permanezcan sincronizados con las acciones de crear, editar y eliminar datos maestros en src/app.js
+- [ ] T066 [US8] Implementar filtrado sobre nombre, código y datos descriptivos (descripción, tipo, unidad de medida, módulo, puesto, número de nómina, número de lote, fechas y estado) para los 4 tipos de datos maestros
 - [ ] T067 [US8] Implementar búsqueda combinada en múltiples campos simultáneamente
-- [ ] T068 [US8] Manejar búsquedas sin coincidencias con estado vacío claro y permitir volver a intentarlo
+- [ ] T068 [US8] Manejar búsquedas sin coincidencias indicando que no se encontraron registros y permitir modificar o borrar la búsqueda para intentarlo de nuevo
 
-**Punto de control**: Las historias centrales de datos y la búsqueda deben estar ahora funcionalmente independientes. La búsqueda debe ser rápida incluso con 500+ registros (FR-032, SC-004).
+**Punto de control**: Las historias centrales de datos y la búsqueda deben estar ahora funcionalmente independientes. La búsqueda debe devolver resultados relevantes con rapidez incluso con cientos de registros (FR-032, SC-004) y mostrar un estado vacío claro cuando no haya coincidencias.
 
 ---
 
