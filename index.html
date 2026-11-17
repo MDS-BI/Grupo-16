@@ -36,26 +36,43 @@
           <h1 id="dashboard-heading">Panel</h1>
           <div class="quick-actions">
             <button id="action-new-entity" class="action-card">
-              <span id="action-new-entity-title">Nueva Entidad</span>
+              <span id="action-new-entity-title">Nuevo registro maestro</span>
             </button>
             <button id="action-new-document" class="action-card">
-              <span id="action-new-document-title">Nuevo Documento</span>
+              <span id="action-new-document-title">Nueva Inspección/NCR/CAPA</span>
             </button>
             <button id="action-open-entities" class="action-card">
-              <span id="action-open-entities-title">Entidades</span>
+              <span id="action-open-entities-title">Gestión de datos maestros</span>
             </button>
             <button id="action-find" class="action-card">
               <span id="action-find-title">Buscar registros</span>
             </button>
           </div>
+          <div id="dashboard-empty-state" class="empty-state" hidden>No hay registros en el almacenamiento.</div>
           <div class="stats-grid">
             <div class="stat-card">
               <span id="stat-entities" class="stat-value">0</span>
-              <span id="stat-entities-label" class="stat-label">Entidades</span>
+              <span id="stat-entities-label" class="stat-label">Datos maestros</span>
             </div>
             <div class="stat-card">
               <span id="stat-documents" class="stat-value">0</span>
-              <span id="stat-documents-label" class="stat-label">Documentos</span>
+              <span id="stat-documents-label" class="stat-label">Registros operativos</span>
+            </div>
+            <div class="stat-card">
+              <span id="stat-areas" class="stat-value">0</span>
+              <span class="stat-label">Áreas</span>
+            </div>
+            <div class="stat-card">
+              <span id="stat-employees" class="stat-value">0</span>
+              <span class="stat-label">Empleados</span>
+            </div>
+            <div class="stat-card">
+              <span id="stat-products" class="stat-value">0</span>
+              <span class="stat-label">Productos</span>
+            </div>
+            <div class="stat-card">
+              <span id="stat-lots" class="stat-value">0</span>
+              <span class="stat-label">Lotes</span>
             </div>
           </div>
         </section>

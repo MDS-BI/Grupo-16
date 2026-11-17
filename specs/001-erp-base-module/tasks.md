@@ -85,16 +85,16 @@
 
 ### Pruebas para la Historia de Usuario 3
 
-- [ ] T027 [P] [US3] Añadir pruebas de integración para las acciones rápidas del panel y las estadísticas en vivo en tests/integration/dashboard.test.js
+- [X] T027 [P] [US3] Añadir pruebas de integración para las acciones rápidas del panel y las estadísticas en vivo en tests/integration/dashboard.test.js
 
 ### Implementación de la Historia de Usuario 3
 
-- [ ] T028 [P] [US3] Añadir el marcado del panel (encabezado, cuadrícula de acciones rápidas, tarjetas de estadísticas) a index.html
-- [ ] T029 [US3] Conectar los botones de acción rápida para abrir la gestión de entidades, la gestión de documentos (formularios limpiados) y la búsqueda (entrada enfocada) en src/app.js
-- [ ] T030 [US3] Renderizar y refrescar los recuentos de entidades desde el almacenamiento cada vez que se muestra el panel en src/components/dashboard.js
-- [ ] T031 [P] [US3] Dar estilo al encabezado del panel, las tarjetas de acción rápida y los mosaicos de estadísticas en src/styles.css
-- [ ] T032 [US3] Implementar estadísticas para las 4 entidades principales (áreas, empleados, productos, lotes) mostradas en el panel
-- [ ] T033 [US3] Añadir indicador de estado vacío cuando no hay registros en el almacenamiento
+- [X] T028 [P] [US3] Añadir el marcado del panel (encabezado, cuadrícula de acciones rápidas, tarjetas de estadísticas) a index.html
+- [X] T029 [US3] Conectar los botones de acción rápida para abrir la gestión de entidades, la gestión de documentos (formularios limpiados) y la búsqueda (entrada enfocada) en src/app.js
+- [X] T030 [US3] Renderizar y refrescar los recuentos de entidades desde el almacenamiento cada vez que se muestra el panel en src/components/dashboard.js
+- [X] T031 [P] [US3] Dar estilo al encabezado del panel, las tarjetas de acción rápida y los mosaicos de estadísticas en src/styles.css
+- [X] T032 [US3] Implementar estadísticas para las 4 entidades principales (áreas, empleados, productos, lotes) mostradas en el panel
+- [X] T033 [US3] Añadir indicador de estado vacío cuando no hay registros en el almacenamiento
 
 **Punto de control**: La aplicación abre en un panel funcional; cada tarea ERP clave (nueva entidad, nuevo documento, gestión de entidades, buscar registros) está a un clic. Las estadísticas deben reflejar conteos en tiempo real.
 
@@ -223,16 +223,16 @@
 
 ### Pruebas para la Historia de Usuario 9
 
-- [ ] T069 [P] [US9] Añadir pruebas unitarias para validación y persistencia de la fecha objetivo en tests/unit/storage.test.js
+- [X] T069 [P] [US9] Añadir pruebas unitarias para validación y persistencia de la fecha objetivo en tests/unit/storage.test.js
 
 ### Implementación de la Historia de Usuario 9
 
-- [ ] T070 [P] [US9] Añadir la entrada de fecha objetivo al formulario de entidad en index.html
-- [ ] T071 [US9] Incluir targetDate en la lógica de validación, creación, actualización y búsqueda en src/storage.js
-- [ ] T072 [US9] Conectar targetDate al envío del formulario, poblado de edición y visualización de errores en src/app.js
-- [ ] T073 [US9] Mostrar la fecha objetivo en la lista de entidades en src/app.js (formateada: dd/mm/yyyy)
-- [ ] T074 [US9] Implementar validación de que la fecha objetivo sea posterior a la fecha de creación
-- [ ] T075 [US9] Manejar fecha objetivo nula/opcional: la entidad igualmente se guarda sin fecha si el usuario la deja en blanco
+- [X] T070 [P] [US9] Añadir la entrada de fecha objetivo al formulario de entidad en index.html
+- [X] T071 [US9] Incluir targetDate en la lógica de validación, creación, actualización y búsqueda en src/storage.js
+- [X] T072 [US9] Conectar targetDate al envío del formulario, poblado de edición y visualización de errores en src/app.js
+- [X] T073 [US9] Mostrar la fecha objetivo en la lista de entidades en src/app.js (formateada: dd/mm/yyyy)
+- [X] T074 [US9] Implementar validación de que la fecha objetivo sea posterior a la fecha de creación
+- [X] T075 [US9] Manejar fecha objetivo nula/opcional: la entidad igualmente se guarda sin fecha si el usuario la deja en blanco
 
 **Punto de control**: La Historia de Usuario 9 debe estar completamente funcional y ser comprobable de forma independiente. Las entidades con fechas objetivo identificables de un vistazo en la lista.
 
