@@ -260,6 +260,22 @@ Asignado a: [Martina Cuevas]
 
 ---
 
+### Historia de Usuario 14 - Gestionar roles y permisos de acceso (Prioridad: P1)
+
+Como administrador del sistema, quiero asignar roles a los usuarios, para controlar las funciones que pueden utilizar dentro del módulo de Gestión de Calidad.
+
+**Por qué esta prioridad**: Esta historia tiene prioridad P1 porque es fundamental controlar el acceso a las funcionalidades del módulo de Gestión de Calidad. No todos los usuarios deben tener los mismos permisos, ya que podrían modificar o eliminar información importante sin autorización. Implementar roles permite proteger los registros, mantener la trazabilidad de las operaciones y asegurar que cada usuario acceda únicamente a las funciones que corresponden a sus responsabilidades.
+
+**Prueba independiente**: Al utilizar usuarios con distintos roles, el sistema permite únicamente las operaciones autorizadas para cada uno.
+
+**Escenarios de aceptación**:
+
+1. **Dado** un usuario Administrador, **cuando** accede al sistema, **entonces** puede gestionar registros, configuraciones y permisos.
+2. **Dado** un Gestor de Calidad, **cuando** accede al sistema, **entonces** puede gestionar inspecciones, no conformidades y acciones correctivas, pero no administrar usuarios.
+3. **Dado** un Inspector de Planta, **cuando** accede al sistema, **entonces** puede registrar inspecciones y reportar no conformidades, pero no eliminar registros.
+4. **Dado** un Auditor, **cuando** accede al sistema, **entonces** puede consultar información y trazabilidad sin modificar registros.
+5. **Dado** un usuario que intenta ejecutar una acción sin autorización, **cuando** solicita dicha operación, **entonces** el sistema la rechaza y muestra un mensaje explicativo.
+
 ### Casos Límite
 
 - ¿Qué ocurre cuando un Inspector de Planta intenta guardar un Lote, Producto, Área Organizativa o Empleado sin nombre o código obligatorio?
