@@ -353,6 +353,33 @@
 
 ---
 
+## Fase 18: Historia de Usuario 14 - Gestionar Roles y Permisos de Acceso (Prioridad: P1)
+
+**Objetivo**: Permitir al administrador del sistema asignar roles a los usuarios para controlar las funciones que pueden utilizar dentro del módulo de Gestión de Calidad, protegiendo los registros, manteniendo la trazabilidad de las operaciones y limitando el acceso según las responsabilidades de cada usuario.
+
+**Prueba Independiente**: Al utilizar usuarios con los roles Administrador, Gestor de Calidad, Inspector de Planta y Auditor, el sistema permite únicamente las operaciones autorizadas para cada uno: el Administrador gestiona registros, configuraciones y permisos; el Gestor de Calidad gestiona inspecciones, no conformidades y acciones correctivas sin administrar usuarios; el Inspector de Planta registra inspecciones y reporta no conformidades sin eliminar registros; el Auditor solo consulta información y trazabilidad; cualquier acción no autorizada se rechaza con un mensaje explicativo.
+
+### Pruebas para la Historia de Usuario 14
+
+- [ ] T116 [P] [US14] Añadir pruebas unitarias del catálogo de permisos y la matriz por rol (Administrador, Gestor de Calidad, Inspector de Planta, Auditor) en tests/unit/permissions.test.js
+- [ ] T117 [P] [US14] Añadir pruebas de integración de los cinco escenarios de aceptación de HU14 con usuarios de distintos roles en tests/integration/roles-permissions.test.js
+
+### Implementación de la Historia de Usuario 14
+
+- [ ] T118 [US14] Definir el catálogo de permisos (gestionar registros, configuraciones y permisos; crear/editar/eliminar datos maestros; crear/editar/eliminar registros operativos; registrar inspecciones y reportar no conformidades; consultar y auditar trazabilidad) y la matriz que los asigna a cada uno de los cuatro roles en src/permissions.js
+- [ ] T119 [US14] Registrar los roles y sus permisos por defecto en src/module-config.js, validando definiciones inválidas y conservando el retroceso seguro a valores predeterminados de HU5
+- [ ] T120 [P] [US14] Añadir el marcado de la vista de administración de usuarios y asignación de roles, junto con su botón en la barra lateral, al marco de index.html y src/components/shell.js
+- [ ] T121 [US14] Implementar la interfaz de administración de usuarios (listado de usuarios, selector de rol y guardado de la asignación) en src/components/role-admin.js y conectarla en src/app.js
+- [ ] T122 [US14] Ocultar o deshabilitar en el panel, la barra lateral y las vistas de gestión y búsqueda las acciones no autorizadas para el rol activo, en src/app.js y src/styles.css
+- [ ] T123 [US14] Implementar el guard de autorización central can(user, permission) y aplicarlo a crear, editar y eliminar datos maestros y registros operativos, modificar configuraciones y administrar usuarios en src/app.js y src/storage.js
+- [ ] T124 [US14] Persistir usuarios, roles asignados y usuario activo en localStorage bajo las claves 'quality-users' y 'quality-session', y revalidar el rol activo al cargar y recargar la aplicación en src/storage.js
+- [ ] T125 [US14] Rechazar toda operación solicitada sin autorización y mostrar un mensaje explicativo accesible que indique el permiso requerido, conforme al escenario de aceptación 5, en src/app.js
+- [ ] T126 [P] [US14] Actualizar las pruebas de integración existentes para ejecutarse con un usuario Administrador por defecto y verificar que los nuevos guards no introducen regresiones en HU1-HU13
+
+**Punto de control**: La Historia de Usuario 14 debe ser comprobable de forma independiente con los cuatro roles: cada uno ve y ejecuta únicamente sus operaciones autorizadas, la administración de usuarios queda restringida al Administrador, y toda acción denegada muestra un mensaje explicativo sin modificar los registros almacenados.
+
+---
+
 ## Dependencias y Orden de Ejecución
 
 ### Dependencias entre Fases
@@ -374,6 +401,7 @@
 - Fase 15: Depende de que todas las historias de usuario deseadas estén completas
 - Fase 16 (US13): Depende de que las Fases 1-15 estén completas; reestructura la navegación entregada por HU3/HU4 dentro del marco
 - Fase 17: Depende de que las Fases 16 y anteriores estén completas
+- Fase 18 (US14): Depende de la Fase 2 (almacenamiento), la Fase 7 (configuración) y la Fase 16 (marco de espacio de trabajo para integrar la vista de administración en la barra lateral); T116-T117 pueden ejecutarse en paralelo con la implementación de la fase
 
 ### Oportunidades en Paralelo
 
@@ -384,3 +412,4 @@
 - En la Fase 15, T096-T098 pueden ejecutarse en paralelo antes de las tareas finales T100-T101
 - En la Fase 16, T103-T105 y T107 pueden ejecutarse en paralelo; T108 aterriza junto al cambio de enrutamiento T104
 - En la Fase 17, T110 y T111 pueden ejecutarse en paralelo antes de la verificación final T112-T115
+- En la Fase 18, T116, T117, T120 y T126 pueden ejecutarse en paralelo; T122 aterriza junto al guard central T123 y T119 debe completarse antes de T124
