@@ -1,36 +1,36 @@
-# Inicio Rápido: Módulo Base de Software de Planificación de Recursos Empresariales (ERP)
+# Inicio rápido — Módulo de Gestión de Calidad
 
 ## Configuración
 
 1. Instale las dependencias con `npm install`.
 2. Inicie el servidor de desarrollo con `npm run dev`.
-3. Abra la URL local de Vite en un navegador.
+3. Abra la URL local de Vite en el navegador.
 
-## Flujo de Usuario Principal
+## Flujo de usuario principal
 
-1. Aterrice en el panel ERP y use un botón de acción rápida (nueva entidad, nuevo documento, gestión de entidades o buscar registros).
-2. Cree una entidad usando el formulario.
-3. Busque una entidad usando la pantalla de búsqueda.
-4. Edite o elimine una entidad desde el área de gestión.
-5. Cambie entre módulos usando la barra lateral; actualice la página para confirmar que las entidades persisten en el almacenamiento local y que el marco con marca (logotipo, nombre del módulo) permanece consistente.
+1. Aterrice en el panel y revise los indicadores de maestros, operativos, NCR abiertas y CAPA pendientes.
+2. Use una acción rápida o la barra lateral para abrir **Datos maestros** o **Registros operativos**.
+3. Cree, edite o elimine productos, lotes, áreas, empleados, inspecciones, NCR y CAPA.
+4. En **Consulta y trazabilidad**, busque por cualquier valor y revise la relación Producto → Lote → Inspección/NCR → CAPA.
+5. Cargue datos DEMO o exporte un respaldo JSON desde la barra superior.
 
 ## Validación
 
-- Verifique que los campos obligatorios muestran errores de validación.
-- Verifique que un documento exige folio entero positivo y que el descuento no puede superar el subtotal.
-- Verifique que un correo electrónico con formato inválido se rechaza con una explicación.
-- Verifique que los resultados de búsqueda se actualizan a medida que el usuario escribe.
-- Verifique que la lista permanece consistente tras las acciones de edición y eliminación.
-- Verifique que las estadísticas del panel coinciden con el número de registros almacenados.
+- Los campos obligatorios muestran errores y bloquean el guardado.
+- Los códigos no pueden repetirse dentro del mismo tipo.
+- Las relaciones (producto de un lote, lote de una inspección/NCR, NCR de una CAPA) deben existir.
+- La caducidad de un lote no puede ser anterior a su fabricación.
+- Las transiciones de NCR siguen la matriz ABIERTA → EN_INVESTIGACION → EN_CAPA → CERRADA/RECHAZADA.
+- La fecha objetivo de los datos maestros es opcional, pero debe ser una fecha válida.
+- Los campos personalizados obligatorios y sus tipos se validan antes de guardar.
 
-## Extender el Módulo Base
+## Extender el módulo
 
-Los módulos ERP personalizados adaptan la base mediante un único archivo de configuración (`src/module-config.js`) en lugar de editar el código central:
+Edite `src/module-config.js` para cambiar el nombre del módulo, las etiquetas de navegación, el color de acento, el ciclo de vida o los campos personalizados. No es necesario modificar `src/store.js` ni `src/app.js` para declarar campos adicionales.
 
-1. Establezca el nombre del módulo y los mapeos de términos (p. ej., Entidad → Cliente, Documento → Pedido de Venta); cada pantalla se reetiqueta, incluida la barra lateral y el logotipo.
-2. Declare campos personalizados por tipo de registro (texto, número, fecha, selección) — aparecen automáticamente en formularios, listas, validación y búsqueda.
-3. Defina el ciclo de vida de estados de documentos y las transiciones permitidas (p. ej., cotización → pedido → facturado).
-4. Opcionalmente establezca `theme.accentColor` para remarcar los resaltados y controles principales de todo el espacio de trabajo.
-5. Añada reglas de validación específicas del módulo junto a las reglas base donde sea necesario.
+## Pruebas
 
-La generación de identidad, marcas de tiempo, integridad referencial entre entidades y documentos, eliminación en cascada, navegación y búsqueda siguen siendo gestionadas por el módulo base. Sin archivo de configuración, la aplicación se ejecuta con el comportamiento predeterminado Entidad/Documento. Consulte `specs/001-erp-base-module/` para la especificación completa.
+```bash
+npx vitest run
+npm run build
+```

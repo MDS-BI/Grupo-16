@@ -1,36 +1,21 @@
-export const BASE_FIELDS = {
-  entity: ['id', 'entity_id', 'name', 'code', 'taxId', 'email', 'phone', 'address', 'creditLimit', 'paymentTerms', 'targetDate', 'createdAt', 'updatedAt'],
-  document: ['id', 'entityId', 'series', 'folio', 'startDate', 'endDate', 'quantity', 'subtotal', 'discount', 'taxAmount', 'totalAmount', 'currency', 'status', 'paymentTerms', 'notes', 'createdAt', 'updatedAt']
-};
-
-export const FIELD_TYPES = ['text', 'number', 'date', 'select'];
-
 export const DEFAULT_CONFIG = {
-  moduleName: 'Módulo Base ERP',
-  labels: {
-    entity: 'Entidad',
-    entities: 'Entidades',
-    document: 'Documento',
-    documents: 'Documentos'
-  },
-  customFields: [],
-  statusLifecycle: null,
-  theme: {
-    accentColor: '#2563eb'
-  }
-};
-
-export const QUALITY_CONFIG = {
   moduleName: 'Gestión de Calidad',
   labels: {
-    entity: 'Producto / Lote',
-    entities: 'Productos y Lotes',
-    document: 'Inspección / NCR',
-    documents: 'Inspecciones y NCRs'
+    panel: 'Panel general',
+    masters: 'Datos maestros',
+    operations: 'Registros operativos',
+    audit: 'Consulta y trazabilidad'
   },
+  theme: { accentColor: '#167b74' },
   customFields: [
-    { target: 'entity', key: 'tipoItem', label: 'Tipo', type: 'select', options: ['Producto', 'Lote', 'Área', 'Empleado'], required: true },
-    { target: 'document', key: 'tipoDoc', label: 'Tipo de Registro', type: 'select', options: ['Inspección', 'NCR', 'CAPA'], required: true }
+    { target: 'producto', key: 'origen', label: 'Origen / proveedor', type: 'text' },
+    { target: 'lote', key: 'parametrosLote', label: 'Parámetros de lote', type: 'text' },
+    { target: 'lote', key: 'fechaProcesoSugerida', label: 'Temporalidad del proceso', type: 'date' },
+    { target: 'inspeccion', key: 'metricasFallas', label: 'Métricas de fallas', type: 'number' },
+    { target: 'inspeccion', key: 'dictamen', label: 'Dictamen final', type: 'select', options: ['Aprobación', 'Retrabajo', 'Descarte'], required: true },
+    { target: 'ncr', key: 'impacto', label: 'Impacto operativo', type: 'select', options: ['Bajo', 'Medio', 'Alto'], required: true },
+    { target: 'ncr', key: 'reincidente', label: '¿Es reincidente?', type: 'boolean' },
+    { target: 'capa', key: 'costoEstimado', label: 'Costo estimado', type: 'decimal' }
   ],
   statusLifecycle: {
     statuses: ['ABIERTA', 'EN_INVESTIGACION', 'EN_CAPA', 'CERRADA', 'RECHAZADA'],
@@ -41,139 +26,111 @@ export const QUALITY_CONFIG = {
       CERRADA: [],
       RECHAZADA: []
     }
-  },
-  theme: { accentColor: '#2563eb' }
+  }
 };
 
-let activeConfig = null;
+const FIELD_TYPES = ['text', 'number', 'decimal', 'date', 'select', 'boolean'];
+const MASTER_TYPES = ['producto', 'lote', 'area', 'empleado'];
+const OPERATION_TYPES = ['inspeccion', 'ncr', 'capa'];
 
 export function normalizeConfig(userConfig) {
   const errors = [];
-  if (!userConfig) {
-    return { config: { ...DEFAULT_CONFIG }, errors };
+  if (!userConfig || typeof userConfig !== 'object') {
+    return { config: structuredClone(DEFAULT_CONFIG), errors };
   }
 
-  const config = {
-    moduleName: typeof userConfig.moduleName === 'string' && userConfig.moduleName.trim() ? userConfig.moduleName.trim() : DEFAULT_CONFIG.moduleName,
-    labels: {
-      ...DEFAULT_CONFIG.labels,
-      ...(userConfig.labels || {})
-    },
-    customFields: [],
-    statusLifecycle: userConfig.statusLifecycle === null ? null : (userConfig.statusLifecycle ? { ...userConfig.statusLifecycle } : null),
-    theme: {
-      accentColor: DEFAULT_CONFIG.theme.accentColor
-    }
-  };
-
-  if ('moduleName' in userConfig && (typeof userConfig.moduleName !== 'string' || !userConfig.moduleName.trim())) {
+  const config = structuredClone(DEFAULT_CONFIG);
+  if (typeof userConfig.moduleName === 'string' && userConfig.moduleName.trim()) {
+    config.moduleName = userConfig.moduleName.trim();
+  } else if ('moduleName' in userConfig) {
     errors.push('moduleName inválido: debe ser una cadena no vacía');
   }
 
-  // Validate theme
-  if (userConfig.theme !== undefined) {
-    if (typeof userConfig.theme !== 'object' || userConfig.theme === null || Array.isArray(userConfig.theme)) {
-      errors.push('theme inválido: debe ser un objeto');
-    } else if (userConfig.theme.accentColor !== undefined) {
-      const hexRegex = /^#([0-9a-fA-F]{3}){1,2}$/;
-      if (typeof userConfig.theme.accentColor !== 'string' || !hexRegex.test(userConfig.theme.accentColor)) {
-        errors.push('theme.accentColor inválido: debe ser un color hexadecimal válido');
-      } else {
-        config.theme.accentColor = userConfig.theme.accentColor;
-      }
+  for (const key of Object.keys(DEFAULT_CONFIG.labels)) {
+    if (typeof userConfig.labels?.[key] === 'string' && userConfig.labels[key].trim()) {
+      config.labels[key] = userConfig.labels[key].trim();
     }
   }
 
-  // Validate customFields
-  if (userConfig.customFields) {
+  if (userConfig.theme?.accentColor !== undefined) {
+    if (/^#([0-9a-fA-F]{3}){1,2}$/.test(userConfig.theme.accentColor)) {
+      config.theme.accentColor = userConfig.theme.accentColor;
+    } else {
+      errors.push('theme.accentColor inválido: debe ser un color hexadecimal');
+    }
+  }
+
+  if (userConfig.customFields !== undefined) {
     if (!Array.isArray(userConfig.customFields)) {
       errors.push('customFields debe ser un arreglo');
     } else {
-      const seenKeys = { entity: new Set(), document: new Set() };
+      const seen = new Set();
+      config.customFields = [];
       for (const cf of userConfig.customFields) {
-        if (!cf || typeof cf !== 'object') {
-          errors.push('Campo personalizado inválido');
-          continue;
-        }
-        if (!['entity', 'document'].includes(cf.target)) {
-          errors.push(`Target desconocido para campo personalizado: ${cf.target}`);
+        const type = cf?.target;
+        if (![...MASTER_TYPES, ...OPERATION_TYPES].includes(type)) {
+          errors.push(`Campo personalizado con target desconocido: ${type}`);
           continue;
         }
         if (!cf.key || typeof cf.key !== 'string') {
-          errors.push('Clave de campo personalizado requerida');
+          errors.push('Campo personalizado sin clave válida');
           continue;
         }
-        if (BASE_FIELDS[cf.target].includes(cf.key)) {
-          errors.push(`La clave '${cf.key}' choca con un campo base`);
+        const identity = `${type}:${cf.key}`;
+        if (seen.has(identity)) {
+          errors.push(`Campo personalizado duplicado: ${identity}`);
           continue;
         }
-        if (seenKeys[cf.target].has(cf.key)) {
-          errors.push(`La clave '${cf.key}' está declarada más de una vez`);
-          continue;
-        }
-        seenKeys[cf.target].add(cf.key);
-
+        seen.add(identity);
         if (!FIELD_TYPES.includes(cf.type)) {
-          errors.push(`Tipo de campo personalizado desconocido (type): ${cf.type}`);
+          errors.push(`Tipo de campo desconocido para '${cf.key}': ${cf.type}`);
           continue;
         }
-        if (cf.type === 'select') {
-          if (!Array.isArray(cf.options) || cf.options.length === 0) {
-            errors.push(`El campo select '${cf.key}' requiere opciones (options)`);
-            continue;
-          }
+        if (cf.type === 'select' && (!Array.isArray(cf.options) || cf.options.length === 0)) {
+          errors.push(`El campo select '${cf.key}' requiere opciones`);
+          continue;
         }
         config.customFields.push({ ...cf });
       }
     }
   }
 
-  // Validate statusLifecycle
-  if (config.statusLifecycle) {
-    const { statuses, transitions } = config.statusLifecycle;
-    if (!Array.isArray(statuses)) {
-      errors.push('statusLifecycle.statuses debe ser un arreglo');
-    } else if (!transitions || typeof transitions !== 'object') {
-      errors.push('statusLifecycle.transitions debe ser un objeto');
+  if (userConfig.statusLifecycle !== undefined) {
+    const lifecycle = userConfig.statusLifecycle;
+    if (lifecycle === null) {
+      config.statusLifecycle = null;
+    } else if (!Array.isArray(lifecycle?.statuses) || typeof lifecycle.transitions !== 'object') {
+      errors.push('statusLifecycle inválido: requiere statuses y transitions');
     } else {
-      const statusSet = new Set(statuses);
-      for (const s of statuses) {
-        const allowed = transitions[s];
-        if (allowed) {
-          if (!Array.isArray(allowed)) {
-            errors.push(`Transitions para '${s}' debe ser un arreglo`);
-          } else {
-            for (const next of allowed) {
-              if (!statusSet.has(next)) {
-                errors.push(`Transición inválida: estado desconocido '${next}'`);
-              }
-            }
-          }
+      const statuses = new Set(lifecycle.statuses);
+      for (const [from, targets] of Object.entries(lifecycle.transitions)) {
+        if (!statuses.has(from) || !Array.isArray(targets)) {
+          errors.push(`Transición inválida configurada desde '${from}'`);
+          continue;
+        }
+        for (const target of targets) {
+          if (!statuses.has(target)) errors.push(`Transición inválida: estado desconocido '${target}'`);
         }
       }
+      config.statusLifecycle = lifecycle;
     }
   }
 
   return { config, errors };
 }
 
-export async function loadModuleConfig() {
-  return normalizeConfig(activeConfig);
-}
+let activeConfig = null;
 
-export function setActiveConfig(cfg) {
-  activeConfig = cfg;
+export function setActiveConfig(config) {
+  activeConfig = config;
 }
 
 export function getConfig() {
-  const { config } = normalizeConfig(activeConfig);
-  return config;
+  return normalizeConfig(activeConfig ?? DEFAULT_CONFIG).config;
 }
 
-export function labelFor(key) {
-  const cfg = getConfig();
-  if (cfg.labels && cfg.labels[key]) {
-    return cfg.labels[key];
-  }
-  return DEFAULT_CONFIG.labels[key] || key;
+export function loadModuleConfig(userConfig = globalThis.QUALITY_CONFIG ?? DEFAULT_CONFIG) {
+  const result = normalizeConfig(userConfig);
+  setActiveConfig(result.config);
+  return result;
 }

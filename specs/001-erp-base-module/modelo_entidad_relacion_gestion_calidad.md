@@ -1,11 +1,27 @@
 # Modelo Entidad-Relación - Gestión de Calidad
 
+Este modelo define las entidades propias del módulo de Gestión de Calidad y se apoya en el modelo base del ERP descrito en [`data-model.md`](data-model.md).
+
 ## Símbolos
 - PK = Primary Key (Clave Primaria)
 - FK = Foreign Key (Clave Foránea)
 - UK = Unique Key (Clave Única)
 - NN = Not Null (Obligatorio)
 - NULL = Opcional
+
+## Dependencias con el modelo base
+
+Las siguientes entidades se definen en [`data-model.md`](data-model.md) y se reutilizan aquí sin duplicarlas:
+
+| Entidad base | Clave referenciada | Uso en Gestión de Calidad |
+|---|---|---|
+| `ENTITY` | `entity_id` (UK) | Maestro de entidades (clientes, proveedores, empleados) |
+| `DOCUMENT` | `id` (PK) | Documentos transaccionales de origen (órdenes, facturas, etc.) |
+| `MODULO` | `modulo_id` (PK) | Catálogo de módulos del sistema |
+
+Las entidades de configuración del modelo base (`ENTIDAD`, `PESTANA`, `CAMPO_PERSONALIZADO`, `VALOR_CAMPO_PERSONALIZADO`, `DOCUMENTO_ADJUNTO`, `HISTORIAL_CAMBIOS`, `CONFIGURACION_SISTEMA`) permanecen disponibles para la personalización y auditoría del módulo.
+
+Convenciones heredadas del modelo base: claves primarias `VARCHAR(36)`, campos `createdAt`/`updatedAt` en entidades transaccionales y referencias a `ENTITY` mediante `entity_id`.
 
 ## Entidades Maestras
 
@@ -15,7 +31,7 @@
 | area_id | VARCHAR(36) | PK, NN | Identificador único de área |
 | codigo | VARCHAR(20) | UK, NN | Código único del área |
 | nombre | VARCHAR(100) | NN | Nombre del área (Ventas, Compras, etc.) |
-| modulo | ENUM('VENTAS','ADQUISICION_COMPRAS','MANUFACTURA_OPERACIONES','CONTABILIDAD_FINANZAS','RRHH_PLANILLA','LOGISTICA_INVENTARIO','CRM') | NN | Módulo al que pertenece |
+| modulo_id | VARCHAR(36) | FK -> MODULO(modulo_id), NN | Módulo al que pertenece (catálogo base `MODULO`) |
 | activo | BOOLEAN | NN, DEFAULT TRUE | Estado del área |
 | createdAt | TIMESTAMP | NN | Fecha de creación |
 | updatedAt | TIMESTAMP | NN | Fecha de actualización |
@@ -54,8 +70,8 @@
 | numero_lote | VARCHAR(50) | UK, NN | Número de lote único |
 | fecha_fabricacion | DATE | NN | Fecha de fabricación |
 | fecha_caducidad | DATE | NULL | Fecha de caducidad (si aplica) |
-| proveedor_id | VARCHAR(36) | FK -> ENTITY(entity_id), NULL | Proveedor del lote (opcional) |
-| orden_produccion_id | VARCHAR(36) | NULL | Vinculación a orden de producción |
+| proveedor_id | VARCHAR(36) | FK -> ENTITY(entity_id), NULL | Proveedor del lote (referencia a `ENTITY.entity_id`, opcional) |
+| orden_produccion_id | VARCHAR(36) | NULL | Vinculación lógica a orden de producción (fuera del alcance del modelo base) |
 | createdAt | TIMESTAMP | NN | Fecha de creación |
 | updatedAt | TIMESTAMP | NN | Fecha de actualización |
 
@@ -68,9 +84,9 @@
 | folio | VARCHAR(20) | UK, NN | Folio consecutivo único |
 | origen | ENUM('CLIENTE','PROVEEDOR','INTERNO','AUDITORIA') | NN | Origen de la no conformidad |
 | area_afectada_id | VARCHAR(36) | FK -> AREA_ORGANIZATIVA(area_id), NN | Área afectada |
-| entidad_id | VARCHAR(36) | FK -> ENTITY(entity_id), NULL | Cliente o proveedor asociado |
+| entity_id | VARCHAR(36) | FK -> ENTITY(entity_id), NULL | Cliente o proveedor asociado |
 | documento_origen_id | VARCHAR(36) | FK -> DOCUMENT(id), NULL | Documento origen (Orden, Factura, etc.) |
-| producto_id | VARCHAR(36) | FK -> PRODUCTO(producto_id), NULL | Productoa afectado |
+| producto_id | VARCHAR(36) | FK -> PRODUCTO(producto_id), NULL | Producto afectado |
 | lote_id | VARCHAR(36) | FK -> LOTE(lote_id), NULL | Lote afectado |
 | detectado_por | VARCHAR(36) | FK -> EMPLEADO(empleado_id), NN | Colaborador que detectó la NCR |
 | fecha_deteccion | DATE | NN | Fecha de detección |
@@ -94,7 +110,7 @@
 | producto_id | VARCHAR(36) | FK -> PRODUCTO(producto_id), NN | Producto a inspeccionar |
 | lote_id | VARCHAR(36) | FK -> LOTE(lote_id), NULL | Lote a inspeccionar |
 | orden_compra_id | VARCHAR(36) | FK -> DOCUMENT(id), NULL | Orden de compra vinculada |
-| orden_produccion_id | VARCHAR(36) | NULL | Orden de producción vinculado (si existe) |
+| orden_produccion_id | VARCHAR(36) | NULL | Orden de producción vinculada (referencia lógica, fuera del alcance del modelo base) |
 | inspector_id | VARCHAR(36) | FK -> EMPLEADO(empleado_id), NN | Inspector responsable |
 | fecha_inspeccion | DATE | NN | Fecha de inspección |
 | resultado | ENUM('ACEPTADO','RECHAZADO','CONDICIONADO') | NN | Resultado de inspección |
@@ -111,9 +127,11 @@
 | criterio | VARCHAR(255) | NN | Criterio de inspección |
 | metodo_inspeccion | VARCHAR(100) | NN | Método utilizado |
 | valor_esperado | VARCHAR(100) | NN | Valor esperado |
-| valor_obtenido | VARCHAR(100) NULL | NN? Or NULL - Valor obtenido & conforme | Valor obtenido |
+| valor_obtenido | VARCHAR(100) | NULL | Valor obtenido en la medición |
 | unidad | VARCHAR(10) | NULL | Unidad de medida |
-| conforme | BOOLEAN | NN | ¿Cumple con el criterio? | 
+| conforme | BOOLEAN | NN | ¿Cumple con el criterio? |
+| createdAt | TIMESTAMP | NN | Fecha de creación |
+| updatedAt | TIMESTAMP | NN | Fecha de actualización |
 
 ### AUDITORIA
 | Atributo | Tipo | Restricciones | Descripción |
@@ -121,14 +139,14 @@
 | auditoria_id | VARCHAR(36) | PK, NN | Identificador único de auditoría |
 | folio | VARCHAR(20) | UK, NN | Folio consecutivo |
 | tipo | ENUM('INTERNA','PROVEEDOR','PROCESO') | NN | Tipo de auditoría |
-| entidad_auditada_id | VARCHAR(36) | FK -> ENTITY(entity_id), NULL | Entidad auditada (si es a proveedor) |
-| area_id | VARCHAR(36) | FK -> AREA_ORGANIZATIVA(area_id), NULL | Area auditada (si es interna) |
+| entidad_auditada_id | VARCHAR(36) | FK -> ENTITY(entity_id), NULL | Entidad auditada (referencia a `ENTITY.entity_id`, si es a proveedor) |
+| area_id | VARCHAR(36) | FK -> AREA_ORGANIZATIVA(area_id), NULL | Área auditada (si es interna) |
 | auditor_lider_id | VARCHAR(36) | FK -> EMPLEADO(empleado_id), NN | Auditor líder |
 | fecha_inicio | DATE | NN | Fecha inicio de auditoría |
 | fecha_fin | DATE | NULL | Fecha fin de auditoría |
 | alcance | TEXT | NN | Alcance de auditoría |
 | objetivo | TEXT | NN | Objetivo de auditoría |
-| estado | ENUM('PLANIFICADA','EN_PROCESO','FINALIZADA','CERRADA') | NN, DEFAULT 'PLANIFICADA' | Estado of auditoría | 
+| estado | ENUM('PLANIFICADA','EN_PROCESO','FINALIZADA','CERRADA') | NN, DEFAULT 'PLANIFICADA' | Estado de auditoría |
 | createdAt | TIMESTAMP | NN | Fecha de creación |
 | updatedAt | TIMESTAMP | NN | Fecha de actualización |
 
@@ -143,6 +161,9 @@
 | descripcion | TEXT | NN | Descripción del hallazgo |
 | evidencia_requerida | TEXT | NULL | Evidencia requerida para seguimiento |
 | clasificacion | ENUM('MENOR','MAYOR','CRITICA') | NULL | Clasificación según gravedad |
+| createdAt | TIMESTAMP | NN | Fecha de creación |
+| updatedAt | TIMESTAMP | NN | Fecha de actualización |
+
 ## Entidades de Seguimiento y Cierre
 
 ### ACCION_CAPA
@@ -155,7 +176,7 @@
 | responsable_id | VARCHAR(36) | FK -> EMPLEADO(empleado_id), NN | Responsable general del CAPA |
 | fecha_aprobacion | DATE | NULL | Fecha de aprobación |
 | fecha_objetivo | DATE | NN | Fecha objetivo de cierre |
-| fecha_cierre_propuesta | DATE | NULL | Fecha propuesta for cierre |
+| fecha_cierre_propuesta | DATE | NULL | Fecha propuesta de cierre |
 | causa_raiz | TEXT | NN | Análisis de causa raíz |
 | metodologia | ENUM('5_WHYS','ISHIKAWA','OTRO') | NN | Metodología utilizada |
 | estado | ENUM('ABIERTA','EN_EJECUCION','EN_VERIFICACION','CERRADA_EFECTIVA','CERRADA_NO_EFECTIVA') | NN, DEFAULT 'ABIERTA' | Estado del CAPA |
@@ -166,7 +187,7 @@
 ### ACCION_DETALLE
 | Atributo | Tipo | Restricciones | Descripción |
 |---|---|---|---|
-| accion_id | VARCHAR(36) | PK, NN | Identificador unique acción detalle |
+| accion_id | VARCHAR(36) | PK, NN | Identificador único de la acción |
 | capa_id | VARCHAR(36) | FK -> ACCION_CAPA(capa_id), NN, ON DELETE CASCADE | CAPA padre |
 | descripcion | TEXT | NN | Descripción de la acción a ejecutar |
 | responsable_id | VARCHAR(36) | FK -> EMPLEADO(empleado_id), NN | Responsable de ejecutar la acción |
@@ -175,7 +196,10 @@
 | estado | ENUM('PENDIENTE','EN_PROCESO','COMPLETADA','VENCIDA') | NN, DEFAULT 'PENDIENTE' | Estado de la acción |
 | evidencia_url | VARCHAR(255) | NULL | URL de evidencia / documento |
 | comentarios | TEXT | NULL | Comentarios de seguimiento |
-## VERIFICACION_EFICACIA
+| createdAt | TIMESTAMP | NN | Fecha de creación |
+| updatedAt | TIMESTAMP | NN | Fecha de actualización |
+
+### VERIFICACION_EFICACIA
 | Atributo | Tipo | Restricciones | Descripción |
 |---|---|---|---|
 | verificacion_id | VARCHAR(36) | PK, NN | Identificador de verificación |
@@ -197,7 +221,7 @@
 |---|---|---|---|
 | queja_id | VARCHAR(36) | PK, NN | Identificador de queja |
 | folio | VARCHAR(20) | UK, NN | Folio consecutivo |
-| entidad_id | VARCHAR(36) | FK -> ENTITY(entity_id), NN | Cliente que presenta la queja |
+| entity_id | VARCHAR(36) | FK -> ENTITY(entity_id), NN | Cliente que presenta la queja |
 | documento_venta_id | VARCHAR(36) | FK -> DOCUMENT(id), NULL | Documento de venta relacionado (Pedido/Factura) |
 | contacto_nombre | VARCHAR(100) | NULL | Nombre de contacto que reportó |
 | canal | ENUM('TELEFONO','CORREO','WEB','PRESENCIAL') | NN | Canal de recepción |
@@ -206,19 +230,14 @@
 | estado | ENUM('RECIBIDA','EN_INVESTIGACION','RESUELTA','CERRADA') | NN, DEFAULT 'RECIBIDA' | Estado de queja |
 | descripcion | TEXT | NN | Descripción de queja |
 | ncr_id | VARCHAR(36) | FK -> NO_CONFORMIDAD(ncr_id), NULL | NCR vinculada (si se escaló) | 
-| createdAt | TIMESTAMP | NN | Fecha de création |
+| createdAt | TIMESTAMP | NN | Fecha de creación |
 | updatedAt | TIMESTAMP | NN | Fecha de actualización |
 
 ### EVALUACION_PROVEEDOR
 | Atributo | Tipo | Restricciones | Descripción |
 |---|---|---|---|
-        g caracteres. contenido parcial. ادامه en...
-
-### EVALUACION_PROVEEDOR
-| Atributo | Tipo | Restricciones | Descripción |
-|---|---|---|---|
 | evaluacion_id | VARCHAR(36) | PK, NN | Identificador de evaluación |
-| proveedor_id | VARCHAR(36) | FK -> ENTITY(entity_id), NN | Proveedor evaluado |
+| proveedor_id | VARCHAR(36) | FK -> ENTITY(entity_id), NN | Proveedor evaluado (referencia a `ENTITY.entity_id`) |
 | periodo | VARCHAR(10) | NN | Periodo de evaluación (YYYY-MM) |
 | evaluado_por | VARCHAR(36) | FK -> EMPLEADO(empleado_id), NN | Colaborador que evalúa |
 | calidad | DECIMAL(5,2) | NN, CHECK(calidad BETWEEN 0 AND 100) | Calificación en calidad |
@@ -294,6 +313,7 @@
 | DOCUMENT - COSTO_NO_CALIDAD | 1:N | Un documento contable puede vincular costos |
 | DOCUMENT - MOVIMIENTO_NO_CONFORME | 1:N | Un documento logístico puede vincular movimientos |
 | DOCUMENT - INSPECCION_CALIDAD | 1:N | Una orden de compra puede tener inspecciones |
+| MODULO - AREA_ORGANIZATIVA | 1:N | Un módulo agrupa múltiples áreas organizativas |
 | AREA_ORGANIZATIVA - EMPLEADO | 1:N | Un área tiene múltiples empleados |
 | AREA_ORGANIZATIVA - NO_CONFORMIDAD | 1:N | Un área puede tener múltiples NCR |
 | AREA_ORGANIZATIVA - INSPECCION_CALIDAD | 1:N | Un área responsable de inspecciones |
@@ -307,22 +327,23 @@
 | EMPLEADO - ACCION_DETALLE | 1:N | Responsable de acción individual |
 | EMPLEADO - VERIFICACION_EFICACIA | 1:N | Verificador de eficacia |
 | EMPLEADO - EVALUACION_PROVEEDOR | 1:N | Evaluador de proveedor |
-| EMPLEADO - COSTO_NO_CALIDAD | 1:N | Registrador of cost |
-| EMPLEADO - MOVIMIENTO_NO_CONFORME | 1:N | Autorizador of movimiento |
+| EMPLEADO - COSTO_NO_CALIDAD | 1:N | Registrador del costo |
+| EMPLEADO - MOVIMIENTO_NO_CONFORME | 1:N | Autorizador del movimiento |
 | PRODUCTO - LOTE | 1:N | Un producto tiene múltiples lotes |
 | PRODUCTO - NO_CONFORMIDAD | 1:N | Un producto puede tener múltiples NCR |
-| PRODUCTO - INSPECCION_CALIDAD | 1:N | Un producto puede be inspeccionado múltiples veces |
+| PRODUCTO - INSPECCION_CALIDAD | 1:N | Un producto puede ser inspeccionado múltiples veces |
 | LOTE - NO_CONFORMIDAD | 1:N | Un lote puede tener múltiples NCR |
 | LOTE - INSPECCION_CALIDAD | 1:N | A un lote le pueden aplicar inspecciones |
 | LOTE - MOVIMIENTO_NO_CONFORME | 1:N | Un lote puede tener múltiples movimientos no conformes |
 | NO_CONFORMIDAD - ACCION_CAPA | 1:N | Una NCR puede derivar múltiples CAPA |
 | NO_CONFORMIDAD - COSTO_NO_CALIDAD | 1:N | Una NCR puede tener múltiples costos |
-| NO_CONFORMIDAD - QUEJACLIENTE | 1:0..1 | Una queja puede estar vinculada a una NCR |
+| NO_CONFORMIDAD - QUEJA_CLIENTE | 1:0..1 | Una queja puede estar vinculada a una NCR |
 | NO_CONFORMIDAD - HALLAZGO_AUDITORIA | 1:0..1 | Un hallazgo puede escalar a una NCR |
 | NO_CONFORMIDAD - CAPACITACION_CALIDAD | 1:N | Una NCR puede derivar capacitaciones |
 | NO_CONFORMIDAD - MOVIMIENTO_NO_CONFORME | 1:N | Una NCR puede generar movimientos no conformes |
 | INSPECCION_CALIDAD - INSPECCION_DETALLE | 1:N | Una inspección tiene múltiples detalles |
 | AUDITORIA - HALLAZGO_AUDITORIA | 1:N | Una auditoría tiene múltiples hallazgos |
 | ACCION_CAPA - ACCION_DETALLE | 1:N | Un CAPA tiene múltiples acciones |
+| ACCION_CAPA - CAPACITACION_CALIDAD | 1:N | Un CAPA puede derivar capacitaciones |
 | ACCION_CAPA - VERIFICACION_EFICACIA | 1:1 | Un CAPA requiere verificación de eficacia |
 | VERIFICACION_EFICACIA - NO_CONFORMIDAD | 1:0..1 | La verificación puede generar una nueva NCR |
