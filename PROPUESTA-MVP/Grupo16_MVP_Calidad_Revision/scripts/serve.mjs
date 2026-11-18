@@ -1,0 +1,4 @@
+import http from 'node:http';import {readFile} from 'node:fs/promises';import {resolve,extname,sep} from 'node:path';
+const root=resolve(import.meta.dirname,'..');const types={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json; charset=utf-8','.svg':'image/svg+xml'};
+const port=Number(process.env.PORT||5173);
+http.createServer(async(req,res)=>{try{const u=new URL(req.url,'http://localhost');const pathname=decodeURIComponent(u.pathname==='/'?'/index.html':u.pathname);const file=resolve(root,'.'+pathname);if(!file.startsWith(root+sep)){res.writeHead(403).end();return}const buf=await readFile(file);res.writeHead(200,{'Content-Type':types[extname(file)]||'application/octet-stream','Cache-Control':'no-store'});res.end(buf)}catch{res.writeHead(404).end('No encontrado')}}).listen(port,()=>console.log(`Gestión de Calidad: http://localhost:${port}/`));

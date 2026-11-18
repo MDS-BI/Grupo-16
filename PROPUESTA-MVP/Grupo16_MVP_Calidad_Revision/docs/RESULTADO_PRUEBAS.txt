@@ -1,0 +1,122 @@
+
+> grupo-16-calidad-mvp@1.0.0 test
+> node --test tests/*.test.mjs
+
+TAP version 13
+# Subtest: inicia vacío con siete catálogos
+ok 1 - inicia vacío con siete catálogos
+  ---
+  duration_ms: 1.352091
+  type: 'test'
+  ...
+# Subtest: genera códigos internos únicos
+ok 2 - genera códigos internos únicos
+  ---
+  duration_ms: 1.394465
+  type: 'test'
+  ...
+# Subtest: impide códigos duplicados por tipo
+ok 3 - impide códigos duplicados por tipo
+  ---
+  duration_ms: 0.822922
+  type: 'test'
+  ...
+# Subtest: permite mismo código entre tipos diferentes
+ok 4 - permite mismo código entre tipos diferentes
+  ---
+  duration_ms: 0.255125
+  type: 'test'
+  ...
+# Subtest: requiere campos obligatorios
+ok 5 - requiere campos obligatorios
+  ---
+  duration_ms: 0.353133
+  type: 'test'
+  ...
+# Subtest: impide lote sin producto válido
+ok 6 - impide lote sin producto válido
+  ---
+  duration_ms: 0.21213
+  type: 'test'
+  ...
+# Subtest: impide caducidad anterior a fabricación
+ok 7 - impide caducidad anterior a fabricación
+  ---
+  duration_ms: 0.458512
+  type: 'test'
+  ...
+# Subtest: guarda relaciones e inspecciones
+ok 8 - guarda relaciones e inspecciones
+  ---
+  duration_ms: 0.38407
+  type: 'test'
+  ...
+# Subtest: NCR inicia abierta
+ok 9 - NCR inicia abierta
+  ---
+  duration_ms: 0.762941
+  type: 'test'
+  ...
+# Subtest: NCR no puede cerrar saltándose el ciclo de vida
+ok 10 - NCR no puede cerrar saltándose el ciclo de vida
+  ---
+  duration_ms: 0.676501
+  type: 'test'
+  ...
+# Subtest: NCR permite transición válida
+ok 11 - NCR permite transición válida
+  ---
+  duration_ms: 0.326723
+  type: 'test'
+  ...
+# Subtest: cascada elimina dependientes
+ok 12 - cascada elimina dependientes
+  ---
+  duration_ms: 0.555328
+  type: 'test'
+  ...
+# Subtest: sin cascada bloquea eliminación de registro vinculado
+ok 13 - sin cascada bloquea eliminación de registro vinculado
+  ---
+  duration_ms: 0.246091
+  type: 'test'
+  ...
+# Subtest: edita un producto sin perder ID
+ok 14 - edita un producto sin perder ID
+  ---
+  duration_ms: 0.282446
+  type: 'test'
+  ...
+# Subtest: busca en todos los catálogos
+ok 15 - busca en todos los catálogos
+  ---
+  duration_ms: 1.92164
+  type: 'test'
+  ...
+# Subtest: demo contiene siete tipos y vínculos válidos
+ok 16 - demo contiene siete tipos y vínculos válidos
+  ---
+  duration_ms: 0.557321
+  type: 'test'
+  ...
+# Subtest: estadísticas coherentes con demo
+ok 17 - estadísticas coherentes con demo
+  ---
+  duration_ms: 0.198599
+  type: 'test'
+  ...
+# Subtest: estados tienen transiciones definidas
+ok 18 - estados tienen transiciones definidas
+  ---
+  duration_ms: 0.074613
+  type: 'test'
+  ...
+1..18
+# tests 18
+# suites 0
+# pass 18
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 112.201928

@@ -1,0 +1,5 @@
+
+> grupo-16-calidad-mvp@1.0.0 build
+> node scripts/build.mjs
+
+Build estática generada en dist/

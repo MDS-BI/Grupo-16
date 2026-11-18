@@ -1,0 +1,1 @@
+import {rm,mkdir,cp} from 'node:fs/promises';const dest=new URL('../dist/',import.meta.url);await rm(dest,{recursive:true,force:true});await mkdir(dest,{recursive:true});for(const name of ['index.html','src'])await cp(new URL('../'+name,import.meta.url),new URL('../dist/'+name,import.meta.url),{recursive:true});console.log('Build estática generada en dist/');
