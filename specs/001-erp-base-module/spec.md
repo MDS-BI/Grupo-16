@@ -276,6 +276,29 @@ Como administrador del sistema, quiero asignar roles a los usuarios, para contro
 4. **Dado** un Auditor, **cuando** accede al sistema, **entonces** puede consultar información y trazabilidad sin modificar registros.
 5. **Dado** un usuario que intenta ejecutar una acción sin autorización, **cuando** solicita dicha operación, **entonces** el sistema la rechaza y muestra un mensaje explicativo.
 
+---
+
+### Historia de Usuario 15 - Mejorar la claridad de textos, botones y navegación (Prioridad: P2)
+
+Como Inspector de Planta del sistema ERP de Gestión de Calidad, quiero que los menús, formularios, botones y mensajes del sistema presenten textos claros y descriptivos, para registrar y consultar información de productos, lotes, inspecciones, NCR y CAPA sin confusiones durante mi trabajo diario.
+
+**Por qué esta prioridad P2**: La claridad de la interfaz reduce errores de captura y tiempos de consulta en tareas operativas frecuentes, pero no bloquea la capacidad base de registrar o consultar datos. Por eso se prioriza después de las funcionalidades esenciales P1, aportando una mejora directa en usabilidad y precisión para el Inspector de Planta.
+
+**Prueba Independiente**: Comprobable mediante la interfaz: un Inspector de Planta puede recorrer el menú, abrir formularios de producto, lote, inspección, NCR o CAPA, identificar la acción de cada botón, provocar un error de validación y ver una pantalla sin datos, verificando que cada texto es claro y que el comportamiento funcional existente se conserva.
+
+**Escenarios de Aceptación**:
+
+1. **Menú compresible**: **Dado** que el Inspector de Planta accede al sistema desde una pantalla amplia o reducida, **cuando** expande o comprime el menú de navegación, **entonces** las opciones hacia productos, lotes, inspecciones, NCR o CAPA permanecen identificables y comprensibles, permitiendo reconocer la sección actual sin ambigüedad.
+2. **Formularios claros**: **Dado** que el Inspector de Planta crea o edita un producto, lote, inspección, NCR o CAPA, **cuando** completa el formulario, **entonces** cada campo muestra una etiqueta comprensible, indica si es obligatorio y presenta el dato esperado sin términos ambiguos.
+3. **Botones descriptivos**: **Dado** que el Inspector de Planta revisa una pantalla de registro o consulta, **cuando** observa las acciones disponibles, **entonces** los botones describen explícitamente la acción que ejecutan, como guardar, cancelar, editar, eliminar, buscar o volver.
+4. **Mensajes de error útiles**: **Dado** que el Inspector de Planta ingresa un dato faltante o inválido en un formulario de producto, lote, inspección, NCR o CAPA, **cuando** intenta guardar, **entonces** el sistema muestra un mensaje de error claro que señala el campo afectado y explica cómo corregirlo.
+5. **Pantalla sin datos**: **Dado** que no existen registros en una sección de productos, lotes, inspecciones, NCR o CAPA, **cuando** el Inspector de Planta abre esa pantalla, **entonces** el sistema muestra un estado vacío con texto claro que indica que no hay datos y orienta la acción posible, como crear un nuevo registro.
+6. **Conservación del funcionamiento existente**: **Dado** que el Inspector de Planta utiliza funciones ya disponibles de registro, consulta o navegación, **cuando** interactúa con menús, formularios, botones y mensajes actualizados, **entonces** el comportamiento funcional existente se mantiene sin cambios en los flujos de creación, edición, búsqueda y visualización.
+
+Asignado a: [Pendiente]
+
+---
+
 ### Casos Límite
 
 - ¿Qué ocurre cuando un Inspector de Planta intenta guardar un Lote, Producto, Área Organizativa o Empleado sin nombre o código obligatorio?
