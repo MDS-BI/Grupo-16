@@ -44,24 +44,30 @@ Asignado a: [Inserta aquí el Nombre y Apellido]
 
 ---
 
-### Historia de Usuario 3 - Panel de inicio con acciones rápidas y estadísticas de registros operativos (Prioridad: P1)
+### Historia de Usuario 3 - Panel de inicio ERP con KPIs y acciones rápidas (Prioridad: P1)
 
-Como Gestor de Calidad, quiero aterrizar en un panel estilo ERP con botones de acción rápida claramente etiquetados para las tareas clave y totales de registros de un vistazo al abrir la aplicación, para poder empezar a trabajar de inmediato.
+Como Gestor de Calidad, quiero aterrizar en un panel estilo ERP al abrir la aplicación, con tarjetas de métricas clave (KPIs) y botones de acción rápida claramente separados, para iniciar flujos operativos o consultar registros en un solo clic.
 
-**Por qué esta prioridad**: El panel es el punto de entrada de la aplicación. Nada más puede alcanzarse sin él, y las acciones rápidas son la ruta más rápida hacia cada flujo de trabajo central de Gestión de Calidad.
+**Por qué esta prioridad**: El panel es la primera pantalla que ven los usuarios y establece el tono de un ERP profesional. KPIs visibles y acciones rápidas reducen la fricción para las tareas diarias más comunes y dan conciencia operativa inmediata.
 
-**Prueba Independiente**: Un Gestor de Calidad abre la aplicación, ve un panel con múltiples botones de acción rápida y estadísticas de registros, inicia un nuevo Lote/Producto/Área/Empleado o un nuevo registro operativo (Inspección de Calidad, No Conformidad NCR o Acción CAPA) con un solo clic y ve estadísticas que reflejan los datos almacenados.
+**Prueba Independiente**: Un Gestor de Calidad abre la aplicación en la ruta raíz, ve un panel con 4 tarjetas KPI con conteos dinámicos desde el estado/almacenamiento (0 cuando no hay datos, nunca null/undefined), botones de creación de maestros y operativos separados, y accesos a gestión de catálogos y búsqueda global con autofocus.
 
 **Escenarios de Aceptación**:
 
-1. **Dado** que el Gestor de Calidad abre la aplicación, **cuando** la aplicación carga, **entonces** se muestra el panel de inicio con al menos cuatro botones de acción rápida claramente etiquetados que cubren las tareas ERP clave: crear un nuevo registro maestro (Lote, Producto, Área Organizativa o Empleado), crear una nueva Inspección de Calidad, No Conformidad (NCR) o Acción CAPA, abrir la gestión de Lotes/Productos/Áreas/Empleados y buscar registros.
-2. **Dado** que se muestra el panel, **cuando** el Gestor de Calidad activa la acción de nuevo registro maestro (Lote, Producto, Área Organizativa o Empleado), **entonces** la aplicación abre el área de gestión correspondiente con un formulario vacío listo para introducir datos.
-3. **Dado** que se muestra el panel, **cuando** el Gestor de Calidad activa la acción de nueva Inspección de Calidad, No Conformidad (NCR) o Acción CAPA, **entonces** la aplicación abre el área de gestión de registros operativos con un formulario vacío listo para introducir datos.
-4. **Dado** que se muestra el panel, **cuando** el Gestor de Calidad activa la acción de buscar registros, **entonces** la aplicación abre la pantalla de búsqueda con el campo de búsqueda enfocado.
-5. **Dados** datos maestros (Lote, Producto, Área Organizativa, Empleado) y registros operativos (Inspección de Calidad, No Conformidad NCR, Acción CAPA) almacenados, **cuando** el Gestor de Calidad ve el panel, **entonces** las tarjetas de estadísticas muestran el recuento actual de datos maestros y registros operativos.
-6. **Dado** que el Gestor de Calidad crea o elimina registros en otra parte de la aplicación, **cuando** vuelve al panel, **entonces** las estadísticas reflejan el cambio.
+1. **Carga inicial**: **Dado** que el Gestor de Calidad entra a la ruta raíz (`/`), **cuando** la aplicación carga, **entonces** se renderiza el panel sin errores y los contadores reflejan la cantidad real de registros almacenados; si no hay datos, cada contador muestra `0`, nunca `null` ni `undefined`.
+2. **KPIs superiores**: **Dado** que el panel está visible, **cuando** el usuario observa la sección superior, **entonces** ve un grid de 4 tarjetas con conteo dinámico en tiempo real: Total de Lotes activos, Total de Productos registrados, Inspecciones de Calidad realizadas (totales), y No Conformidades (NCR) + Acciones CAPA abiertas.
+3. **Creación maestros**: **Dado** que el panel está visible, **cuando** el usuario hace clic en “Nuevo Lote”, “Nuevo Producto”, “Nueva Área” o “Nuevo Empleado”, **entonces** la aplicación abre la vista/formulario de creación correspondiente con el formulario completamente limpio, sin arrastrar estados previos.
+4. **Creación operativos**: **Dado** que el panel está visible, **cuando** el usuario hace clic en “Nueva Inspección”, “Nueva NCR” o “Nueva Acción CAPA”, **entonces** la aplicación abre la vista/formulario operativo correspondiente con el formulario completamente limpio, sin arrastrar estados previos.
+5. **Flujo de gestión**: **Dado** que el panel está visible, **cuando** el usuario hace clic en “Gestionar catálogos (Maestros)”, **entonces** se abre la vista de gestión para administrar lotes, productos, áreas y empleados.
+6. **Flujo de búsqueda**: **Dado** que el panel está visible, **cuando** el usuario hace clic en “Búsqueda global de registros”, **entonces** se abre la vista/modal de búsqueda y el cursor se posiciona automáticamente (autofocus) dentro del input de búsqueda.
+7. **Actualización de métricas**: **Dado** que el usuario crea o elimina registros en otra vista, **cuando** vuelve al panel, **entonces** las tarjetas KPI reflejan el cambio con datos reales del almacenamiento/estado.
 
-Asignado a: [Inserta aquí el Nombre y Apellido]
+**Estructura visual requerida (layout)**:
+1. **Sección superior (Resumen de datos/KPIs)**: grid de 4 tarjetas con conteo dinámico: Total de Lotes activos, Total de Productos registrados, Inspecciones de Calidad realizadas (del mes o totales), No Conformidades (NCR) y Acciones CAPA abiertas.
+2. **Sección central (Acciones rápidas)**: botones grandes, con iconos claros y etiquetas directas, divididos en dos grupos: **Creación de registros maestros** (Nuevo Lote, Nuevo Producto, Nueva Área, Nuevo Empleado) y **Creación de registros operativos** (Nueva Inspección, Nueva NCR, Nueva Acción CAPA).
+3. **Sección inferior o barra superior (Acceso y búsqueda)**: botón de acceso directo a “Gestionar catálogos (Maestros)” y botón/atajo de “Búsqueda global de registros”.
+
+Asignado a: [Pendiente]
 
 ---
 
