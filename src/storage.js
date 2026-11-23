@@ -281,7 +281,7 @@ export function validateDocument(data) {
 
   if (data.startDate && data.endDate) {
     if (new Date(data.startDate) > new Date(data.endDate)) {
-      errors.endDate = 'La fecha final no puede ser anterior a la inicial';
+      errors.endDate = 'La fecha final debe ser igual o posterior a la fecha inicial';
     }
   }
 
@@ -384,7 +384,7 @@ export function updateDocument(id, data) {
     throw new Error('Validación de documento fallida: ' + JSON.stringify(validation.errors));
   }
 
-  if (data.entityId !== undefined) existing.entityId = data.entityId;
+  if (data.entityId !== undefined) { existing.entityId = data.entityId; existing.entity_id = data.entityId; }
   if (data.series !== undefined) existing.series = data.series;
   if (data.folio !== undefined) existing.folio = Number(data.folio);
   if (data.startDate !== undefined) existing.startDate = data.startDate;

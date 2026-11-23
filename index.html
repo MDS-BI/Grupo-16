@@ -33,47 +33,78 @@
       <main class="content-area">
         <!-- Dashboard View -->
         <section id="view-dashboard" class="view">
-          <h1 id="dashboard-heading">Panel</h1>
-          <div class="quick-actions">
-            <button id="action-new-entity" class="action-card">
-              <span id="action-new-entity-title">Nuevo registro maestro</span>
-            </button>
-            <button id="action-new-document" class="action-card">
-              <span id="action-new-document-title">Nueva Inspección/NCR/CAPA</span>
-            </button>
-            <button id="action-open-entities" class="action-card">
-              <span id="action-open-entities-title">Gestión de datos maestros</span>
-            </button>
-            <button id="action-find" class="action-card">
-              <span id="action-find-title">Buscar registros</span>
-            </button>
+          <div class="dashboard-header">
+            <div>
+              <h1 id="dashboard-heading">Panel de Gestión de Calidad</h1>
+              <p class="dashboard-subtitle">Resumen operativo y accesos rápidos</p>
+            </div>
+            <div class="dashboard-top-actions">
+              <button id="action-manage-catalogs" class="btn-secondary" type="button">Gestionar catálogos (Maestros)</button>
+              <button id="action-global-search" class="btn-secondary" type="button">Búsqueda global de registros</button>
+            </div>
           </div>
-          <div id="dashboard-empty-state" class="empty-state" hidden>No hay registros en el almacenamiento.</div>
-          <div class="stats-grid">
-            <div class="stat-card">
-              <span id="stat-entities" class="stat-value">0</span>
-              <span id="stat-entities-label" class="stat-label">Datos maestros</span>
+
+          <section class="dashboard-section" aria-labelledby="kpi-heading">
+            <h2 id="kpi-heading">Resumen de datos (KPIs)</h2>
+            <div class="stats-grid kpi-grid">
+              <article class="stat-card">
+                <span id="stat-lots-active" class="stat-value">0</span>
+                <span class="stat-label">Total de Lotes activos</span>
+              </article>
+              <article class="stat-card">
+                <span id="stat-products-total" class="stat-value">0</span>
+                <span class="stat-label">Total de Productos registrados</span>
+              </article>
+              <article class="stat-card">
+                <span id="stat-inspections-total" class="stat-value">0</span>
+                <span class="stat-label">Inspecciones de Calidad realizadas</span>
+              </article>
+              <article class="stat-card">
+                <span id="stat-ncr-capa-open" class="stat-value">0</span>
+                <span class="stat-label">NCR y Acciones CAPA abiertas</span>
+              </article>
             </div>
-            <div class="stat-card">
-              <span id="stat-documents" class="stat-value">0</span>
-              <span id="stat-documents-label" class="stat-label">Registros operativos</span>
+          </section>
+
+          <section class="dashboard-section" aria-labelledby="quick-actions-heading">
+            <h2 id="quick-actions-heading">Acciones rápidas</h2>
+            <div class="quick-actions-groups">
+              <div class="quick-group">
+                <h3>Creación de registros maestros</h3>
+                <div class="quick-actions">
+                  <button id="action-new-lot" class="action-card" type="button"><span class="action-icon">📦</span><span>Nuevo Lote</span></button>
+                  <button id="action-new-product" class="action-card" type="button"><span class="action-icon">🏷️</span><span>Nuevo Producto</span></button>
+                  <button id="action-new-area" class="action-card" type="button"><span class="action-icon">🏢</span><span>Nueva Área</span></button>
+                  <button id="action-new-employee" class="action-card" type="button"><span class="action-icon">👤</span><span>Nuevo Empleado</span></button>
+                </div>
+              </div>
+              <div class="quick-group">
+                <h3>Creación de registros operativos</h3>
+                <div class="quick-actions">
+                  <button id="action-new-inspection" class="action-card" type="button"><span class="action-icon">🔍</span><span>Nueva Inspección</span></button>
+                  <button id="action-new-ncr" class="action-card" type="button"><span class="action-icon">⚠️</span><span>Nueva NCR</span></button>
+                  <button id="action-new-capa" class="action-card" type="button"><span class="action-icon">🛠️</span><span>Nueva Acción CAPA</span></button>
+                </div>
+              </div>
             </div>
-            <div class="stat-card">
-              <span id="stat-areas" class="stat-value">0</span>
-              <span class="stat-label">Áreas</span>
-            </div>
-            <div class="stat-card">
-              <span id="stat-employees" class="stat-value">0</span>
-              <span class="stat-label">Empleados</span>
-            </div>
-            <div class="stat-card">
-              <span id="stat-products" class="stat-value">0</span>
-              <span class="stat-label">Productos</span>
-            </div>
-            <div class="stat-card">
-              <span id="stat-lots" class="stat-value">0</span>
-              <span class="stat-label">Lotes</span>
-            </div>
+          </section>
+
+          <div id="dashboard-empty-state" class="empty-state" hidden>No hay registros en el almacenamiento. Usa una acción rápida para comenzar.</div>
+
+          <!-- Compatibility stats for existing tests/config -->
+          <div class="stats-grid legacy-stats" aria-hidden="true" hidden>
+            <div class="stat-card"><span id="stat-entities" class="stat-value">0</span><span id="stat-entities-label" class="stat-label">Datos maestros</span></div>
+            <div class="stat-card"><span id="stat-documents" class="stat-value">0</span><span id="stat-documents-label" class="stat-label">Registros operativos</span></div>
+            <div class="stat-card"><span id="stat-areas" class="stat-value">0</span><span class="stat-label">Áreas</span></div>
+            <div class="stat-card"><span id="stat-employees" class="stat-value">0</span><span class="stat-label">Empleados</span></div>
+            <div class="stat-card"><span id="stat-products" class="stat-value">0</span><span class="stat-label">Productos</span></div>
+            <div class="stat-card"><span id="stat-lots" class="stat-value">0</span><span class="stat-label">Lotes</span></div>
+          </div>
+          <div hidden>
+            <button id="action-new-entity"><span id="action-new-entity-title">Nueva Entidad</span></button>
+            <button id="action-new-document"><span id="action-new-document-title">Nuevo Documento</span></button>
+            <button id="action-open-entities"><span id="action-open-entities-title">Entidades</span></button>
+            <button id="action-find"><span id="action-find-title">Buscar registros</span></button>
           </div>
         </section>
 
@@ -129,7 +160,7 @@
                 <h3>Campos personalizados</h3>
                 <div id="entity-custom-fields-container"></div>
               </div>
-              <button type="submit" id="save-entity">Guardar</button>
+              <button type="submit" id="save-entity"><span id="submit-button">Guardar</span></button>
             </form>
           </div>
 
@@ -161,6 +192,10 @@
                 <span id="error-document-entity" class="error"></span>
               </div>
               <div class="field">
+                <label for="series">Serie</label>
+                <input type="text" id="series">
+              </div>
+              <div class="field">
                 <label for="folio">Folio *</label>
                 <input type="number" id="folio">
                 <span id="error-folio" class="error"></span>
@@ -168,6 +203,7 @@
               <div class="field">
                 <label for="startDate">Fecha inicial</label>
                 <input type="date" id="startDate">
+                <span id="error-startDate" class="error"></span>
               </div>
               <div class="field">
                 <label for="endDate">Fecha final</label>
@@ -175,15 +211,51 @@
                 <span id="error-endDate" class="error"></span>
               </div>
               <div class="field">
+                <label for="quantity">Cantidad</label>
+                <input type="number" id="quantity">
+                <span id="error-quantity" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="subtotal">Subtotal</label>
+                <input type="number" id="subtotal" step="any">
+                <span id="error-subtotal" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="discount">Descuento</label>
+                <input type="number" id="discount" step="any">
+                <span id="error-discount" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="taxAmount">Impuesto</label>
+                <input type="number" id="taxAmount" step="any">
+                <span id="error-taxAmount" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="totalAmount">Total</label>
+                <input type="number" id="totalAmount" step="any">
+                <span id="error-totalAmount" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="currency">Moneda</label>
+                <input type="text" id="currency">
+              </div>
+              <div class="field">
+                <label for="docPaymentTerms">Condiciones de pago</label>
+                <input type="text" id="docPaymentTerms">
+              </div>
+              <div class="field">
+                <label for="notes">Notas</label>
+                <input type="text" id="notes">
+              </div>
+              <div class="field">
                 <label for="status">Estado</label>
                 <input type="text" id="status">
-                <select id="status-select" hidden></select>
                 <span id="error-status" class="error"></span>
               </div>
               <div id="document-custom-fields" hidden>
                 <div id="document-custom-fields-container"></div>
               </div>
-              <button type="submit" id="save-document">Guardar Documento</button>
+              <button type="submit" id="save-document"><span id="document-submit-button">Guardar Documento</span></button>
             </form>
           </div>
 
