@@ -1,6 +1,6 @@
 export const BASE_FIELDS = {
-  entity: ['id', 'entity_id', 'name', 'code', 'taxId', 'email', 'phone', 'address', 'creditLimit', 'paymentTerms', 'targetDate', 'createdAt', 'updatedAt'],
-  document: ['id', 'entityId', 'series', 'folio', 'startDate', 'endDate', 'quantity', 'subtotal', 'discount', 'taxAmount', 'totalAmount', 'currency', 'status', 'paymentTerms', 'notes', 'createdAt', 'updatedAt']
+  entity: ['id', 'entity_id', 'name', 'code', 'taxId', 'email', 'phone', 'address', 'creditLimit', 'paymentTerms', 'targetDate', 'actionType', 'responsible', 'completed', 'changeLog', 'createdAt', 'updatedAt'],
+  document: ['id', 'entityId', 'series', 'folio', 'startDate', 'endDate', 'quantity', 'subtotal', 'discount', 'taxAmount', 'totalAmount', 'currency', 'status', 'paymentTerms', 'notes', 'targetDate', 'actionType', 'responsible', 'completed', 'changeLog', 'createdAt', 'updatedAt']
 };
 
 export const FIELD_TYPES = ['text', 'number', 'date', 'select'];

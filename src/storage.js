@@ -1,4 +1,5 @@
 import { getConfig } from './module-config.js';
+import { ACTION_TYPES, normalizeCompleted, validateTargetDate } from './target-date.js';
 
 export function clearAll() {
   localStorage.removeItem('quality-entities');
@@ -46,6 +47,57 @@ function generateEntityId() {
   return 'E-' + Math.floor(100000 + Math.random() * 900000);
 }
 
+function currentActor(actor) {
+  return actor || 'sistema';
+}
+
+function auditEntry(field, from, to, user, now) {
+  const at = now.toISOString();
+  return {
+    field,
+    from: from === undefined || from === null ? '' : String(from),
+    to: to === undefined || to === null ? '' : String(to),
+    user: user || 'sistema',
+    date: at.slice(0, 10),
+    time: at.slice(11, 19),
+    at
+  };
+}
+
+function planningValues(record) {
+  return {
+    targetDate: (record && record.targetDate) || '',
+    actionType: (record && record.actionType) || '',
+    responsible: (record && record.responsible) || '',
+    completed: normalizeCompleted(record && record.completed)
+  };
+}
+
+function initialPlanningLog(data, user, now) {
+  const values = planningValues(data);
+  return Object.keys(values)
+    .filter(key => values[key] !== '' && values[key] !== false)
+    .map(key => auditEntry(key, '', values[key], user, now));
+}
+
+function planningChanges(before, after, user, now) {
+  return Object.keys(after)
+    .filter(key => String(before[key]) !== String(after[key]))
+    .map(key => auditEntry(key, before[key], after[key], user, now));
+}
+
+function validatePlanning(data, errors) {
+  const dateError = validateTargetDate(data.targetDate);
+  if (dateError) {
+    errors.targetDate = dateError;
+  } else if (data.targetDate && String(data.targetDate).trim() && (!data.responsible || !String(data.responsible).trim())) {
+    errors.responsible = 'El responsable es obligatorio cuando hay fecha objetivo';
+  }
+  if (data.actionType && !ACTION_TYPES.includes(data.actionType)) {
+    errors.actionType = `El tipo de acción debe ser uno de: ${ACTION_TYPES.join(', ')}`;
+  }
+}
+
 export function validateEntity(data) {
   const errors = {};
   if (!data.name || !String(data.name).trim()) {
@@ -69,19 +121,7 @@ export function validateEntity(data) {
     }
   }
 
-  if (data.targetDate && data.targetDate.trim()) {
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    if (!dateRegex.test(data.targetDate) || isNaN(Date.parse(data.targetDate))) {
-      errors.targetDate = 'Fecha objetivo inválida';
-    } else {
-      const baseDate = data.createdAt ? new Date(data.createdAt) : new Date();
-      const target = new Date(`${data.targetDate}T00:00:00`);
-      const baseDay = new Date(baseDate.getFullYear(), baseDate.getMonth(), baseDate.getDate());
-      if (target <= baseDay) {
-        errors.targetDate = 'La fecha objetivo debe ser posterior a la fecha de creación';
-      }
-    }
-  }
+  validatePlanning(data, errors);
 
   // Custom fields validation
   const config = getConfig();
@@ -112,12 +152,14 @@ export function validateEntity(data) {
   };
 }
 
-export function addEntity(data) {
+export function addEntity(data, actor) {
   const validation = validateEntity(data);
   if (!validation.valid) {
     throw new Error('Validación de entidad fallida: ' + JSON.stringify(validation.errors));
   }
   const entities = loadEntities();
+  const now = new Date();
+  const user = currentActor(actor || data.changedBy);
   const newEntity = {
     id: generateId(),
     entity_id: generateEntityId(),
@@ -130,7 +172,11 @@ export function addEntity(data) {
     creditLimit: data.creditLimit !== undefined && data.creditLimit !== '' ? Number(data.creditLimit) : 0,
     paymentTerms: data.paymentTerms || '',
     targetDate: data.targetDate || '',
-    createdAt: new Date().toISOString()
+    actionType: data.actionType || '',
+    responsible: data.responsible || '',
+    completed: normalizeCompleted(data.completed),
+    changeLog: initialPlanningLog(data, user, now),
+    createdAt: now.toISOString()
   };
 
   // Add custom fields if declared
@@ -148,17 +194,28 @@ export function addEntity(data) {
   return newEntity;
 }
 
-export function updateEntity(id, data) {
+export function updateEntity(id, data, actor) {
   const entities = loadEntities();
   const index = entities.findIndex(e => e.id === id || e.entity_id === id);
   if (index === -1) throw new Error('Entidad no encontrada');
 
   const existing = entities[index];
+  const before = planningValues(existing);
   const merged = { ...existing, ...data };
   const validation = validateEntity(merged);
   if (!validation.valid) {
     throw new Error('Validación de entidad fallida: ' + JSON.stringify(validation.errors));
   }
+
+  const now = new Date();
+  const user = currentActor(actor || data.changedBy);
+  const after = {
+    targetDate: data.targetDate !== undefined ? data.targetDate : before.targetDate,
+    actionType: data.actionType !== undefined ? data.actionType : before.actionType,
+    responsible: data.responsible !== undefined ? data.responsible : before.responsible,
+    completed: data.completed !== undefined ? normalizeCompleted(data.completed) : before.completed
+  };
+  const changes = planningChanges(before, after, user, now);
 
   existing.name = data.name !== undefined ? data.name.trim() : existing.name;
   existing.code = data.code !== undefined ? data.code.trim() : existing.code;
@@ -168,8 +225,12 @@ export function updateEntity(id, data) {
   if (data.address !== undefined) existing.address = data.address;
   if (data.creditLimit !== undefined) existing.creditLimit = data.creditLimit !== '' ? Number(data.creditLimit) : 0;
   if (data.paymentTerms !== undefined) existing.paymentTerms = data.paymentTerms;
-  if (data.targetDate !== undefined) existing.targetDate = data.targetDate;
-  existing.updatedAt = new Date().toISOString();
+  existing.targetDate = after.targetDate;
+  existing.actionType = after.actionType;
+  existing.responsible = after.responsible;
+  existing.completed = after.completed;
+  if (changes.length) existing.changeLog = [...(existing.changeLog || []), ...changes];
+  existing.updatedAt = now.toISOString();
 
   const config = getConfig();
   if (config.customFields) {
@@ -285,6 +346,8 @@ export function validateDocument(data) {
     }
   }
 
+  validatePlanning(data, errors);
+
   const config = getConfig();
   // Status lifecycle validation
   if (config.statusLifecycle) {
@@ -318,13 +381,15 @@ export function validateDocument(data) {
   };
 }
 
-export function addDocument(data) {
+export function addDocument(data, actor) {
   const validation = validateDocument(data);
   if (!validation.valid) {
     throw new Error('Validación de documento fallida: ' + JSON.stringify(validation.errors));
   }
 
   const docs = loadDocuments();
+  const now = new Date();
+  const user = currentActor(actor || data.changedBy);
   const newDoc = {
     id: generateDocId(),
     entityId: data.entityId,
@@ -342,7 +407,12 @@ export function addDocument(data) {
     status: data.status || (getConfig().statusLifecycle ? getConfig().statusLifecycle.statuses[0] : 'pendiente'),
     paymentTerms: data.paymentTerms || '',
     notes: data.notes || '',
-    createdAt: new Date().toISOString()
+    targetDate: data.targetDate || '',
+    actionType: data.actionType || '',
+    responsible: data.responsible || '',
+    completed: normalizeCompleted(data.completed),
+    changeLog: initialPlanningLog(data, user, now),
+    createdAt: now.toISOString()
   };
 
   const config = getConfig();
@@ -359,12 +429,13 @@ export function addDocument(data) {
   return newDoc;
 }
 
-export function updateDocument(id, data) {
+export function updateDocument(id, data, actor) {
   const docs = loadDocuments();
   const index = docs.findIndex(d => d.id === id);
   if (index === -1) throw new Error('Documento no encontrado');
 
   const existing = docs[index];
+  const before = planningValues(existing);
 
   const config = getConfig();
   if (config.statusLifecycle && data.status && data.status !== existing.status) {
@@ -384,6 +455,16 @@ export function updateDocument(id, data) {
     throw new Error('Validación de documento fallida: ' + JSON.stringify(validation.errors));
   }
 
+  const now = new Date();
+  const user = currentActor(actor || data.changedBy);
+  const after = {
+    targetDate: data.targetDate !== undefined ? data.targetDate : before.targetDate,
+    actionType: data.actionType !== undefined ? data.actionType : before.actionType,
+    responsible: data.responsible !== undefined ? data.responsible : before.responsible,
+    completed: data.completed !== undefined ? normalizeCompleted(data.completed) : before.completed
+  };
+  const changes = planningChanges(before, after, user, now);
+
   if (data.entityId !== undefined) { existing.entityId = data.entityId; existing.entity_id = data.entityId; }
   if (data.series !== undefined) existing.series = data.series;
   if (data.folio !== undefined) existing.folio = Number(data.folio);
@@ -398,7 +479,12 @@ export function updateDocument(id, data) {
   if (data.status !== undefined) existing.status = data.status;
   if (data.paymentTerms !== undefined) existing.paymentTerms = data.paymentTerms;
   if (data.notes !== undefined) existing.notes = data.notes;
-  existing.updatedAt = new Date().toISOString();
+  existing.targetDate = after.targetDate;
+  existing.actionType = after.actionType;
+  existing.responsible = after.responsible;
+  existing.completed = after.completed;
+  if (changes.length) existing.changeLog = [...(existing.changeLog || []), ...changes];
+  existing.updatedAt = now.toISOString();
 
   if (config.customFields) {
     for (const cf of config.customFields) {
