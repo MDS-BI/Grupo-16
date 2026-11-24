@@ -84,4 +84,22 @@ describe('User Story 1 - create and organize entities', () => {
     expect(qs('error-name').textContent).toContain('obligatorio');
     expect(qs('error-code').textContent).toContain('obligatorio');
   });
+
+  it('creates quality master data through the dedicated form', async () => {
+    const { loadMasters } = await import('../../src/master-data.js');
+    const change = id => qs(id).dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+
+    qs('nav-entities').click();
+    change('master-type-select');
+    qs('master-type-select').value = 'area';
+    change('master-type-select');
+    qs('qm-codigo').value = 'AR-01';
+    qs('qm-nombre').value = 'Área de Pruebas';
+    qs('qm-modulo').value = 'VENTAS';
+    qs('quality-master-form').dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
+
+    expect(loadMasters('area')).toHaveLength(1);
+    expect(loadMasters('area')[0].nombre).toBe('Área de Pruebas');
+    expect(qs('quality-entities-list').textContent).toContain('Área de Pruebas');
+  });
 });

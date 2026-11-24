@@ -1,7 +1,8 @@
-import { loadModuleConfig } from './module-config.js';
+import { loadModuleConfig, setActiveConfig, QUALITY_CONFIG } from './module-config.js';
 import { initApp } from './app.js';
 
 export async function main() {
+  setActiveConfig(QUALITY_CONFIG);
   const configResult = await loadModuleConfig();
   await initApp(configResult);
 }

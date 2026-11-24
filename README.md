@@ -53,14 +53,24 @@ All tailoring lives in one place: the `userConfig` object at the top of `src/mod
 
 - `moduleName` — display name shown in the top bar, dashboard, and document title; also derives the logo monogram.
 - `labels` — rename Entity/Document terms across every screen, including sidebar buttons, quick actions, forms, and messages. Spanish articles and agreements (el/la, seleccionado/a) are derived from the first word of each configured term.
-- `customFields` — declare extra fields per record type with `target` (`entity` or `document`), `key`, `label`, `type` (`text`, `number`, `date`, or `select`), optional `required`, and `options` for selects. Keys must not collide with base field names (see `specs/001-erp-base-module/data-model.md`). Values persist alongside records and appear in search results.
+- `customFields` — declare extra fields per record type with `target` (`entity` or `document`), `key`, `label`, `type` (`text`, `number`, `decimal`, `boolean`, `date`, `select`, or `enum`), optional `required`, and `options` for `select`/`enum`. Keys must not collide with base field names (see `specs/001-erp-base-module/data-model.md`). Values persist alongside records and appear in search results.
 - `statusLifecycle` — restrict document statuses to a configured list of `statuses` with permitted `transitions` between them. Without it, status stays a free-form field.
+- `statusLifecycleByType` — define an independent lifecycle per operational document type (`NCR`, `Inspección`, `Auditoría`, `CAPA`, `Queja`, `Evaluación`). The status control only offers valid next transitions for the current record.
 - `theme.accentColor` — a hex color (e.g., `"#0f62fe"`) applied across the shell as highlights and primary controls. Invalid values fall back to the default.
 
 If the configuration is invalid (unknown types, bad keys, transitions referencing unknown statuses, non-hex accent colors), the app shows the problems in a banner and falls back to defaults instead of breaking.
 
+## Calidad: espacio de trabajo, panel y tematización
+
+- **Marco del espacio de trabajo**: `src/components/shell.js` genera el monograma SVG del módulo aplica las etiquetas configuradas a los botones de la barra lateral y resalta el módulo activo con `aria-current="page"`. La vista de administración de usuarios y roles se añade solo para perfiles con `manage-permissions`.
+- **Panel de inicio**: cuatro KPIs en vivo (lotes activos, productos registrados, inspecciones realizadas y hallazgos NCR/CAPA abiertos), acciones rápidas separadas para datos maestros y registros operativos, y accesos a catálogos y búsqueda global.
+- **Datos maestros y documentos tipados**: el módulo persiste Áreas, Empleados, Productos y Lotes en claves propias y gestiona NCR, Inspecciones, Auditorías, CAPA, Quejas y Evaluaciones con campos y transiciones específicas por tipo.
+- **Tematización**: `theme.accentColor` se aplica como propiedad CSS `--accent`; los tokens de color, espaciado y tipografía viven en `src/styles.css`. Si el valor es inválido se conserva el tema integrado.
+- **Roles y permisos**: `src/permissions.js` define el catálogo y la matriz de Administrador, Gestor de Calidad, Inspector de Planta y Auditor. Los usuarios y la sesión activa se guardan en `quality-users` y `quality-session`.
+
 ## Notes
 
-- Data is persisted to `localStorage` under the keys `erp_base_module:entities` and `erp_base_module:documents`.
-- Deleting an entity also deletes its documents (cascade).
+- Data is persisted in `localStorage`: `quality-entities`, `quality-documents`, `quality-areas`, `quality-employees`, `quality-products`, `quality-lots`, `quality-users`, `quality-session`, plus the `quality-models` index.
+- Deleting an entity also deletes its documents; deleting an Area removes its Employees and deleting a Product removes its Lots (cascade).
+- Linting/formatting: `npm run lint`, `npm run lint:fix`, `npm run format`, and `npm run format:check`.
 - This project intentionally uses vanilla HTML, CSS, and JavaScript for simplicity.

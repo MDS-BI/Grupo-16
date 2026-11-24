@@ -1,6 +1,17 @@
-import { getConfig, setActiveConfig, labelFor, normalizeConfig } from './module-config.js';
-import { loadEntities, addEntity, updateEntity, deleteEntity, searchEntities, loadDocuments, addDocument, updateDocument, deleteDocument } from './storage.js';
+import { getConfig, setActiveConfig, labelFor } from './module-config.js';
+import { loadEntities, addEntity, updateEntity, deleteEntity, searchEntities, loadDocuments, addDocument, updateDocument, deleteDocument, searchDocuments } from './storage.js';
 import { formatTargetDate, getTargetDateStatus, isPastTargetDate, STATUS_LABELS, filterByStatus, sortTrackingRecords } from './target-date.js';
+import { MASTER_TYPES, MASTER_LABELS, loadMasters, addMaster, updateMaster, deleteMaster, findMaster, searchMasters } from './master-data.js';
+import { DOCUMENT_TYPES } from './document-types.js';
+import { can, requiredPermission, loadUsers, assignRole, getActiveUser, setActiveUser, ensureDefaultUsers } from './permissions.js';
+import { renderLogoMarkup, setActiveModule } from './components/shell.js';
+import { masterTypeOptions, documentTypeOptions } from './components/dashboard.js';
+import { renderQualityEntityForm, readQualityEntityForm, showQualityEntityErrors, clearQualityEntityErrors } from './components/quality-entity-form.js';
+import { renderQualityEntityList } from './components/quality-entity-list.js';
+import { renderSearchResults, matchesDateRange, toCsv } from './components/search-bar.js';
+import { renderTypedDocumentFields, readTypedDocumentFields, showTypedDocumentErrors, clearTypedDocumentErrors } from './components/document-form.js';
+import { statusLabel } from './components/document-list.js';
+import { renderRoleAdmin, renderPermissionCatalog, renderUserSwitcher, readRoleAssignments } from './components/role-admin.js';
 
 function qs(id) { return document.getElementById(id); }
 
@@ -21,19 +32,35 @@ function confirmAction(message) {
   return typeof fn === 'function' ? fn.call(globalThis, message) : true;
 }
 
+function showAuthMessage(message) {
+  const box = qs('auth-message');
+  if (!box) return;
+  box.textContent = message;
+  box.hidden = false;
+}
+
+function clearAuthMessage() {
+  const box = qs('auth-message');
+  if (box) {
+    box.textContent = '';
+    box.hidden = true;
+  }
+}
+
+function authorize(action, message) {
+  const permission = requiredPermission(action);
+  if (!permission || can(getActiveUser(), permission)) {
+    clearAuthMessage();
+    return true;
+  }
+  showAuthMessage(message || `Acción no autorizada. Se requiere el permiso: ${permission}.`);
+  return false;
+}
+
 function renderLogo(moduleName) {
   const logoMark = qs('logo-mark');
   if (!logoMark) return;
-  const words = moduleName.trim().split(/\s+/);
-  let initials = words.map(w => w[0]).join('').toUpperCase().slice(0, 2);
-  if (!initials) initials = 'MB';
-
-  logoMark.innerHTML = `
-    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-      <rect width="32" height="32" rx="6" fill="var(--accent, #2563eb)"/>
-      <text x="16" y="21" fill="#ffffff" font-size="14" font-weight="bold" text-anchor="middle">${initials}</text>
-    </svg>
-  `;
+  logoMark.innerHTML = renderLogoMarkup(moduleName);
 }
 
 function applyRelabeling() {
@@ -48,6 +75,7 @@ function applyRelabeling() {
   if (qs('nav-entities-label')) qs('nav-entities-label').textContent = labelFor('entities');
   if (qs('nav-documents-label')) qs('nav-documents-label').textContent = labelFor('documents');
   if (qs('nav-search-label')) qs('nav-search-label').textContent = 'Búsqueda';
+  if (qs('nav-users-label')) qs('nav-users-label').textContent = config.labels?.users || 'Usuarios y roles';
 
   // Dashboard headings & actions
   if (qs('dashboard-heading')) qs('dashboard-heading').textContent = config.moduleName;
@@ -88,8 +116,79 @@ function applyRelabeling() {
     document.documentElement.style.setProperty('--accent', config.theme.accentColor);
   }
 
+  const kpiLabels = document.querySelectorAll('.kpi-grid .stat-label');
+  const kpiTexts = [
+    config.labels?.lots || 'Total de Lotes activos',
+    config.labels?.products || 'Total de Productos registrados',
+    config.labels?.inspections || 'Inspecciones de Calidad realizadas',
+    config.labels?.ncrs || 'NCR y Acciones CAPA abiertas'
+  ];
+  kpiLabels.forEach((element, index) => {
+    if (kpiTexts[index]) element.textContent = kpiTexts[index];
+  });
+
+  if (qs('users-view-heading')) qs('users-view-heading').textContent = config.labels?.users || 'Usuarios y roles';
+  if (qs('quality-master-heading')) qs('quality-master-heading').textContent = config.labels?.areas || 'Datos maestros de calidad';
+
+  const masterSelect = qs('master-type-select');
+  if (masterSelect) masterSelect.innerHTML = masterTypeOptions(config.labels || {});
+  const documentTypeSelect = qs('document-type-select');
+  if (documentTypeSelect) documentTypeSelect.innerHTML = `<option value="">Seleccione...</option>` + documentTypeOptions(config.labels || {});
+
   renderLogo(config.moduleName);
   renderCustomFieldsForms();
+  refreshRoleViews();
+}
+
+function refreshRoleViews() {
+  ensureDefaultUsers();
+  const users = loadUsers();
+  const active = getActiveUser();
+  const canManage = can(active, 'manage-permissions');
+  const navUsers = qs('nav-users');
+  if (navUsers) navUsers.hidden = !canManage;
+
+  const switcher = qs('user-switcher');
+  if (switcher) {
+    switcher.innerHTML = renderUserSwitcher(users, active.id);
+    const select = qs('active-user');
+    if (select) {
+      select.onchange = () => {
+        setActiveUser(select.value);
+        clearAuthMessage();
+        applyRelabeling();
+        renderRoleViews();
+      };
+    }
+  }
+  renderRoleViews();
+}
+
+function renderRoleViews() {
+  const users = loadUsers();
+  const active = getActiveUser();
+  const list = qs('role-admin-list');
+  if (list) list.innerHTML = renderRoleAdmin(users, active.id);
+  const catalog = qs('permission-catalog');
+  if (catalog) catalog.innerHTML = renderPermissionCatalog();
+}
+
+function customFieldControl(field) {
+  const id = `cf-${field.key}`;
+  const required = field.required ? ' *' : '';
+  let control;
+  if (field.type === 'select' || field.type === 'enum') {
+    control = `<select id="${id}" data-key="${field.key}"><option value="">--</option>${(field.options || []).map(option => `<option value="${option}">${option}</option>`).join('')}</select>`;
+  } else if (field.type === 'boolean') {
+    control = `<input type="checkbox" id="${id}" data-key="${field.key}">`;
+  } else if (field.type === 'number' || field.type === 'decimal') {
+    control = `<input type="number" step="${field.type === 'decimal' ? 'any' : '1'}" id="${id}" data-key="${field.key}">`;
+  } else if (field.type === 'date') {
+    control = `<input type="date" id="${id}" data-key="${field.key}">`;
+  } else {
+    control = `<input type="text" id="${id}" data-key="${field.key}">`;
+  }
+  return `<div class="field custom-field"><label for="${id}">${field.label}${required}</label>${control}<span id="error-cf-${field.key}" class="error"></span></div>`;
 }
 
 function renderCustomFieldsForms() {
@@ -97,100 +196,43 @@ function renderCustomFieldsForms() {
   const entityContainer = qs('entity-custom-fields-container');
   const entityWrapper = qs('entity-custom-fields');
   if (entityContainer && entityWrapper) {
-    const entityFields = config.customFields.filter(f => f.target === 'entity');
-    if (entityFields.length > 0) {
-      entityWrapper.hidden = false;
-      entityContainer.innerHTML = entityFields.map(f => {
-        if (f.type === 'select') {
-          return `
-            <div class="field custom-field">
-              <label for="cf-${f.key}">${f.label}${f.required ? ' *' : ''}</label>
-              <select id="cf-${f.key}" data-key="${f.key}">
-                <option value="">--</option>
-                ${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}
-              </select>
-              <span id="error-cf-${f.key}" class="error"></span>
-            </div>
-          `;
-        } else {
-          return `
-            <div class="field custom-field">
-              <label for="cf-${f.key}">${f.label}${f.required ? ' *' : ''}</label>
-              <input type="${f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text'}" id="cf-${f.key}" data-key="${f.key}">
-              <span id="error-cf-${f.key}" class="error"></span>
-            </div>
-          `;
-        }
-      }).join('');
-    } else {
-      entityWrapper.hidden = true;
-      entityContainer.innerHTML = '';
-    }
+    const entityFields = (config.customFields || []).filter(f => f.target === 'entity');
+    entityWrapper.hidden = entityFields.length === 0;
+    entityContainer.innerHTML = entityFields.map(customFieldControl).join('');
   }
 
   const docContainer = qs('document-custom-fields-container');
   const docWrapper = qs('document-custom-fields');
   if (docContainer && docWrapper) {
-    const docFields = config.customFields.filter(f => f.target === 'document');
-    if (docFields.length > 0) {
-      docWrapper.hidden = false;
-      docContainer.innerHTML = docFields.map(f => {
-        if (f.type === 'select') {
-          return `
-            <div class="field custom-field">
-              <label for="cf-${f.key}">${f.label}${f.required ? ' *' : ''}</label>
-              <select id="cf-${f.key}" data-key="${f.key}">
-                <option value="">--</option>
-                ${f.options.map(o => `<option value="${o}">${o}</option>`).join('')}
-              </select>
-              <span id="error-cf-${f.key}" class="error"></span>
-            </div>
-          `;
-        } else {
-          return `
-            <div class="field custom-field">
-              <label for="cf-${f.key}">${f.label}${f.required ? ' *' : ''}</label>
-              <input type="${f.type === 'number' ? 'number' : f.type === 'date' ? 'date' : 'text'}" id="cf-${f.key}" data-key="${f.key}">
-              <span id="error-cf-${f.key}" class="error"></span>
-            </div>
-          `;
-        }
-      }).join('');
-    } else {
-      docWrapper.hidden = true;
-      docContainer.innerHTML = '';
-    }
+    const docFields = (config.customFields || []).filter(f => f.target === 'document');
+    docWrapper.hidden = docFields.length === 0;
+    docContainer.innerHTML = docFields.map(customFieldControl).join('');
   }
 }
 
 function showView(viewId) {
-  ['view-dashboard', 'view-entities', 'view-documents', 'view-search'].forEach(id => {
+  ['view-dashboard', 'view-entities', 'view-documents', 'view-search', 'view-users'].forEach(id => {
     const el = qs(id);
     if (el) el.hidden = (id !== `view-${viewId}`);
   });
 
-  ['nav-dashboard', 'nav-entities', 'nav-documents', 'nav-search'].forEach(id => {
-    const btn = qs(id);
-    if (btn) {
-      if (btn.dataset.module === viewId) {
-        btn.setAttribute('aria-current', 'page');
-      } else {
-        btn.removeAttribute('aria-current');
-      }
-    }
-  });
+  setActiveModule(viewId);
 
   if (viewId === 'dashboard') {
     updateDashboardStats();
   } else if (viewId === 'entities') {
     populateEntitySelect();
     renderEntitiesList();
+    renderQualityMasters();
   } else if (viewId === 'documents') {
     populateDocumentEntitySelect();
     populateDocumentSelect();
     renderDocumentsList();
+    renderTypedFields(currentDocumentType());
   } else if (viewId === 'search') {
     performSearch();
+  } else if (viewId === 'users') {
+    renderRoleViews();
   }
 }
 
@@ -250,6 +292,17 @@ function updateDashboardStats() {
     if (key) {
       counts[key] += 1;
       if (isActiveMaster(e, key) && key === 'lots') counts.activeLots += 1;
+    }
+  });
+
+  MASTER_TYPES.forEach(type => {
+    const rows = loadMasters(type);
+    if (type === 'area') counts.areas += rows.length;
+    if (type === 'employee') counts.employees += rows.length;
+    if (type === 'product') counts.products += rows.length;
+    if (type === 'lot') {
+      counts.lots += rows.length;
+      counts.activeLots += rows.filter(record => record.activo !== false).length;
     }
   });
 
@@ -334,35 +387,66 @@ function renderDocumentsList() {
   }
   list.innerHTML = docs.map(d => {
     const status = getTargetDateStatus(d);
-    return `<li class="tracking-item status-${status}">Folio: ${d.folio} - Estado: <span class="status-badge">${d.status || ''}</span><span class="tracking-status status-badge">${STATUS_LABELS[status]}</span>${d.targetDate ? ` - Fecha objetivo: ${formatTargetDate(d.targetDate)}` : ''}</li>`;
+    return `<li class="tracking-item status-${status}">Folio: ${d.folio} - Estado: <span class="status-badge">${statusLabel(d.status)}</span><span class="tracking-status status-badge">${STATUS_LABELS[status]}</span>${d.targetDate ? ` - Fecha objetivo: ${formatTargetDate(d.targetDate)}` : ''}</li>`;
   }).join('');
 }
 
-function performSearch() {
+function collectSearchResults() {
   const input = qs('search-input');
+  const term = input ? input.value : '';
+  const typeFilter = qs('search-type-filter') ? qs('search-type-filter').value : '';
+  const from = qs('search-date-from') ? qs('search-date-from').value : '';
+  const to = qs('search-date-to') ? qs('search-date-to').value : '';
+  const results = [];
+
+  if (!typeFilter || MASTER_TYPES.includes(typeFilter)) {
+    const masters = searchMasters(term);
+    results.push(...masters.filter(row => !typeFilter || row.masterType === typeFilter));
+  }
+  if (!typeFilter || DOCUMENT_TYPES.includes(typeFilter)) {
+    const docs = searchDocuments(term);
+    results.push(...docs.filter(doc => !typeFilter || (doc.tipoDoc || doc.documentType) === typeFilter));
+  }
+  if (!typeFilter) {
+    const docs = loadDocuments();
+    for (const entity of searchEntities(term)) {
+      const related = docs.filter(doc =>
+        doc.entityId === entity.entity_id || doc.entityId === entity.id || doc.entity_id === entity.entity_id
+      );
+      results.push({ ...entity, relatedStatuses: related.map(doc => doc.status || doc.estado || '') });
+    }
+  }
+  return results.filter(record => matchesDateRange(record, from, to));
+}
+
+function performSearch() {
   const list = qs('search-results-list');
   const empty = qs('search-empty');
-  if (!input || !list) return;
+  if (!list) return;
 
-  const results = searchEntities(input.value);
-  if (empty) empty.hidden = (results.length > 0);
-
+  const results = collectSearchResults();
   const config = getConfig();
-  const docs = loadDocuments();
-  list.innerHTML = results.map(e => {
-    let customText = '';
-    if (config.customFields) {
-      for (const cf of config.customFields) {
-        if (cf.target === 'entity' && e[cf.key] !== undefined) {
-          customText += `, ${cf.label}: ${e[cf.key]}`;
-        }
-      }
-    }
-    const entityDocs = docs.filter(d => d.entity_id === e.entity_id || d.entityId === e.entity_id);
-    const docText = entityDocs.length ? ` ${entityDocs.map(d => `<span class="status-badge">${d.status || ''}</span>`).join(' ')}` : '';
-    const status = getTargetDateStatus(e);
-    return `<li class="entity-item tracking-item status-${status}"><strong>${e.name}</strong> (${e.code})${docText}<span class="tracking-status status-badge">${STATUS_LABELS[status]}</span>${e.targetDate ? ` - Fecha objetivo: ${formatTargetDate(e.targetDate)}` : ''}${customText}</li>`;
-  }).join('');
+  if (empty) empty.hidden = results.length > 0;
+  list.innerHTML = results.length
+    ? renderSearchResults(results, { ...(config.labels || {}), customFields: config.customFields || [] })
+    : '';
+}
+
+function exportSearchCsv() {
+  const results = collectSearchResults();
+  const csv = toCsv(results);
+  try {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL ? URL.createObjectURL(blob) : '';
+    if (!url) return;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'resultados-busqueda.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch {
+    return;
+  }
 }
 
 function collectTrackingRecords() {
@@ -401,6 +485,63 @@ function renderTrackingList() {
   }).join('');
 }
 
+function masterFormOptions() {
+  return {
+    areas: loadMasters('area').map(row => ({
+      value: row.area_id,
+      label: `${row.codigo || ''} — ${row.nombre || ''}`.trim()
+    })),
+    employees: loadMasters('employee').map(row => ({
+      value: row.empleado_id,
+      label: `${row.numero_nomina || ''} — ${row.puesto || ''}`.trim()
+    })),
+    products: loadMasters('product').map(row => ({
+      value: row.producto_id,
+      label: `${row.codigo || ''} — ${row.descripcion || ''}`.trim()
+    }))
+  };
+}
+
+function renderMasterForm(type, values = {}) {
+  const container = qs('quality-master-fields');
+  if (!container) return;
+  container.innerHTML = renderQualityEntityForm(type, values, masterFormOptions());
+  clearQualityEntityErrors(type);
+}
+
+function renderQualityMasters() {
+  const list = qs('quality-entities-list');
+  if (!list) return;
+  const rows = MASTER_TYPES.flatMap(type => loadMasters(type).map(row => ({ ...row, masterType: type })));
+  list.innerHTML = renderQualityEntityList(rows, getConfig().labels || {});
+}
+
+function currentMasterType() {
+  const select = qs('master-type-select');
+  return select && select.value ? select.value : MASTER_TYPES[0];
+}
+
+function resetMasterForm() {
+  const form = qs('quality-master-form');
+  if (form) form.reset();
+  if (qs('quality-master-id')) qs('quality-master-id').value = '';
+  renderMasterForm(currentMasterType());
+  const save = qs('save-quality-master');
+  if (save) save.textContent = 'Guardar dato maestro';
+}
+
+function renderTypedFields(type, values = {}) {
+  const container = qs('document-typed-fields');
+  if (!container) return;
+  container.innerHTML = renderTypedDocumentFields(type, values, getConfig());
+  clearTypedDocumentErrors(type);
+}
+
+function currentDocumentType() {
+  const select = qs('document-type-select');
+  return select && select.value ? select.value : '';
+}
+
 export async function initApp(configResult) {
   if (configResult) {
     setActiveConfig(configResult.config || configResult);
@@ -408,12 +549,114 @@ export async function initApp(configResult) {
   applyRelabeling();
 
   // Event listeners for navigation
-  ['dashboard', 'entities', 'documents', 'search'].forEach(mod => {
+  ['dashboard', 'entities', 'documents', 'search', 'users'].forEach(mod => {
     const btn = qs(`nav-${mod}`);
     if (btn) {
-      btn.onclick = () => showView(mod);
+      btn.onclick = () => {
+        if (mod === 'users' && !authorize('manage-users')) return;
+        showView(mod);
+      };
     }
   });
+
+  const masterTypeSelect = qs('master-type-select');
+  if (masterTypeSelect) {
+    masterTypeSelect.onchange = () => resetMasterForm();
+  }
+  renderMasterForm(currentMasterType());
+
+  const qualityMasterForm = qs('quality-master-form');
+  if (qualityMasterForm) {
+    qualityMasterForm.onsubmit = (e) => {
+      e.preventDefault();
+      const type = currentMasterType();
+      const id = qs('quality-master-id').value;
+      if (!authorize(id ? 'edit-master' : 'create-master')) return;
+      const data = readQualityEntityForm(type);
+      clearQualityEntityErrors(type);
+      try {
+        if (id) {
+          updateMaster(type, id, data, getActiveUser().name);
+        } else {
+          addMaster(type, data, getActiveUser().name);
+        }
+        resetMasterForm();
+        renderMasterForm(type);
+        renderQualityMasters();
+        updateDashboardStats();
+      } catch (err) {
+        try {
+          const errors = JSON.parse(err.message.replace(/^.*?:\s*/, ''));
+          showQualityEntityErrors(type, errors);
+        } catch {
+          showAuthMessage(err.message);
+        }
+      }
+    };
+  }
+
+  const qualityMasterList = qs('quality-entities-list');
+  if (qualityMasterList) {
+    qualityMasterList.onclick = (e) => {
+      const button = e.target.closest('button[data-id][data-type]');
+      if (!button) return;
+      const type = button.dataset.type;
+      const id = button.dataset.id;
+      if (button.classList.contains('btn-edit-master')) {
+        if (!authorize('edit-master')) return;
+        const record = findMaster(type, id);
+        if (!record) return;
+        if (masterTypeSelect) masterTypeSelect.value = type;
+        renderMasterForm(type, record);
+        qs('quality-master-id').value = id;
+        const save = qs('save-quality-master');
+        if (save) save.textContent = 'Actualizar dato maestro';
+      } else if (button.classList.contains('btn-delete-master')) {
+        if (!authorize('delete-master')) return;
+        if (!confirmAction('¿Eliminar dato maestro?')) return;
+        deleteMaster(type, id, getActiveUser().name);
+        resetMasterForm();
+        renderQualityMasters();
+        updateDashboardStats();
+      }
+    };
+  }
+
+  const documentTypeSelect = qs('document-type-select');
+  if (documentTypeSelect) {
+    documentTypeSelect.onchange = () => {
+      const type = documentTypeSelect.value;
+      resetDocumentForm();
+      documentTypeSelect.value = type;
+      renderTypedFields(type);
+    };
+  }
+
+  const searchTypeFilter = qs('search-type-filter');
+  if (searchTypeFilter) {
+    searchTypeFilter.innerHTML = `<option value="">Todos</option>` +
+      MASTER_TYPES.map(type => `<option value="${type}">${MASTER_LABELS[type]}</option>`).join('') +
+      DOCUMENT_TYPES.map(type => `<option value="${type}">${type}</option>`).join('');
+    searchTypeFilter.onchange = () => performSearch();
+  }
+  ['search-date-from', 'search-date-to'].forEach(id => {
+    const element = qs(id);
+    if (element) element.onchange = () => performSearch();
+  });
+  if (qs('search-export-csv')) qs('search-export-csv').onclick = () => exportSearchCsv();
+  if (qs('search-back-dashboard')) qs('search-back-dashboard').onclick = () => showView('dashboard');
+
+  const saveRoles = qs('save-roles');
+  if (saveRoles) {
+    saveRoles.onclick = () => {
+      if (!authorize('manage-users')) return;
+      for (const assignment of readRoleAssignments()) {
+        assignRole(assignment.id, assignment.role);
+      }
+      renderRoleViews();
+      showAuthMessage('Asignaciones guardadas correctamente.');
+    };
+  }
 
   const entityForm = qs('entity-form');
   const editEntitySelect = qs('edit-entity');
@@ -436,6 +679,8 @@ export async function initApp(configResult) {
     ['document-entity','folio','startDate','endDate','quantity','subtotal','discount','taxAmount','totalAmount','status'].forEach(k => { const el = qs(`error-${k}`); if (el) el.textContent = ''; });
     const config = getConfig();
     (config.customFields || []).filter(f => f.target === 'document').forEach(cf => { const el = qs(`error-cf-${cf.key}`); if (el) el.textContent = ''; });
+    const typed = qs('document-typed-fields');
+    if (typed) typed.innerHTML = '';
     syncStatusControl();
   }
 
@@ -476,21 +721,26 @@ export async function initApp(configResult) {
 
   function openMasterForm(masterType) {
     showView('entities');
-    resetEntityForm();
-    const typeInput = qs('tipoItem') || qs('master-type') || qs('category');
-    if (typeInput) typeInput.value = masterType;
-    const name = qs('name');
-    if (name) name.focus();
+    const select = qs('master-type-select');
+    if (select) {
+      select.value = masterType;
+      if (select.onchange) select.onchange();
+    }
+    resetMasterForm();
+    const firstField = document.querySelector('#quality-master-fields input, #quality-master-fields select');
+    if (firstField) firstField.focus();
   }
 
   function openOperationalForm(docType) {
     showView('documents');
     resetDocumentForm();
-    const typeField = qs('tipoDoc') || qs('document-type') || qs('docType');
-    const statusField = qs('status');
-    if (typeField) typeField.value = docType;
-    if (statusField && !statusField.value) statusField.value = docType === 'NCR' ? 'ABIERTA' : (docType === 'CAPA' ? 'ABIERTA' : 'REGISTRADA');
-    if (qs('document-entity')) qs('document-entity').focus();
+    const select = qs('document-type-select');
+    if (select) {
+      select.value = docType;
+      renderTypedFields(docType);
+    }
+    const folio = qs('folio') || qs('document-entity');
+    if (folio) folio.focus();
   }
 
   // Dashboard quick actions (new HU3)
@@ -548,12 +798,13 @@ export async function initApp(configResult) {
         if (qs('error-name')) qs('error-name').textContent = 'El perfil de solo consulta no puede editar registros';
         return;
       }
+      if (!authorize(id ? 'edit-master' : 'create-master')) return;
       if (isPastTargetDate(data.targetDate) && !confirmAction('La fecha objetivo es anterior a hoy. ¿Desea guardarla de todas formas?')) return;
 
       const config = getConfig();
       (config.customFields || []).filter(f => f.target === 'entity').forEach(cf => {
         const input = qs(`cf-${cf.key}`);
-        if (input) data[cf.key] = input.value;
+        if (input) data[cf.key] = input.type === 'checkbox' ? input.checked : input.value;
       });
 
       // Clear errors
@@ -612,7 +863,12 @@ export async function initApp(configResult) {
       const config = getConfig();
       (config.customFields || []).filter(f => f.target === 'entity').forEach(cf => {
         const input = qs(`cf-${cf.key}`);
-        if (input) input.value = entity[cf.key] !== undefined ? entity[cf.key] : '';
+        if (!input) return;
+        if (input.type === 'checkbox') {
+          input.checked = entity[cf.key] === true || entity[cf.key] === 'true';
+        } else {
+          input.value = entity[cf.key] !== undefined ? entity[cf.key] : '';
+        }
       });
     };
   }
@@ -623,6 +879,7 @@ export async function initApp(configResult) {
     deleteEntityBtn.onclick = () => {
       const selectedId = editEntitySelect ? editEntitySelect.value : '';
       if (!selectedId) return;
+      if (!authorize('delete-master')) return;
       if (!confirmAction('¿Eliminar entidad?')) return;
       deleteEntity(selectedId);
       resetEntityForm();
@@ -640,6 +897,7 @@ export async function initApp(configResult) {
     documentForm.onsubmit = (e) => {
       e.preventDefault();
       const id = qs('document-id').value;
+      const docType = currentDocumentType();
       const data = {
         entityId: qs('document-entity') ? qs('document-entity').value : '',
         series: qs('series') ? qs('series').value : '',
@@ -665,16 +923,26 @@ export async function initApp(configResult) {
         if (qs('error-folio')) qs('error-folio').textContent = 'El perfil de solo consulta no puede editar registros';
         return;
       }
+      if (!authorize(id ? 'edit-document' : 'create-document')) return;
       if (isPastTargetDate(data.targetDate) && !confirmAction('La fecha objetivo es anterior a hoy. ¿Desea guardarla de todas formas?')) return;
 
       const config = getConfig();
       (config.customFields || []).filter(f => f.target === 'document').forEach(cf => {
         const input = qs(`cf-${cf.key}`);
-        if (input) data[cf.key] = input.value;
+        if (input) data[cf.key] = input.type === 'checkbox' ? input.checked : input.value;
       });
+
+      if (docType) {
+        data.tipoDoc = docType;
+        const typed = readTypedDocumentFields(docType);
+        for (const [key, value] of Object.entries(typed)) {
+          if (value !== '' || key === 'status') data[key] = value;
+        }
+      }
 
       ['document-entity','folio','startDate','endDate','quantity','subtotal','discount','taxAmount','totalAmount','status','document-targetDate','document-actionType','document-responsible'].forEach(k => { const el = qs(`error-${k}`); if (el) el.textContent = ''; });
       (config.customFields || []).filter(f => f.target === 'document').forEach(cf => { const el = qs(`error-cf-${cf.key}`); if (el) el.textContent = ''; });
+      if (docType) clearTypedDocumentErrors(docType);
 
       try {
         if (id) {
@@ -694,6 +962,7 @@ export async function initApp(configResult) {
             const errEl = qs(`error-document-${k}`) || qs(`error-${k}`) || qs(`error-cf-${k}`) || (k === 'entityId' ? qs('error-document-entity') : null);
             if (errEl) errEl.textContent = msg;
           }
+          if (docType) showTypedDocumentErrors(docType, errObj);
         } catch {
           if (qs('error-folio')) qs('error-folio').textContent = err.message;
         }
@@ -734,8 +1003,17 @@ export async function initApp(configResult) {
       const config = getConfig();
       (config.customFields || []).filter(f => f.target === 'document').forEach(cf => {
         const input = qs(`cf-${cf.key}`);
-        if (input) input.value = doc[cf.key] !== undefined ? doc[cf.key] : '';
+        if (!input) return;
+        if (input.type === 'checkbox') {
+          input.checked = doc[cf.key] === true || doc[cf.key] === 'true';
+        } else {
+          input.value = doc[cf.key] !== undefined ? doc[cf.key] : '';
+        }
       });
+      const type = doc.tipoDoc || doc.documentType || '';
+      const typeSelect = qs('document-type-select');
+      if (typeSelect) typeSelect.value = type;
+      if (type) renderTypedFields(type, doc);
     };
   }
 
@@ -744,6 +1022,7 @@ export async function initApp(configResult) {
     deleteDocumentBtn.onclick = () => {
       const selectedId = editDocumentSelect ? editDocumentSelect.value : '';
       if (!selectedId) return;
+      if (!authorize('delete-document')) return;
       if (!confirmAction('¿Eliminar documento?')) return;
       deleteDocument(selectedId);
       resetDocumentForm();
@@ -774,7 +1053,7 @@ export async function initApp(configResult) {
       notice.textContent = 'Perfil de solo consulta: puede ver la información pero no editarla.';
       content.prepend(notice);
     }
-    document.querySelectorAll('#entity-form input, #entity-form select, #entity-form button, #document-form input, #document-form select, #document-form button, #delete-entity, #delete-document, .quick-actions button, .dashboard-top-actions button, #action-new-entity, #action-new-document').forEach(el => {
+    document.querySelectorAll('#entity-form input, #entity-form select, #entity-form button, #document-form input, #document-form select, #document-form button, #quality-master-form input, #quality-master-form select, #quality-master-form button, #delete-entity, #delete-document, #save-roles, .quick-actions button, .dashboard-top-actions button, #action-new-entity, #action-new-document').forEach(el => {
       el.disabled = true;
     });
   }

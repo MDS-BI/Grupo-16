@@ -12,6 +12,7 @@
         <div id="logo-mark"></div>
         <span id="brand-name">Módulo Base ERP</span>
       </div>
+      <div id="user-switcher" class="topbar-actions"></div>
     </header>
 
     <div class="workspace-body">
@@ -28,9 +29,13 @@
         <button id="nav-search" class="nav-module" data-module="search">
           <span id="nav-search-label" class="nav-label">Búsqueda</span>
         </button>
+        <button id="nav-users" class="nav-secondary" data-module="users" hidden>
+          <span id="nav-users-label" class="nav-label">Usuarios y roles</span>
+        </button>
       </nav>
 
       <main class="content-area">
+        <div id="auth-message" class="auth-message" role="alert" hidden></div>
         <!-- Dashboard View -->
         <section id="view-dashboard" class="view">
           <div class="dashboard-header">
@@ -217,6 +222,24 @@
           <div class="list-container">
             <ul id="entities-list"></ul>
           </div>
+
+          <section class="quality-master-section" aria-labelledby="quality-master-heading">
+            <h2 id="quality-master-heading">Datos maestros de calidad</h2>
+            <div class="form-container">
+              <div class="field">
+                <label for="master-type-select">Tipo de dato maestro</label>
+                <select id="master-type-select"></select>
+              </div>
+              <form id="quality-master-form">
+                <input type="hidden" id="quality-master-id">
+                <div id="quality-master-fields"></div>
+                <button type="submit" id="save-quality-master">Guardar dato maestro</button>
+              </form>
+            </div>
+            <div class="list-container">
+              <ul id="quality-entities-list"></ul>
+            </div>
+          </section>
         </section>
 
         <!-- Documents View -->
@@ -319,6 +342,11 @@
               <div class="field checkbox-field">
                 <label for="document-completed"><input type="checkbox" id="document-completed"> Marcar como realizada</label>
               </div>
+              <div class="field">
+                <label for="document-type-select">Tipo de registro operativo</label>
+                <select id="document-type-select"><option value="">Seleccione...</option></select>
+              </div>
+              <div id="document-typed-fields"></div>
               <div id="document-custom-fields" hidden>
                 <div id="document-custom-fields-container"></div>
               </div>
@@ -343,14 +371,38 @@
         <section id="view-search" class="view" hidden>
           <h1 id="search-view-heading">Buscar Entidades</h1>
           <div class="search-container">
-            <input type="text" id="search-input" placeholder="Buscar...">
+            <input type="text" id="search-input" placeholder="Buscar..." aria-label="Término de búsqueda">
+          </div>
+          <div class="search-filters">
+            <label for="search-type-filter">Tipo</label>
+            <select id="search-type-filter"><option value="">Todos</option></select>
+            <label for="search-date-from">Desde</label>
+            <input type="date" id="search-date-from">
+            <label for="search-date-to">Hasta</label>
+            <input type="date" id="search-date-to">
+            <button type="button" id="search-export-csv" class="btn-secondary">Exportar CSV</button>
+            <button type="button" id="search-back-dashboard" class="btn-secondary">Volver al Panel</button>
           </div>
           <div id="search-empty" class="empty-state" hidden>No se encontraron coincidencias.</div>
           <ul id="search-results-list"></ul>
         </section>
+
+        <!-- Users View -->
+        <section id="view-users" class="view" hidden>
+          <h1 id="users-view-heading">Usuarios y roles</h1>
+          <div class="form-container">
+            <p class="hint">Seleccione el rol asignado a cada usuario y guarde los cambios.</p>
+            <ul id="role-admin-list"></ul>
+            <button type="button" id="save-roles">Guardar asignaciones</button>
+          </div>
+          <div class="form-container">
+            <h2>Catálogo de permisos</h2>
+            <ul id="permission-catalog"></ul>
+          </div>
+        </section>
       </main>
     </div>
   </div>
-  <script type="module" src="/src/app.js"></script>
+  <script type="module" src="/src/main.js"></script>
 </body>
 </html>

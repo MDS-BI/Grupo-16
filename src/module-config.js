@@ -1,9 +1,12 @@
+import { DOCUMENT_TYPE_META, DOMAIN_LABELS } from './document-types.js';
+import { ROLES, validateRoleDefinition } from './permissions.js';
+
 export const BASE_FIELDS = {
   entity: ['id', 'entity_id', 'name', 'code', 'taxId', 'email', 'phone', 'address', 'creditLimit', 'paymentTerms', 'targetDate', 'actionType', 'responsible', 'completed', 'changeLog', 'createdAt', 'updatedAt'],
   document: ['id', 'entityId', 'series', 'folio', 'startDate', 'endDate', 'quantity', 'subtotal', 'discount', 'taxAmount', 'totalAmount', 'currency', 'status', 'paymentTerms', 'notes', 'targetDate', 'actionType', 'responsible', 'completed', 'changeLog', 'createdAt', 'updatedAt']
 };
 
-export const FIELD_TYPES = ['text', 'number', 'date', 'select'];
+export const FIELD_TYPES = ['text', 'number', 'date', 'select', 'boolean', 'decimal', 'enum'];
 
 export const DEFAULT_CONFIG = {
   moduleName: 'Módulo Base ERP',
@@ -15,6 +18,9 @@ export const DEFAULT_CONFIG = {
   },
   customFields: [],
   statusLifecycle: null,
+  statusLifecycleByType: null,
+  domainLabels: {},
+  roles: null,
   theme: {
     accentColor: '#2563eb'
   }
@@ -26,11 +32,29 @@ export const QUALITY_CONFIG = {
     entity: 'Producto / Lote',
     entities: 'Productos y Lotes',
     document: 'Inspección / NCR',
-    documents: 'Inspecciones y NCRs'
+    documents: 'Inspecciones y NCRs',
+    area: 'Área auditada',
+    areas: 'Áreas auditadas',
+    employee: 'Empleado',
+    employees: 'Empleados',
+    product: 'Producto',
+    products: 'Productos',
+    lot: 'Lote',
+    lots: 'Lotes',
+    ncr: 'No Conformidad',
+    ncrs: 'Hallazgos / No conformidades',
+    inspection: 'Inspección',
+    inspections: 'Inspecciones',
+    audit: 'Auditoría',
+    audits: 'Auditorías',
+    capa: 'CAPA',
+    capas: 'Acciones correctivas',
+    users: 'Usuarios y roles',
+    roles: 'Roles'
   },
   customFields: [
-    { target: 'entity', key: 'tipoItem', label: 'Tipo', type: 'select', options: ['Producto', 'Lote', 'Área', 'Empleado'], required: true },
-    { target: 'document', key: 'tipoDoc', label: 'Tipo de Registro', type: 'select', options: ['Inspección', 'NCR', 'CAPA'], required: true }
+    { target: 'entity', key: 'tipoItem', label: 'Tipo', type: 'enum', options: ['Producto', 'Lote', 'Área', 'Empleado'], required: true },
+    { target: 'document', key: 'tipoDoc', label: 'Tipo de Registro', type: 'enum', options: Object.keys(DOCUMENT_TYPE_META), required: true }
   ],
   statusLifecycle: {
     statuses: ['ABIERTA', 'EN_INVESTIGACION', 'EN_CAPA', 'CERRADA', 'RECHAZADA'],
@@ -42,6 +66,11 @@ export const QUALITY_CONFIG = {
       RECHAZADA: []
     }
   },
+  statusLifecycleByType: Object.fromEntries(
+    Object.entries(DOCUMENT_TYPE_META).map(([type, meta]) => [type, { statuses: meta.statuses, transitions: meta.transitions }])
+  ),
+  domainLabels: DOMAIN_LABELS,
+  roles: ROLES.map(role => ({ role, permissions: [] })),
   theme: { accentColor: '#2563eb' }
 };
 
@@ -61,6 +90,13 @@ export function normalizeConfig(userConfig) {
     },
     customFields: [],
     statusLifecycle: userConfig.statusLifecycle === null ? null : (userConfig.statusLifecycle ? { ...userConfig.statusLifecycle } : null),
+    statusLifecycleByType: userConfig.statusLifecycleByType && typeof userConfig.statusLifecycleByType === 'object'
+      ? { ...userConfig.statusLifecycleByType }
+      : null,
+    domainLabels: userConfig.domainLabels && typeof userConfig.domainLabels === 'object'
+      ? { ...userConfig.domainLabels }
+      : {},
+    roles: Array.isArray(userConfig.roles) ? userConfig.roles.map(role => ({ ...role })) : null,
     theme: {
       accentColor: DEFAULT_CONFIG.theme.accentColor
     }
@@ -117,9 +153,9 @@ export function normalizeConfig(userConfig) {
           errors.push(`Tipo de campo personalizado desconocido (type): ${cf.type}`);
           continue;
         }
-        if (cf.type === 'select') {
+        if (cf.type === 'select' || cf.type === 'enum') {
           if (!Array.isArray(cf.options) || cf.options.length === 0) {
-            errors.push(`El campo select '${cf.key}' requiere opciones (options)`);
+            errors.push(`El campo ${cf.type} '${cf.key}' requiere opciones (options)`);
             continue;
           }
         }
@@ -149,6 +185,30 @@ export function normalizeConfig(userConfig) {
               }
             }
           }
+        }
+      }
+    }
+  }
+
+  if (config.roles) {
+    for (const definition of config.roles) {
+      const validation = validateRoleDefinition(definition && definition.role, definition && definition.permissions);
+      if (!validation.valid) {
+        errors.push(`Definición de rol inválida: ${validation.errors.join('; ')}`);
+      }
+    }
+  }
+
+  if (config.statusLifecycleByType) {
+    for (const [type, lifecycle] of Object.entries(config.statusLifecycleByType)) {
+      if (!lifecycle || !Array.isArray(lifecycle.statuses) || !lifecycle.transitions || typeof lifecycle.transitions !== 'object') {
+        errors.push(`Ciclo de vida inválido para '${type}'`);
+        continue;
+      }
+      const known = new Set(lifecycle.statuses);
+      for (const [status, next] of Object.entries(lifecycle.transitions)) {
+        if (!Array.isArray(next) || next.some(candidate => !known.has(candidate))) {
+          errors.push(`Transiciones inválidas para '${type}.${status}'`);
         }
       }
     }

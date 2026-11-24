@@ -1,10 +1,34 @@
 import { getConfig } from './module-config.js';
 import { ACTION_TYPES, normalizeCompleted, validateTargetDate } from './target-date.js';
+import { DOCUMENT_TYPE_META, validateTypedDocument } from './document-types.js';
+
+const MODEL_INDEX_KEY = 'quality-models';
+
+const MODEL_KEYS = [
+  'quality-entities',
+  'quality-documents',
+  'quality-areas',
+  'quality-employees',
+  'quality-products',
+  'quality-lots',
+  'quality-users',
+  'quality-session'
+];
+
+export function saveModelIndex() {
+  const index = {
+    version: 1,
+    keys: MODEL_KEYS,
+    updatedAt: new Date().toISOString()
+  };
+  localStorage.setItem(MODEL_INDEX_KEY, JSON.stringify(index));
+}
 
 export function clearAll() {
-  localStorage.removeItem('quality-entities');
-  localStorage.removeItem('quality-documents');
-  localStorage.removeItem('quality-models');
+  for (const key of MODEL_KEYS) {
+    localStorage.removeItem(key);
+  }
+  localStorage.removeItem(MODEL_INDEX_KEY);
 }
 
 export function loadEntities() {
@@ -19,6 +43,7 @@ export function loadEntities() {
 
 function saveEntities(entities) {
   localStorage.setItem('quality-entities', JSON.stringify(entities));
+  saveModelIndex();
 }
 
 export function loadDocuments() {
@@ -33,6 +58,7 @@ export function loadDocuments() {
 
 function saveDocuments(docs) {
   localStorage.setItem('quality-documents', JSON.stringify(docs));
+  saveModelIndex();
 }
 
 function generateId() {
@@ -45,6 +71,19 @@ function generateDocId() {
 
 function generateEntityId() {
   return 'E-' + Math.floor(100000 + Math.random() * 900000);
+}
+
+function normalizeCustomValue(cf, value) {
+  if (value === undefined) return value;
+  if (cf.type === 'number' || cf.type === 'decimal') return value === '' ? '' : Number(value);
+  if (cf.type === 'boolean') return value === true || value === 'true' || value === '1' || value === 1;
+  return value;
+}
+
+function lifecycleForDocument(data, config) {
+  const type = data && (data.tipoDoc || data.documentType);
+  const byType = config.statusLifecycleByType && type ? config.statusLifecycleByType[type] : null;
+  return byType || config.statusLifecycle;
 }
 
 function currentActor(actor) {
@@ -132,13 +171,17 @@ export function validateEntity(data) {
         if (cf.required && (val === undefined || val === '' || val === null)) {
           errors[cf.key] = `El campo '${cf.label || cf.key}' es obligatorio`;
         } else if (val !== undefined && val !== '' && val !== null) {
-          if (cf.type === 'number') {
+          if (cf.type === 'number' || cf.type === 'decimal') {
             if (isNaN(Number(val))) {
               errors[cf.key] = `El campo '${cf.label || cf.key}' debe ser un número`;
             }
-          } else if (cf.type === 'select') {
+          } else if (cf.type === 'select' || cf.type === 'enum') {
             if (!cf.options.includes(val)) {
               errors[cf.key] = `El valor debe ser uno de: ${cf.options.join(', ')}`;
+            }
+          } else if (cf.type === 'boolean') {
+            if (![true, false, 'true', 'false', '1', '0', 1, 0].includes(val)) {
+              errors[cf.key] = `El campo '${cf.label || cf.key}' debe ser booleano`;
             }
           }
         }
@@ -184,7 +227,7 @@ export function addEntity(data, actor) {
   if (config.customFields) {
     for (const cf of config.customFields) {
       if (cf.target === 'entity' && data[cf.key] !== undefined) {
-        newEntity[cf.key] = cf.type === 'number' ? Number(data[cf.key]) : data[cf.key];
+        newEntity[cf.key] = normalizeCustomValue(cf, data[cf.key]);
       }
     }
   }
@@ -236,7 +279,7 @@ export function updateEntity(id, data, actor) {
   if (config.customFields) {
     for (const cf of config.customFields) {
       if (cf.target === 'entity' && data[cf.key] !== undefined) {
-        existing[cf.key] = cf.type === 'number' ? Number(data[cf.key]) : data[cf.key];
+        existing[cf.key] = normalizeCustomValue(cf, data[cf.key]);
       }
     }
   }
@@ -290,6 +333,21 @@ export function searchEntities(query) {
       }
     }
     return false;
+  });
+}
+
+export function searchDocuments(query) {
+  if (!query || !query.trim()) return loadDocuments();
+  const q = query.toLowerCase().trim();
+  const config = getConfig();
+  return loadDocuments().filter(doc => {
+    const base = [doc.series, doc.folio, doc.status, doc.notes, doc.tipoDoc, doc.documentType, doc.entityId, doc.entity_id, doc.targetDate]
+      .some(value => value !== undefined && value !== null && String(value).toLowerCase().includes(q));
+    if (base) return true;
+    return (config.customFields || []).some(cf => {
+      const value = doc[cf.key];
+      return value !== undefined && value !== null && String(value).toLowerCase().includes(q);
+    });
   });
 }
 
@@ -349,12 +407,18 @@ export function validateDocument(data) {
   validatePlanning(data, errors);
 
   const config = getConfig();
-  // Status lifecycle validation
-  if (config.statusLifecycle) {
-    const { statuses } = config.statusLifecycle;
+  const lifecycle = lifecycleForDocument(data, config);
+  if (lifecycle) {
+    const { statuses } = lifecycle;
     if (data.status && !statuses.includes(data.status)) {
       errors.status = `El estado debe ser uno de: ${statuses.join(', ')}`;
     }
+  }
+
+  const documentType = data.tipoDoc || data.documentType;
+  if (documentType && Object.prototype.hasOwnProperty.call(DOCUMENT_TYPE_META, documentType)) {
+    const typed = validateTypedDocument(documentType, data);
+    Object.assign(errors, typed.errors);
   }
 
   // Custom fields validation for documents
@@ -365,9 +429,17 @@ export function validateDocument(data) {
         if (cf.required && (val === undefined || val === '' || val === null)) {
           errors[cf.key] = `El campo '${cf.label || cf.key}' es obligatorio`;
         } else if (val !== undefined && val !== '' && val !== null) {
-          if (cf.type === 'select') {
+          if (cf.type === 'select' || cf.type === 'enum') {
             if (!cf.options.includes(val)) {
               errors[cf.key] = `El valor debe ser uno de: ${cf.options.join(', ')}`;
+            }
+          } else if (cf.type === 'number' || cf.type === 'decimal') {
+            if (isNaN(Number(val))) {
+              errors[cf.key] = `El campo '${cf.label || cf.key}' debe ser un número`;
+            }
+          } else if (cf.type === 'boolean') {
+            if (![true, false, 'true', 'false', '1', '0', 1, 0].includes(val)) {
+              errors[cf.key] = `El campo '${cf.label || cf.key}' debe ser booleano`;
             }
           }
         }
@@ -404,7 +476,10 @@ export function addDocument(data, actor) {
     taxAmount: data.taxAmount !== undefined && data.taxAmount !== '' ? Number(data.taxAmount) : 0,
     totalAmount: data.totalAmount !== undefined && data.totalAmount !== '' ? Number(data.totalAmount) : 0,
     currency: data.currency || 'MXN',
-    status: data.status || (getConfig().statusLifecycle ? getConfig().statusLifecycle.statuses[0] : 'pendiente'),
+    status: data.status || (() => {
+      const lifecycle = lifecycleForDocument(data, getConfig());
+      return lifecycle && lifecycle.statuses.length ? lifecycle.statuses[0] : 'pendiente';
+    })(),
     paymentTerms: data.paymentTerms || '',
     notes: data.notes || '',
     targetDate: data.targetDate || '',
@@ -412,14 +487,23 @@ export function addDocument(data, actor) {
     responsible: data.responsible || '',
     completed: normalizeCompleted(data.completed),
     changeLog: initialPlanningLog(data, user, now),
-    createdAt: now.toISOString()
+    createdAt: now.toISOString(),
+    tipoDoc: data.tipoDoc || data.documentType || ''
   };
+
+  const documentType = data.tipoDoc || data.documentType;
+  if (documentType && DOCUMENT_TYPE_META[documentType]) {
+    for (const field of DOCUMENT_TYPE_META[documentType].fields) {
+      if (field.key === 'folio' || data[field.key] === undefined) continue;
+      newDoc[field.key] = data[field.key];
+    }
+  }
 
   const config = getConfig();
   if (config.customFields) {
     for (const cf of config.customFields) {
       if (cf.target === 'document' && data[cf.key] !== undefined) {
-        newDoc[cf.key] = data[cf.key];
+        newDoc[cf.key] = normalizeCustomValue(cf, data[cf.key]);
       }
     }
   }
@@ -438,8 +522,9 @@ export function updateDocument(id, data, actor) {
   const before = planningValues(existing);
 
   const config = getConfig();
-  if (config.statusLifecycle && data.status && data.status !== existing.status) {
-    const { statuses, transitions } = config.statusLifecycle;
+  const lifecycle = lifecycleForDocument({ ...existing, ...data }, config);
+  if (lifecycle && data.status && data.status !== existing.status) {
+    const { statuses, transitions } = lifecycle;
     if (!statuses.includes(data.status)) {
       throw new Error(`Transición de estado inválida: estado desconocido '${data.status}'`);
     }
@@ -489,7 +574,7 @@ export function updateDocument(id, data, actor) {
   if (config.customFields) {
     for (const cf of config.customFields) {
       if (cf.target === 'document' && data[cf.key] !== undefined) {
-        existing[cf.key] = data[cf.key];
+        existing[cf.key] = normalizeCustomValue(cf, data[cf.key]);
       }
     }
   }
