@@ -1,3 +1,26 @@
+# Gestión de Calidad — Grupo 16
+
+MVP ERP de calidad con Vite y JavaScript. Incluye catálogos de áreas, empleados, productos y lotes; registros operativos tipados, búsqueda, seguimiento de fechas y cuatro perfiles de acceso. La persistencia es local al navegador y el selector de usuarios simula roles: no es autenticación segura.
+
+## Ejecutar la copia
+
+Usar Node.js 24.15 o superior dentro de la rama 24 (compatible con las dependencias actuales).
+
+```bash
+npm ci
+npm run dev -- --port 5180 --strictPort
+```
+
+Abrir http://localhost:5180 para aislar el almacenamiento del proyecto habitual. En el panel, como administrador, pulsar **Cargar datos de ejemplo**. No se borran registros existentes.
+
+```bash
+npx vitest run
+npm run build
+node --test tests/demo-smoke.mjs
+```
+
+La sección siguiente conserva la documentación histórica de la base ERP y sus campos de compatibilidad; no todos corresponden a la interfaz de calidad actual.
+
 # ERP Software Base Module (Vite + Vanilla JS)
 
 Minimal single-page app serving as an Enterprise Resource Planning (ERP) software base module. It provides the common foundation for building custom ERP modules: master data management (Entities) and linked transactional documents (Documents) with create/edit/delete/search, validation, and browser localStorage persistence — using Vite and vanilla HTML, CSS, and JavaScript.

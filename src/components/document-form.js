@@ -81,7 +81,7 @@ export function showTypedDocumentErrors(type, errors, root = document) {
     if (element) element.textContent = errors[field.key] || '';
   }
   const statusError = root.querySelector('#td-error-status');
-  if (statusError) statusError.textContent = errors.status || '';
+  if (statusError) statusError.textContent = errors.status || errors.estado || errors.resultado || '';
 }
 
 export function clearTypedDocumentErrors(type, root = document) {

@@ -91,6 +91,6 @@ describe('Datos maestros de calidad en la interfaz', () => {
     const { loadMasters } = await import('../../src/master-data.js');
     expect(loadMasters('area')).toHaveLength(0);
     expect(qs('auth-message').hidden).toBe(false);
-    expect(qs('auth-message').textContent).toContain('no autorizada');
+    expect(qs('auth-message').textContent).toContain('Tu perfil no tiene permisos');
   });
 });

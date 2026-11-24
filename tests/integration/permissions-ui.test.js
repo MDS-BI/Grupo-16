@@ -47,7 +47,7 @@ describe('Usuarios, roles y permisos en la interfaz', () => {
 
     qs('nav-users').click();
     expect(qs('view-users').hidden).toBe(true);
-    expect(qs('auth-message').textContent).toContain('no autorizada');
+    expect(qs('auth-message').textContent).toContain('Tu perfil no tiene permisos');
   });
 
   it('guarda asignaciones de roles y aplica el nuevo permiso', async () => {
@@ -63,6 +63,6 @@ describe('Usuarios, roles y permisos en la interfaz', () => {
     setActiveUser('user-inspector');
     expect(qs('nav-users').hidden).toBe(true);
     qs('nav-users').click();
-    expect(qs('auth-message').textContent).toContain('no autorizada');
+    expect(qs('auth-message').textContent).toContain('Tu perfil no tiene permisos');
   });
 });

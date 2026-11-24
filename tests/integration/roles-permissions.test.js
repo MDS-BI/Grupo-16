@@ -69,7 +69,7 @@ describe('Roles y permisos de acceso - escenarios de aceptación', () => {
     const { loadMasters } = await import('../../src/master-data.js');
     expect(loadMasters('area')).toHaveLength(1);
     qs('nav-users').click();
-    expect(qs('auth-message').textContent).toContain('manage-permissions');
+    expect(qs('auth-message').textContent).toContain('administrar usuarios y permisos');
     expect(qs('view-users').hidden).toBe(true);
   });
 
@@ -77,17 +77,28 @@ describe('Roles y permisos de acceso - escenarios de aceptación', () => {
     await boot();
     setActiveUser('user-inspector');
     await createArea('INS-1');
-    qs('quality-entities-list').querySelector('.btn-delete-master').click();
-    expect(qs('auth-message').textContent).toContain('delete-master-data');
+    const list = qs('quality-entities-list');
     const { loadMasters } = await import('../../src/master-data.js');
-    expect(loadMasters('area')).toHaveLength(1);
+    const before = loadMasters('area');
+    expect(before).toHaveLength(1);
+    expect(list.querySelector('.btn-delete-master')).toBeNull();
+    // Simula una acción manipulada en el DOM para verificar el bloqueo real.
+    const button = document.createElement('button');
+    button.className = 'btn-delete-master';
+    button.dataset.type = 'area';
+    button.dataset.id = before[0].area_id;
+    list.appendChild(button);
+    button.click();
+    expect(qs('auth-message').textContent).toContain('eliminar datos maestros');
+    expect(loadMasters('area')).toEqual(before);
   });
 
   it('el Auditor solo consulta y no puede crear registros', async () => {
     await boot();
     setActiveUser('user-auditor');
+    expect(qs('action-new-lot').hidden).toBe(true);
     await createArea('AUD-1');
-    expect(qs('auth-message').textContent).toContain('create-master-data');
+    expect(qs('auth-message').textContent).toContain('crear datos maestros');
     const { loadMasters } = await import('../../src/master-data.js');
     expect(loadMasters('area')).toHaveLength(0);
   });
@@ -98,7 +109,7 @@ describe('Roles y permisos de acceso - escenarios de aceptación', () => {
     await createArea('DEN-1');
     expect(qs('auth-message').hidden).toBe(false);
     expect(qs('auth-message').getAttribute('role')).toBe('alert');
-    expect(qs('auth-message').textContent).toContain('Acción no autorizada');
+    expect(qs('auth-message').textContent).toContain('Tu perfil no tiene permisos');
     const { loadMasters } = await import('../../src/master-data.js');
     expect(loadMasters('area')).toHaveLength(0);
   });

@@ -71,7 +71,7 @@ export const QUALITY_CONFIG = {
   ),
   domainLabels: DOMAIN_LABELS,
   roles: ROLES.map(role => ({ role, permissions: [] })),
-  theme: { accentColor: '#2563eb' }
+  theme: { accentColor: '#167b74' }
 };
 
 let activeConfig = null;

@@ -413,3 +413,13 @@
 - En la Fase 16, T103-T105 y T107 pueden ejecutarse en paralelo; T108 aterriza junto al cambio de enrutamiento T104
 - En la Fase 17, T110 y T111 pueden ejecutarse en paralelo antes de la verificación final T112-T115
 - En la Fase 18, T116, T117, T120 y T126 pueden ejecutarse en paralelo; T122 aterriza junto al guard central T123 y T119 debe completarse antes de T124
+
+
+## Fase 19 (US15): Claridad de interfaz
+
+- [ ] T127 [US15] Verificar menú expandible y etiquetas accesibles en escritorio y móvil.
+- [ ] T128 [US15] Revisar etiquetas, campos obligatorios y botones en todos los formularios.
+- [ ] T129 [US15] Verificar errores de validación y estados vacíos por tipo de registro.
+- [ ] T130 [US15] Ejecutar regresión de creación, edición, búsqueda y navegación.
+
+Las tareas se mantienen abiertas hasta validar los escenarios de aceptación.

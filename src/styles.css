@@ -321,3 +321,46 @@ li {
   .topbar-actions label { display:none; }
   .dashboard-top-actions, .quick-actions-groups, .stats-grid { width:100%; }
 }
+
+/* Visual identity recovered from the previous quality MVP, adapted to current markup. */
+:root { --bg-color:#f5f8fb; --text-color:#18304a; --border-color:#dce5ed; }
+* { box-sizing:border-box; }
+[hidden] { display:none !important; }
+button,input,select,textarea { font:inherit; }
+button:focus-visible,input:focus-visible,select:focus-visible { outline:3px solid #54b9ad; outline-offset:3px; }
+button:disabled { opacity:.5; cursor:not-allowed; }
+.topbar { min-height:72px; height:auto; padding:16px 28px; gap:16px; }
+.brand { font-weight:750; letter-spacing:-.4px; }
+.sidebar { width:248px; flex-shrink:0; background:#122b44; border:0; padding:24px 12px; gap:7px; overflow:auto; }
+.sidebar::before { content:'ESPACIO DE TRABAJO'; color:#a9bdcf; font-size:10px; font-weight:700; letter-spacing:1.5px; padding:8px 12px 16px; }
+.nav-module,.nav-secondary { color:#d1dfeb; border-radius:9px; padding:14px 12px; gap:12px; font-size:.9rem; }
+.nav-module:hover,.nav-secondary:hover { background:#234460; color:white; }
+.nav-module[aria-current="page"],.nav-secondary[aria-current="page"] { background:#234460; color:white; border-left:3px solid #34c0ad; }
+.nav-icon { width:20px; text-align:center; flex-shrink:0; font-size:18px; }
+.content-area { padding:30px 34px; min-width:0; }
+.view { max-width:1500px; margin:auto; gap:24px; }
+h1 { margin:0; font-size:clamp(1.5rem,2.4vw,2rem); letter-spacing:-.7px; } h2 { letter-spacing:-.2px; }
+.dashboard-header { background:linear-gradient(110deg,#173b52,#155b69); color:white; border-radius:16px; padding:30px; align-items:center; box-shadow:0 8px 24px #17364d15; }
+.dashboard-subtitle { color:#d2e7ed; margin-top:10px; line-height:1.5; }
+.dashboard-header .btn-secondary { color:#173b52; border-color:transparent; }
+.stat-card,.quick-group,.form-container,.list-container,.management-controls,.tracking-controls,.search-filters { border:1px solid #e0e8ef; border-radius:13px; box-shadow:0 5px 18px #17364d08; }
+.stat-card { padding:22px; border-top:3px solid var(--accent); }
+.stat-value { font-size:2.2rem; letter-spacing:-1px; }
+.stat-label { line-height:1.4; }
+.quick-group { padding:20px; }
+.action-card { border-radius:10px; min-height:64px; color:#29485e; font-size:.9rem; transition:background .15s,border-color .15s; }
+.action-icon { background:#e6f7f1; border-radius:9px; padding:9px; }
+.btn-secondary,button[type="submit"],.list-actions button { border-radius:8px; font-weight:650; }
+.form-container,.list-container,.management-controls { max-width:100%; }
+.field input,.field select,.search-filters input,.search-filters select { border-radius:8px; min-width:0; max-width:100%; }
+.field input:not([type=checkbox]),.field select { min-height:42px; }
+.management-controls { flex-wrap:wrap; }
+li { border-radius:8px; padding:12px; overflow-wrap:anywhere; }
+.empty-state { padding:14px; background:#edf3f7; border-radius:8px; font-style:normal; }
+.demo-note { font-size:.85rem; color:#d2e7ed; margin:8px 0 0; }
+.sidebar-toggle { color:#d1dfeb; background:transparent; border:1px solid #476077; border-radius:8px; padding:8px; cursor:pointer; }
+.sidebar.is-collapsed { width:72px; padding:16px 8px; }
+.sidebar.is-collapsed::before,.sidebar.is-collapsed .nav-label { display:none; }
+.sidebar.is-collapsed .nav-module,.sidebar.is-collapsed .nav-secondary { justify-content:center; padding:12px 4px; }
+@media(max-width:768px){ .workspace-shell{height:auto;min-height:100dvh;} .workspace-body{flex-direction:column;overflow:visible;} .sidebar,.sidebar.is-collapsed{width:100%;flex-direction:row;flex-wrap:wrap;padding:8px;} .sidebar::before{display:none;} .sidebar .nav-label{display:inline;} .sidebar .nav-module,.sidebar .nav-secondary{width:auto;flex:1 1 130px;padding:10px;} .sidebar.is-collapsed .nav-label{display:none;} .sidebar.is-collapsed .nav-module,.sidebar.is-collapsed .nav-secondary{flex:1 1 40px;} .content-area{padding:16px;overflow:visible;} .topbar{padding:12px;flex-wrap:wrap;} .topbar-actions{margin-left:0;max-width:100%;} .dashboard-header{padding:20px;} .stats-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));} }
+@media(prefers-reduced-motion:reduce){*{transition:none!important;}}

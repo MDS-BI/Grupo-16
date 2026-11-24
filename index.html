@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Módulo Base ERP</title>
   <link rel="stylesheet" href="/src/styles.css">
 </head>
@@ -16,21 +17,22 @@
     </header>
 
     <div class="workspace-body">
-      <nav class="sidebar">
-        <button id="nav-dashboard" class="nav-module" data-module="dashboard" aria-current="page">
-          <span id="nav-dashboard-label" class="nav-label">Panel</span>
+      <nav class="sidebar" aria-label="Navegación principal">
+        <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-label="Comprimir menú">☰</button>
+        <button id="nav-dashboard" aria-label="Panel" title="Panel" class="nav-module" data-module="dashboard" aria-current="page">
+          <span class="nav-icon" aria-hidden="true">⌂</span><span id="nav-dashboard-label" class="nav-label">Panel</span>
         </button>
-        <button id="nav-entities" class="nav-module" data-module="entities">
-          <span id="nav-entities-label" class="nav-label">Entidades</span>
+        <button id="nav-entities" aria-label="Productos y lotes" title="Productos y lotes" class="nav-module" data-module="entities">
+          <span class="nav-icon" aria-hidden="true">▦</span><span id="nav-entities-label" class="nav-label">Entidades</span>
         </button>
-        <button id="nav-documents" class="nav-module" data-module="documents">
-          <span id="nav-documents-label" class="nav-label">Documentos</span>
+        <button id="nav-documents" aria-label="Inspecciones y registros" title="Inspecciones y registros" class="nav-module" data-module="documents">
+          <span class="nav-icon" aria-hidden="true">▤</span><span id="nav-documents-label" class="nav-label">Documentos</span>
         </button>
-        <button id="nav-search" class="nav-module" data-module="search">
-          <span id="nav-search-label" class="nav-label">Búsqueda</span>
+        <button id="nav-search" aria-label="Búsqueda" title="Búsqueda" class="nav-module" data-module="search">
+          <span class="nav-icon" aria-hidden="true">⌕</span><span id="nav-search-label" class="nav-label">Búsqueda</span>
         </button>
-        <button id="nav-users" class="nav-secondary" data-module="users" hidden>
-          <span id="nav-users-label" class="nav-label">Usuarios y roles</span>
+        <button id="nav-users" aria-label="Usuarios y roles" title="Usuarios y roles" class="nav-secondary" data-module="users" hidden>
+          <span class="nav-icon" aria-hidden="true">♙</span><span id="nav-users-label" class="nav-label">Usuarios y roles</span>
         </button>
       </nav>
 
@@ -41,10 +43,11 @@
           <div class="dashboard-header">
             <div>
               <h1 id="dashboard-heading">Panel de Gestión de Calidad</h1>
-              <p class="dashboard-subtitle">Resumen operativo y accesos rápidos</p>
+              <p class="dashboard-subtitle">Control de productos, inspecciones y acciones de mejora en un solo lugar.</p>
             </div>
             <div class="dashboard-top-actions">
-              <button id="action-manage-catalogs" class="btn-secondary" type="button">Gestionar catálogos (Maestros)</button>
+              <button id="action-manage-catalogs" class="btn-secondary" type="button">Gestionar catálogos de calidad</button>
+              <button id="action-demo" class="btn-secondary" type="button">Cargar datos de ejemplo</button>
               <button id="action-global-search" class="btn-secondary" type="button">Búsqueda global de registros</button>
             </div>
           </div>
@@ -87,8 +90,8 @@
                 <h3>Creación de registros operativos</h3>
                 <div class="quick-actions">
                   <button id="action-new-inspection" class="action-card" type="button"><span class="action-icon">🔍</span><span>Nueva Inspección</span></button>
-                  <button id="action-new-ncr" class="action-card" type="button"><span class="action-icon">⚠️</span><span>Nueva NCR</span></button>
-                  <button id="action-new-capa" class="action-card" type="button"><span class="action-icon">🛠️</span><span>Nueva Acción CAPA</span></button>
+                  <button id="action-new-ncr" class="action-card" type="button"><span class="action-icon">⚠️</span><span>Nueva no conformidad (NCR)</span></button>
+                  <button id="action-new-capa" class="action-card" type="button"><span class="action-icon">🛠️</span><span>Nueva acción correctiva (CAPA)</span></button>
                 </div>
               </div>
             </div>
@@ -231,6 +234,7 @@
                 <select id="master-type-select"></select>
               </div>
               <form id="quality-master-form">
+                <p class="hint">Los campos con * son obligatorios.</p>
                 <input type="hidden" id="quality-master-id">
                 <div id="quality-master-fields"></div>
                 <button type="submit" id="save-quality-master">Guardar dato maestro</button>
@@ -248,6 +252,7 @@
           <div class="form-container">
             <h2 id="document-form-heading">Agregar / Editar Documento</h2>
             <form id="document-form">
+              <p class="hint">Los campos con * son obligatorios.</p>
               <input type="hidden" id="document-id">
               <div class="field">
                 <label for="document-entity">Entidad Asociada *</label>

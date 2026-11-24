@@ -1,9 +1,10 @@
+import { seedDemo } from './demo-data.js';
 import { getConfig, setActiveConfig, labelFor } from './module-config.js';
 import { loadEntities, addEntity, updateEntity, deleteEntity, searchEntities, loadDocuments, addDocument, updateDocument, deleteDocument, searchDocuments } from './storage.js';
 import { formatTargetDate, getTargetDateStatus, isPastTargetDate, STATUS_LABELS, filterByStatus, sortTrackingRecords } from './target-date.js';
 import { MASTER_TYPES, MASTER_LABELS, loadMasters, addMaster, updateMaster, deleteMaster, findMaster, searchMasters } from './master-data.js';
 import { DOCUMENT_TYPES } from './document-types.js';
-import { can, requiredPermission, loadUsers, assignRole, getActiveUser, setActiveUser, ensureDefaultUsers } from './permissions.js';
+import { can, PERMISSIONS, requiredPermission, loadUsers, assignRole, getActiveUser, setActiveUser, ensureDefaultUsers } from './permissions.js';
 import { renderLogoMarkup, setActiveModule } from './components/shell.js';
 import { masterTypeOptions, documentTypeOptions } from './components/dashboard.js';
 import { renderQualityEntityForm, readQualityEntityForm, showQualityEntityErrors, clearQualityEntityErrors } from './components/quality-entity-form.js';
@@ -53,7 +54,7 @@ function authorize(action, message) {
     clearAuthMessage();
     return true;
   }
-  showAuthMessage(message || `Acción no autorizada. Se requiere el permiso: ${permission}.`);
+  showAuthMessage(message || `Tu perfil no tiene permisos para esta acción: ${PERMISSIONS.find(p => p.id === permission)?.description.toLowerCase() || "operación restringida"}.`);
   return false;
 }
 
@@ -147,6 +148,31 @@ function refreshRoleViews() {
   const canManage = can(active, 'manage-permissions');
   const navUsers = qs('nav-users');
   if (navUsers) navUsers.hidden = !canManage;
+  if (qs('action-demo')) qs('action-demo').hidden = !canManage;
+  const visibility = {
+    'action-new-lot':'create-master-data', 'action-new-product':'create-master-data',
+    'action-new-area':'create-master-data', 'action-new-employee':'create-master-data',
+    'action-new-entity':'create-master-data', 'action-new-document':'create-operational',
+    'action-new-inspection':'register-inspections', 'action-new-ncr':'report-ncr',
+    'action-new-capa':'create-operational', 'delete-entity':'delete-master-data',
+    'delete-document':'delete-operational'
+  };
+  for (const [id, permission] of Object.entries(visibility)) {
+    if (qs(id)) qs(id).hidden = !can(active, permission);
+  }
+  for (const group of document.querySelectorAll('.quick-group')) {
+    group.hidden = !Array.from(group.querySelectorAll('button')).some(button => !button.hidden);
+  }
+  const quickSection = qs('quick-actions-heading')?.closest('section');
+  if (quickSection) quickSection.hidden = !Array.from(quickSection.querySelectorAll('.quick-group')).some(group => !group.hidden);
+  const masterWrite = can(active, 'create-master-data') || can(active, 'edit-master-data');
+  const docWrite = ['create-operational','edit-operational','register-inspections','report-ncr'].some(p => can(active,p));
+  for (const id of ['entity-form','quality-master-form']) if (qs(id)) qs(id).hidden = !masterWrite;
+  if (qs('document-form')) qs('document-form').hidden = !docWrite;
+  if (qs('edit-entity')) qs('edit-entity').closest('.management-controls').hidden = !can(active,'edit-master-data');
+  if (qs('edit-document')) qs('edit-document').closest('.management-controls').hidden = !can(active,'edit-operational');
+  if (!canManage && qs('view-users') && !qs('view-users').hidden) showView('dashboard');
+  renderQualityMasters();
 
   const switcher = qs('user-switcher');
   if (switcher) {
@@ -260,7 +286,7 @@ function isActiveMaster(entity, type) {
 }
 
 function classifyOperationalDoc(doc) {
-  const text = normalizeText(doc.type, doc.tipo, doc.docType, doc.category, doc.status, doc.estado, doc.notes, doc.series);
+  const text = normalizeText(doc.tipoDoc, doc.documentType, doc.type, doc.tipo, doc.docType, doc.category, doc.status, doc.estado, doc.notes, doc.series);
   if (text.includes('ncr') || text.includes('no conform')) return 'ncr';
   if (text.includes('capa')) return 'capa';
   if (text.includes('inspe')) return 'inspection';
@@ -326,7 +352,7 @@ function updateDashboardStats() {
   if (qs('stat-ncr-capa-open')) qs('stat-ncr-capa-open').textContent = String(safeCount(opCounts.ncrOpen + opCounts.capaOpen));
 
   const empty = qs('dashboard-empty-state');
-  if (empty) empty.hidden = !(entities.length === 0 && docs.length === 0);
+  if (empty) empty.hidden = !(entities.length === 0 && docs.length === 0 && MASTER_TYPES.every(type => loadMasters(type).length === 0));
   renderTrackingList();
 }
 
@@ -382,12 +408,12 @@ function renderDocumentsList() {
   if (!list) return;
   const docs = loadDocuments();
   if (docs.length === 0) {
-    list.innerHTML = `<li class="empty-state">No hay documentos registrados.</li>`;
+    list.innerHTML = `<li class="empty-state">No hay registros operativos. Si tienes permiso, crea una inspección o una no conformidad.</li>`;
     return;
   }
   list.innerHTML = docs.map(d => {
     const status = getTargetDateStatus(d);
-    return `<li class="tracking-item status-${status}">Folio: ${d.folio} - Estado: <span class="status-badge">${statusLabel(d.status)}</span><span class="tracking-status status-badge">${STATUS_LABELS[status]}</span>${d.targetDate ? ` - Fecha objetivo: ${formatTargetDate(d.targetDate)}` : ''}</li>`;
+    return `<li class="tracking-item status-${status}">${d.tipoDoc || 'Registro'} · Folio: ${d.folio} - Estado: <span class="status-badge">${statusLabel(d.status)}</span><span class="tracking-status status-badge">${STATUS_LABELS[status]}</span>${d.targetDate ? ` - Fecha objetivo: ${formatTargetDate(d.targetDate)}` : ''}</li>`;
   }).join('');
 }
 
@@ -513,7 +539,7 @@ function renderQualityMasters() {
   const list = qs('quality-entities-list');
   if (!list) return;
   const rows = MASTER_TYPES.flatMap(type => loadMasters(type).map(row => ({ ...row, masterType: type })));
-  list.innerHTML = renderQualityEntityList(rows, getConfig().labels || {});
+  list.innerHTML = renderQualityEntityList(rows, getConfig().labels || {}, {edit:can(getActiveUser(),'edit-master-data'), remove:can(getActiveUser(),'delete-master-data')});
 }
 
 function currentMasterType() {
@@ -548,6 +574,18 @@ export async function initApp(configResult) {
   }
   applyRelabeling();
 
+  const toggle = qs('sidebar-toggle');
+  if (toggle) toggle.onclick = () => {
+    const collapsed = document.querySelector('.sidebar').classList.toggle('is-collapsed');
+    toggle.setAttribute('aria-expanded', String(!collapsed));
+    toggle.setAttribute('aria-label', collapsed ? 'Expandir menú' : 'Comprimir menú');
+  };
+  if (qs('action-demo')) qs('action-demo').onclick = () => {
+    if (!authorize('manage-users')) return;
+    if (!confirmAction('¿Agregar registros ficticios de demostración? No se borrarán datos existentes.')) return;
+    try { const added = seedDemo(); updateDashboardStats(); showAuthMessage(added ? 'Datos de ejemplo cargados correctamente.' : 'Los datos de ejemplo ya están cargados.'); }
+    catch (error) { showAuthMessage(error.message); }
+  };
   // Event listeners for navigation
   ['dashboard', 'entities', 'documents', 'search', 'users'].forEach(mod => {
     const btn = qs(`nav-${mod}`);
@@ -745,14 +783,14 @@ export async function initApp(configResult) {
 
   // Dashboard quick actions (new HU3)
   const masterActions = [
-    ['action-new-lot', 'Lote'],
-    ['action-new-product', 'Producto'],
-    ['action-new-area', 'Área'],
-    ['action-new-employee', 'Empleado']
+    ['action-new-lot', 'lot'],
+    ['action-new-product', 'product'],
+    ['action-new-area', 'area'],
+    ['action-new-employee', 'employee']
   ];
   masterActions.forEach(([id, type]) => {
     const btn = qs(id);
-    if (btn) btn.onclick = () => openMasterForm(type);
+    if (btn) btn.onclick = () => { if (authorize('create-master')) openMasterForm(type); };
   });
 
   const opActions = [
@@ -762,7 +800,7 @@ export async function initApp(configResult) {
   ];
   opActions.forEach(([id, type]) => {
     const btn = qs(id);
-    btn && (btn.onclick = () => openOperationalForm(type));
+    btn && (btn.onclick = () => { const permission = type === 'Inspección' ? 'register-inspections' : type === 'NCR' ? 'report-ncr' : 'create-operational'; if (can(getActiveUser(), permission)) openOperationalForm(type); });
   });
 
   if (qs('action-manage-catalogs')) qs('action-manage-catalogs').onclick = () => showView('entities');
@@ -923,7 +961,10 @@ export async function initApp(configResult) {
         if (qs('error-folio')) qs('error-folio').textContent = 'El perfil de solo consulta no puede editar registros';
         return;
       }
-      if (!authorize(id ? 'edit-document' : 'create-document')) return;
+      if (!id && ['Inspección', 'NCR'].includes(docType)) {
+        const permission = docType === 'Inspección' ? 'register-inspections' : 'report-ncr';
+        if (!can(getActiveUser(), permission) && !authorize('create-document')) return;
+      } else if (!authorize(id ? 'edit-document' : 'create-document')) return;
       if (isPastTargetDate(data.targetDate) && !confirmAction('La fecha objetivo es anterior a hoy. ¿Desea guardarla de todas formas?')) return;
 
       const config = getConfig();

@@ -16,7 +16,7 @@ function details(record) {
   return '';
 }
 
-export function renderQualityEntityList(records, labels = {}) {
+export function renderQualityEntityList(records, labels = {}, permissions = {edit:true, remove:true}) {
   if (!records.length) {
     return `<li class="empty-state">No hay datos maestros registrados.</li>`;
   }
@@ -28,8 +28,8 @@ export function renderQualityEntityList(records, labels = {}) {
       <span class="badge">${labels[type] || MASTER_LABELS[type] || type}</span>
       <span class="tracking-detail">${details(record)}</span>
       <span class="list-actions">
-        <button type="button" class="btn-edit-master" data-id="${id}" data-type="${type}">Editar</button>
-        <button type="button" class="btn-delete-master" data-id="${id}" data-type="${type}">Eliminar</button>
+        ${permissions.edit ? `<button type="button" class="btn-edit-master" data-id="${id}" data-type="${type}">Editar</button>` : ""}
+        ${permissions.remove ? `<button type="button" class="btn-delete-master" data-id="${id}" data-type="${type}">Eliminar</button>` : ""}
       </span>
     </li>`;
   }).join('');
