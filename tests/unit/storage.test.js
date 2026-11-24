@@ -76,7 +76,7 @@ describe('entity storage', () => {
     expect(validateEntity({name:'A', code:'B', creditLimit:-1}).valid).toBe(false);
     expect(validateEntity({name:'A', code:'B', creditLimit:-1}).errors.creditLimit).toContain('no negativo');
     expect(validateEntity({name:'A', code:'B', creditLimit:5000}).valid).toBe(true);
-    const e = addEntity({name:'A', code:'B', creditLimit:'5000'});
+    const _e = addEntity({name:'A', code:'B', creditLimit:'5000'});
     expect(loadEntities()[0].creditLimit).toBe(5000);
   });
 
@@ -281,7 +281,7 @@ describe('document storage', () => {
     setActiveConfig({
       customFields: [{ target: 'document', key: 'metodoEnvio', label: 'Método de envío', type: 'select', options: ['estándar','exprés'] }]
     });
-    const d = addDocument({entityId:entity.entity_id, folio:1, startDate:'2026-08-01', endDate:'2026-08-05', metodoEnvio:'exprés'});
+    const _d = addDocument({entityId:entity.entity_id, folio:1, startDate:'2026-08-01', endDate:'2026-08-05', metodoEnvio:'exprés'});
     expect(loadDocuments()[0].metodoEnvio).toBe('exprés');
     expect(validateDocument({entityId:entity.entity_id, folio:2, startDate:'2026-08-01', endDate:'2026-08-05', metodoEnvio:'urgentemente'}).errors.metodoEnvio).toContain('debe ser uno de');
   });
@@ -313,7 +313,7 @@ describe('document status lifecycle', () => {
     setActiveConfig({
       statusLifecycle: { statuses:['cotización','pedido','facturado'], transitions:{ cotización:['pedido'], pedido:['facturado'], facturado:[] } }
     });
-    const d = addDocument({entityId:entity.entity_id, folio:1, startDate:'2026-08-01', endDate:'2026-08-05', status:'pedido'});
+    const _d = addDocument({entityId:entity.entity_id, folio:1, startDate:'2026-08-01', endDate:'2026-08-05', status:'pedido'});
     expect(loadDocuments()[0].status).toBe('pedido');
   });
 
@@ -345,5 +345,27 @@ describe('clearAll', () => {
     clearAll();
     expect(loadEntities().length).toBe(0);
     expect(loadDocuments().length).toBe(0);
+  });
+});
+
+describe('Validación de datos maestros de calidad', () => {
+  it('rechaza maestros sin nombre o código y acepta datos completos', async () => {
+    const { validateMaster } = await import('../../src/master-data.js');
+    const invalid = validateMaster('area', { codigo: '', nombre: '', modulo: 'VENTAS' });
+    expect(invalid.valid).toBe(false);
+    expect(invalid.errors.codigo).toContain('obligatorio');
+    expect(invalid.errors.nombre).toContain('obligatorio');
+
+    const valid = validateMaster('product', {
+      codigo: 'P-1', descripcion: 'Producto Uno', tipo: 'PRODUCTO', unidad_medida: 'pieza'
+    });
+    expect(valid.valid).toBe(true);
+  });
+
+  it('registra el índice quality-models al persistir datos del módulo', () => {
+    addEntity({name:'A', code:'A-1'});
+    const index = JSON.parse(localStorage.getItem('quality-models'));
+    expect(index.keys).toContain('quality-entities');
+    expect(index.keys).toContain('quality-documents');
   });
 });
