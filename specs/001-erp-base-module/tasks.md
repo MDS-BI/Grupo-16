@@ -77,11 +77,11 @@
 
 ---
 
-## Fase 5: Historia de Usuario 3 - Panel de Inicio con Acciones Rápidas y Estadísticas (Prioridad: P1)
+## Fase 5: Historia de Usuario 3 - Panel de Inicio ERP con KPIs y Acciones Rápidas (Prioridad: P1)
 
-**Objetivo**: Proporcionar la pantalla de punto de entrada con un panel estilo ERP con botones de acción rápida claramente etiquetados y totales de registros en un vistazo.
+**Objetivo**: Proporcionar la vista principal de Gestión de Calidad con KPIs dinámicos, acciones rápidas separadas para registros maestros y operativos, y accesos directos a gestión de catálogos y búsqueda global.
 
-**Prueba Independiente**: Un usuario abre la aplicación, ve un panel con múltiples botones de acción rápida y estadísticas de registros, inicia una nueva entidad o documento con un solo clic.
+**Prueba Independiente**: Un usuario abre la ruta raíz, ve 4 tarjetas KPI con conteos reales (0 cuando no hay datos), usa botones de creación maestra u operativa con formularios limpios, abre gestión de catálogos y accede a búsqueda global con autofocus.
 
 ### Pruebas para la Historia de Usuario 3
 
@@ -89,14 +89,14 @@
 
 ### Implementación de la Historia de Usuario 3
 
-- [X] T028 [P] [US3] Añadir el marcado del panel (encabezado, cuadrícula de acciones rápidas, tarjetas de estadísticas) a index.html
-- [X] T029 [US3] Conectar los botones de acción rápida para abrir la gestión de entidades, la gestión de documentos (formularios limpiados) y la búsqueda (entrada enfocada) en src/app.js
-- [X] T030 [US3] Renderizar y refrescar los recuentos de entidades desde el almacenamiento cada vez que se muestra el panel en src/components/dashboard.js
-- [X] T031 [P] [US3] Dar estilo al encabezado del panel, las tarjetas de acción rápida y los mosaicos de estadísticas en src/styles.css
-- [X] T032 [US3] Implementar estadísticas para las 4 entidades principales (áreas, empleados, productos, lotes) mostradas en el panel
+- [X] T028 [P] [US3] Añadir el marcado del panel refinado (encabezado, KPIs, grupos de acciones rápidas, accesos de gestión/búsqueda) a index.html
+- [X] T029 [US3] Conectar las acciones rápidas maestras y operativas y los accesos de gestión/búsqueda para abrir formularios limpios, la vista de catálogos y la búsqueda con autofocus en src/app.js
+- [X] T030 [US3] Renderizar y refrescar los KPIs desde el almacenamiento cada vez que se muestra el panel en src/app.js
+- [X] T031 [P] [US3] Dar estilo al panel ERP, tarjetas KPI, grupos de acciones rápidas, iconos y botones de acceso en src/styles.css
+- [X] T032 [US3] Implementar los 4 KPIs requeridos: lotes activos, productos registrados, inspecciones realizadas y NCR/CAPA abiertas
 - [X] T033 [US3] Añadir indicador de estado vacío cuando no hay registros en el almacenamiento
 
-**Punto de control**: La aplicación abre en un panel funcional; cada tarea ERP clave (nueva entidad, nuevo documento, gestión de entidades, buscar registros) está a un clic. Las estadísticas deben reflejar conteos en tiempo real.
+**Punto de control**: La aplicación abre en un panel ERP funcional; los KPIs reflejan conteos reales del almacenamiento, los formularios se abren limpios desde cualquier acción rápida, y los accesos a gestión y búsqueda funcionan en un solo clic con autofocus en búsqueda.
 
 ---
 
