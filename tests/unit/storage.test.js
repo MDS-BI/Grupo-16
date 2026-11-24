@@ -80,8 +80,8 @@ describe('entity storage', () => {
     expect(loadEntities()[0].creditLimit).toBe(5000);
   });
 
-  it('accepts a valid target date', () => {
-    const res = validateEntity({name:'A', code:'B', targetDate:'2099-08-06'});
+  it('accepts a valid target date with a responsible owner', () => {
+    const res = validateEntity({name:'A', code:'B', targetDate:'2099-08-06', responsible:'Ana'});
     expect(res.valid).toBe(true);
   });
 
@@ -97,24 +97,39 @@ describe('entity storage', () => {
   });
 
   it('persists target date on create and update', () => {
-    const e = addEntity({name:'Acme', code:'AC-001', targetDate:'2099-09-01'});
+    const e = addEntity({name:'Acme', code:'AC-001', targetDate:'2099-09-01', responsible:'Ana'});
     expect(loadEntities()[0].targetDate).toBe('2099-09-01');
-    const updated = updateEntity(e.id, { targetDate:'2099-10-01' });
+    const updated = updateEntity(e.id, { targetDate:'2099-10-01', responsible:'Ana' });
     expect(updated.targetDate).toBe('2099-10-01');
   });
 
+  it('records planning changes with user, date and time', () => {
+    const e = addEntity({name:'Acme', code:'AC-001', targetDate:'2099-09-01', responsible:'Ana'}, 'Ana');
+    const updated = updateEntity(e.id, { targetDate:'2099-10-01', responsible:'Luis' }, 'Ana');
+    const entry = updated.changeLog.find(c => c.field === 'targetDate' && c.to === '2099-10-01');
+    expect(entry.user).toBe('Ana');
+    expect(entry.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(entry.time).toMatch(/^\d{2}:\d{2}:\d{2}$/);
+  });
+
+  it('requires a responsible owner when a target date is set', () => {
+    const res = validateEntity({name:'A', code:'B', targetDate:'2099-08-06'});
+    expect(res.valid).toBe(false);
+    expect(res.errors.responsible).toContain('obligatorio');
+  });
+
   it('searches by target date', () => {
-    addEntity({name:'Acme', code:'AC-001', targetDate:'2099-09-01'});
-    addEntity({name:'Globex', code:'GL-002', targetDate:'2099-11-20'});
+    addEntity({name:'Acme', code:'AC-001', targetDate:'2099-09-01', responsible:'Ana'});
+    addEntity({name:'Globex', code:'GL-002', targetDate:'2099-11-20', responsible:'Luis'});
     const results = searchEntities('2099-09-01');
     expect(results.length).toBe(1);
     expect(results[0].name).toBe('Acme');
   });
 
-  it('rejects target date not after creation date', () => {
-    const res = validateEntity({name:'A', code:'B', targetDate:'2000-01-01', createdAt: new Date().toISOString()});
-    expect(res.valid).toBe(false);
-    expect(res.errors.targetDate).toContain('posterior');
+  it('allows a past target date so the interface can request confirmation', () => {
+    const res = validateEntity({name:'A', code:'B', targetDate:'2000-01-01', responsible:'Ana', createdAt: new Date().toISOString()});
+    expect(res.valid).toBe(true);
+    expect(res.errors.targetDate).toBeUndefined();
   });
 
   it('searches by tax id and email', () => {

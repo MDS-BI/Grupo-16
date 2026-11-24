@@ -89,6 +89,28 @@
             </div>
           </section>
 
+          <section class="dashboard-section tracking-section" aria-labelledby="tracking-heading">
+            <h2 id="tracking-heading">Seguimiento de fechas objetivo</h2>
+            <div class="tracking-controls">
+              <label for="tracking-sort">Ordenar</label>
+              <select id="tracking-sort">
+                <option value="date">Fecha (vencidas primero)</option>
+                <option value="name">Nombre</option>
+              </select>
+              <label for="tracking-status">Filtrar por estado</label>
+              <select id="tracking-status">
+                <option value="todos">Todos</option>
+                <option value="verde">Verde</option>
+                <option value="amarillo">Amarillo</option>
+                <option value="rojo">Rojo</option>
+                <option value="completada">Completada</option>
+                <option value="sin-fecha">Sin fecha</option>
+              </select>
+            </div>
+            <ul id="tracking-list"></ul>
+            <div id="tracking-empty" class="empty-state" hidden>No hay registros para el filtro seleccionado.</div>
+          </section>
+
           <div id="dashboard-empty-state" class="empty-state" hidden>No hay registros en el almacenamiento. Usa una acción rápida para comenzar.</div>
 
           <!-- Compatibility stats for existing tests/config -->
@@ -155,6 +177,26 @@
                 <label for="targetDate">Fecha objetivo</label>
                 <input type="date" id="targetDate">
                 <span id="error-targetDate" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="actionType">Tipo de acción</label>
+                <select id="actionType">
+                  <option value="">Seleccione acción...</option>
+                  <option value="Inspección">Inspección</option>
+                  <option value="Reinspección">Reinspección</option>
+                  <option value="Calibración">Calibración</option>
+                  <option value="Auditoría">Auditoría</option>
+                  <option value="Capacitación">Capacitación</option>
+                </select>
+                <span id="error-actionType" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="responsible">Responsable</label>
+                <input type="text" id="responsible">
+                <span id="error-responsible" class="error"></span>
+              </div>
+              <div class="field checkbox-field">
+                <label for="completed"><input type="checkbox" id="completed"> Marcar como realizada</label>
               </div>
               <div id="entity-custom-fields" hidden>
                 <h3>Campos personalizados</h3>
@@ -251,6 +293,31 @@
                 <label for="status">Estado</label>
                 <input type="text" id="status">
                 <span id="error-status" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="document-targetDate">Fecha objetivo</label>
+                <input type="date" id="document-targetDate">
+                <span id="error-document-targetDate" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="document-actionType">Tipo de acción</label>
+                <select id="document-actionType">
+                  <option value="">Seleccione acción...</option>
+                  <option value="Inspección">Inspección</option>
+                  <option value="Reinspección">Reinspección</option>
+                  <option value="Calibración">Calibración</option>
+                  <option value="Auditoría">Auditoría</option>
+                  <option value="Capacitación">Capacitación</option>
+                </select>
+                <span id="error-document-actionType" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="document-responsible">Responsable</label>
+                <input type="text" id="document-responsible">
+                <span id="error-document-responsible" class="error"></span>
+              </div>
+              <div class="field checkbox-field">
+                <label for="document-completed"><input type="checkbox" id="document-completed"> Marcar como realizada</label>
               </div>
               <div id="document-custom-fields" hidden>
                 <div id="document-custom-fields-container"></div>

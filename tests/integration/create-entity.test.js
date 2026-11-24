@@ -72,7 +72,7 @@ describe('User Story 1 - create and organize entities', () => {
     qs('email').value = 'no-es-correo';
     qs('entity-form').dispatchEvent(new dom.window.Event('submit', { bubbles: true, cancelable: true }));
     expect(loadEntities().length).toBe(0);
-    expect(qs('error-email').textContent).toContain('correo electrónico');
+    expect(qs('error-email').textContent).toMatch(/correo electrónico/i);
   });
 
   it('prevents saving when required information is blank and explains what is needed', () => {

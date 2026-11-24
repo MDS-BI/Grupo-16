@@ -1,7 +1,25 @@
 import { getConfig, setActiveConfig, labelFor, normalizeConfig } from './module-config.js';
 import { loadEntities, addEntity, updateEntity, deleteEntity, searchEntities, loadDocuments, addDocument, updateDocument, deleteDocument } from './storage.js';
+import { formatTargetDate, getTargetDateStatus, isPastTargetDate, STATUS_LABELS, filterByStatus, sortTrackingRecords } from './target-date.js';
 
 function qs(id) { return document.getElementById(id); }
+
+function currentActor() {
+  if (typeof document !== 'undefined' && document.body && document.body.dataset.userName) return document.body.dataset.userName;
+  if (typeof window !== 'undefined' && window.currentUser && window.currentUser.name) return window.currentUser.name;
+  return 'inspector';
+}
+
+function isReadOnlyUser() {
+  const role = (typeof document !== 'undefined' && document.body && document.body.dataset.userRole) ||
+    (typeof window !== 'undefined' && window.currentUserRole) || '';
+  return ['readonly', 'read-only', 'consulta', 'solo-consulta', 'viewer'].includes(String(role).toLowerCase());
+}
+
+function confirmAction(message) {
+  const fn = globalThis.confirm || (typeof window !== 'undefined' ? window.confirm : null);
+  return typeof fn === 'function' ? fn.call(globalThis, message) : true;
+}
 
 function renderLogo(moduleName) {
   const logoMark = qs('logo-mark');
@@ -176,13 +194,6 @@ function showView(viewId) {
   }
 }
 
-function formatTargetDate(value) {
-  if (!value) return '';
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  if (!match) return value;
-  return `${match[3]}/${match[2]}/${match[1]}`;
-}
-
 function normalizeText(...parts) {
   return parts.filter(Boolean).join(' ').toLowerCase();
 }
@@ -263,6 +274,7 @@ function updateDashboardStats() {
 
   const empty = qs('dashboard-empty-state');
   if (empty) empty.hidden = !(entities.length === 0 && docs.length === 0);
+  renderTrackingList();
 }
 
 function populateEntitySelect() {
@@ -307,7 +319,8 @@ function renderEntitiesList() {
         }
       }
     }
-    return `<li><strong>${e.name}</strong> (${e.code})${e.targetDate ? ` - Fecha objetivo: ${formatTargetDate(e.targetDate)}` : ''}${customText}</li>`;
+    const status = getTargetDateStatus(e);
+    return `<li class="tracking-item status-${status}"><strong>${e.name}</strong> (${e.code})<span class="tracking-status status-badge">${STATUS_LABELS[status]}</span>${e.targetDate ? ` - Fecha objetivo: ${formatTargetDate(e.targetDate)}` : ''}${customText}</li>`;
   }).join('');
 }
 
@@ -319,7 +332,10 @@ function renderDocumentsList() {
     list.innerHTML = `<li class="empty-state">No hay documentos registrados.</li>`;
     return;
   }
-  list.innerHTML = docs.map(d => `<li>Folio: ${d.folio} - Estado: <span class="status-badge">${d.status || ''}</span></li>`).join('');
+  list.innerHTML = docs.map(d => {
+    const status = getTargetDateStatus(d);
+    return `<li class="tracking-item status-${status}">Folio: ${d.folio} - Estado: <span class="status-badge">${d.status || ''}</span><span class="tracking-status status-badge">${STATUS_LABELS[status]}</span>${d.targetDate ? ` - Fecha objetivo: ${formatTargetDate(d.targetDate)}` : ''}</li>`;
+  }).join('');
 }
 
 function performSearch() {
@@ -344,7 +360,44 @@ function performSearch() {
     }
     const entityDocs = docs.filter(d => d.entity_id === e.entity_id || d.entityId === e.entity_id);
     const docText = entityDocs.length ? ` ${entityDocs.map(d => `<span class="status-badge">${d.status || ''}</span>`).join(' ')}` : '';
-    return `<li class="entity-item"><strong>${e.name}</strong> (${e.code})${e.targetDate ? ` - Fecha objetivo: ${formatTargetDate(e.targetDate)}` : ''}${customText}${docText}</li>`;
+    const status = getTargetDateStatus(e);
+    return `<li class="entity-item tracking-item status-${status}"><strong>${e.name}</strong> (${e.code})${docText}<span class="tracking-status status-badge">${STATUS_LABELS[status]}</span>${e.targetDate ? ` - Fecha objetivo: ${formatTargetDate(e.targetDate)}` : ''}${customText}</li>`;
+  }).join('');
+}
+
+function collectTrackingRecords() {
+  const entities = loadEntities().map(e => ({
+    ...e,
+    displayName: e.name || '',
+    displayCode: e.code || '',
+    source: 'entity'
+  }));
+  const docs = loadDocuments().map(d => ({
+    ...d,
+    displayName: `Folio ${d.folio}`,
+    displayCode: d.series || '',
+    source: 'document'
+  }));
+  return [...entities, ...docs];
+}
+
+function renderTrackingList() {
+  const list = qs('tracking-list');
+  if (!list) return;
+  const sortBy = qs('tracking-sort') ? qs('tracking-sort').value : 'date';
+  const statusFilter = qs('tracking-status') ? qs('tracking-status').value : 'todos';
+  const records = filterByStatus(sortTrackingRecords(collectTrackingRecords(), sortBy), statusFilter);
+  const empty = qs('tracking-empty');
+  if (empty) empty.hidden = records.length > 0;
+
+  list.innerHTML = records.map(record => {
+    const status = getTargetDateStatus(record);
+    const details = [
+      record.targetDate ? `Fecha objetivo: ${formatTargetDate(record.targetDate)}` : 'Sin fecha objetivo',
+      record.actionType ? `Acción: ${record.actionType}` : '',
+      record.responsible ? `Responsable: ${record.responsible}` : ''
+    ].filter(Boolean).join(' · ');
+    return `<li class="tracking-item status-${status}"><strong>${record.displayName}</strong>${record.displayCode ? ` (${record.displayCode})` : ''}<span class="tracking-status status-badge">${STATUS_LABELS[status]}</span><span class="tracking-detail">${details}</span></li>`;
   }).join('');
 }
 
@@ -371,7 +424,7 @@ export async function initApp(configResult) {
     if (entityForm) entityForm.reset();
     if (qs('entity-id')) qs('entity-id').value = '';
     if (qs('submit-button')) qs('submit-button').textContent = 'Guardar';
-    ['name','code','email','creditLimit','targetDate'].forEach(k => { const el = qs(`error-${k}`); if (el) el.textContent = ''; });
+    ['name','code','email','creditLimit','targetDate','actionType','responsible'].forEach(k => { const el = qs(`error-${k}`); if (el) el.textContent = ''; });
     const config = getConfig();
     (config.customFields || []).filter(f => f.target === 'entity').forEach(cf => { const el = qs(`error-cf-${cf.key}`); if (el) el.textContent = ''; });
   }
@@ -407,7 +460,8 @@ export async function initApp(configResult) {
         const next = lifecycle.transitions[currentStatus] || [];
         allowed = [currentStatus, ...next.filter(s => s !== currentStatus)];
       }
-      select.innerHTML = `<option value=""></option>` + allowed.map(s => `<option value="${s}" ${s===currentStatus?'selected':''}>${s}</option>`).join('');
+      const placeholder = currentStatus ? '' : `<option value=""></option>`;
+      select.innerHTML = placeholder + allowed.map(s => `<option value="${s}" ${s===currentStatus?'selected':''}>${s}</option>`).join('');
     } else {
       if (input.tagName !== 'INPUT') {
         const inp = document.createElement('input');
@@ -484,8 +538,17 @@ export async function initApp(configResult) {
         address: qs('address') ? qs('address').value : '',
         creditLimit: qs('creditLimit') ? qs('creditLimit').value : '',
         paymentTerms: qs('paymentTerms') ? qs('paymentTerms').value : '',
-        targetDate: qs('targetDate') ? qs('targetDate').value : ''
+        targetDate: qs('targetDate') ? qs('targetDate').value : '',
+        actionType: qs('actionType') ? qs('actionType').value : '',
+        responsible: qs('responsible') ? qs('responsible').value : '',
+        completed: qs('completed') ? qs('completed').checked : false
       };
+
+      if (isReadOnlyUser()) {
+        if (qs('error-name')) qs('error-name').textContent = 'El perfil de solo consulta no puede editar registros';
+        return;
+      }
+      if (isPastTargetDate(data.targetDate) && !confirmAction('La fecha objetivo es anterior a hoy. ¿Desea guardarla de todas formas?')) return;
 
       const config = getConfig();
       (config.customFields || []).filter(f => f.target === 'entity').forEach(cf => {
@@ -494,17 +557,18 @@ export async function initApp(configResult) {
       });
 
       // Clear errors
-      ['name','code','email','creditLimit','targetDate'].forEach(k => { const errEl = qs(`error-${k}`); if (errEl) errEl.textContent = ''; });
+      ['name','code','email','creditLimit','targetDate','actionType','responsible'].forEach(k => { const errEl = qs(`error-${k}`); if (errEl) errEl.textContent = ''; });
       (config.customFields || []).filter(f => f.target === 'entity').forEach(cf => { const errEl = qs(`error-cf-${cf.key}`); if (errEl) errEl.textContent = ''; });
 
       try {
         if (id) {
-          updateEntity(id, data);
+          updateEntity(id, data, currentActor());
         } else {
-          addEntity(data);
+          addEntity(data, currentActor());
         }
         resetEntityForm();
         populateEntitySelect();
+        if (id && qs('edit-entity')) qs('edit-entity').value = id;
         renderEntitiesList();
         updateDashboardStats();
       } catch (err) {
@@ -540,6 +604,9 @@ export async function initApp(configResult) {
       if (qs('creditLimit')) qs('creditLimit').value = entity.creditLimit !== undefined ? entity.creditLimit : '';
       if (qs('paymentTerms')) qs('paymentTerms').value = entity.paymentTerms || '';
       if (qs('targetDate')) qs('targetDate').value = entity.targetDate || '';
+      if (qs('actionType')) qs('actionType').value = entity.actionType || '';
+      if (qs('responsible')) qs('responsible').value = entity.responsible || '';
+      if (qs('completed')) qs('completed').checked = entity.completed === true || entity.completed === 'true';
       if (qs('submit-button')) qs('submit-button').textContent = 'Actualizar';
 
       const config = getConfig();
@@ -556,7 +623,7 @@ export async function initApp(configResult) {
     deleteEntityBtn.onclick = () => {
       const selectedId = editEntitySelect ? editEntitySelect.value : '';
       if (!selectedId) return;
-      if (window.confirm && !window.confirm('¿Eliminar entidad?')) return;
+      if (!confirmAction('¿Eliminar entidad?')) return;
       deleteEntity(selectedId);
       resetEntityForm();
       populateEntitySelect();
@@ -587,8 +654,18 @@ export async function initApp(configResult) {
         currency: qs('currency') ? qs('currency').value : '',
         paymentTerms: qs('docPaymentTerms') ? qs('docPaymentTerms').value : '',
         notes: qs('notes') ? qs('notes').value : '',
-        status: qs('status') ? qs('status').value : ''
+        status: qs('status') ? qs('status').value : '',
+        targetDate: qs('document-targetDate') ? qs('document-targetDate').value : '',
+        actionType: qs('document-actionType') ? qs('document-actionType').value : '',
+        responsible: qs('document-responsible') ? qs('document-responsible').value : '',
+        completed: qs('document-completed') ? qs('document-completed').checked : false
       };
+
+      if (isReadOnlyUser()) {
+        if (qs('error-folio')) qs('error-folio').textContent = 'El perfil de solo consulta no puede editar registros';
+        return;
+      }
+      if (isPastTargetDate(data.targetDate) && !confirmAction('La fecha objetivo es anterior a hoy. ¿Desea guardarla de todas formas?')) return;
 
       const config = getConfig();
       (config.customFields || []).filter(f => f.target === 'document').forEach(cf => {
@@ -596,24 +673,25 @@ export async function initApp(configResult) {
         if (input) data[cf.key] = input.value;
       });
 
-      ['document-entity','folio','startDate','endDate','quantity','subtotal','discount','taxAmount','totalAmount','status'].forEach(k => { const el = qs(`error-${k}`); if (el) el.textContent = ''; });
+      ['document-entity','folio','startDate','endDate','quantity','subtotal','discount','taxAmount','totalAmount','status','document-targetDate','document-actionType','document-responsible'].forEach(k => { const el = qs(`error-${k}`); if (el) el.textContent = ''; });
       (config.customFields || []).filter(f => f.target === 'document').forEach(cf => { const el = qs(`error-cf-${cf.key}`); if (el) el.textContent = ''; });
 
       try {
         if (id) {
-          updateDocument(id, data);
+          updateDocument(id, data, currentActor());
         } else {
-          addDocument(data);
+          addDocument(data, currentActor());
         }
         resetDocumentForm();
         populateDocumentSelect();
+        if (id && qs('edit-document')) qs('edit-document').value = id;
         renderDocumentsList();
         updateDashboardStats();
       } catch (err) {
         try {
           const errObj = JSON.parse(err.message.replace(/^.*?:\s*/, ''));
           for (const [k, msg] of Object.entries(errObj)) {
-            const errEl = qs(`error-${k}`) || qs(`error-cf-${k}`) || (k === 'entityId' ? qs('error-document-entity') : null);
+            const errEl = qs(`error-document-${k}`) || qs(`error-${k}`) || qs(`error-cf-${k}`) || (k === 'entityId' ? qs('error-document-entity') : null);
             if (errEl) errEl.textContent = msg;
           }
         } catch {
@@ -644,6 +722,10 @@ export async function initApp(configResult) {
       if (qs('currency')) qs('currency').value = doc.currency || '';
       if (qs('docPaymentTerms')) qs('docPaymentTerms').value = doc.paymentTerms || '';
       if (qs('notes')) qs('notes').value = doc.notes || '';
+      if (qs('document-targetDate')) qs('document-targetDate').value = doc.targetDate || '';
+      if (qs('document-actionType')) qs('document-actionType').value = doc.actionType || '';
+      if (qs('document-responsible')) qs('document-responsible').value = doc.responsible || '';
+      if (qs('document-completed')) qs('document-completed').checked = doc.completed === true || doc.completed === 'true';
       syncStatusControl(doc.status || '');
       const statusEl = qs('status');
       if (statusEl) statusEl.value = doc.status || '';
@@ -662,7 +744,7 @@ export async function initApp(configResult) {
     deleteDocumentBtn.onclick = () => {
       const selectedId = editDocumentSelect ? editDocumentSelect.value : '';
       if (!selectedId) return;
-      if (window.confirm && !window.confirm('¿Eliminar documento?')) return;
+      if (!confirmAction('¿Eliminar documento?')) return;
       deleteDocument(selectedId);
       resetDocumentForm();
       populateDocumentSelect();
@@ -677,6 +759,27 @@ export async function initApp(configResult) {
     searchInput.oninput = () => performSearch();
   }
 
+  const trackingSort = qs('tracking-sort');
+  if (trackingSort) trackingSort.onchange = () => renderTrackingList();
+  const trackingStatus = qs('tracking-status');
+  if (trackingStatus) trackingStatus.onchange = () => renderTrackingList();
+
+  function applyReadOnlyMode() {
+    if (!isReadOnlyUser()) return;
+    const content = document.querySelector('.content-area');
+    if (content && !qs('readonly-notice')) {
+      const notice = document.createElement('div');
+      notice.id = 'readonly-notice';
+      notice.className = 'readonly-notice';
+      notice.textContent = 'Perfil de solo consulta: puede ver la información pero no editarla.';
+      content.prepend(notice);
+    }
+    document.querySelectorAll('#entity-form input, #entity-form select, #entity-form button, #document-form input, #document-form select, #document-form button, #delete-entity, #delete-document, .quick-actions button, .dashboard-top-actions button, #action-new-entity, #action-new-document').forEach(el => {
+      el.disabled = true;
+    });
+  }
+
+  applyReadOnlyMode();
   syncStatusControl();
   showView('dashboard');
 }
