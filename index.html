@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Módulo Base ERP</title>
+  <script type="module" crossorigin src="./assets/index-DNI0hW_Q.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-BMkPOsiC.css">
+</head>
+<body>
+  <div class="workspace-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div id="logo-mark"></div>
+        <span id="brand-name">Módulo Base ERP</span>
+      </div>
+      <div id="user-switcher" class="topbar-actions"></div>
+    </header>
+
+    <div class="workspace-body">
+      <nav class="sidebar">
+        <button id="nav-dashboard" class="nav-module" data-module="dashboard" aria-current="page">
+          <span id="nav-dashboard-label" class="nav-label">Panel</span>
+        </button>
+        <button id="nav-entities" class="nav-module" data-module="entities">
+          <span id="nav-entities-label" class="nav-label">Entidades</span>
+        </button>
+        <button id="nav-documents" class="nav-module" data-module="documents">
+          <span id="nav-documents-label" class="nav-label">Documentos</span>
+        </button>
+        <button id="nav-search" class="nav-module" data-module="search">
+          <span id="nav-search-label" class="nav-label">Búsqueda</span>
+        </button>
+        <button id="nav-users" class="nav-secondary" data-module="users" hidden>
+          <span id="nav-users-label" class="nav-label">Usuarios y roles</span>
+        </button>
+      </nav>
+
+      <main class="content-area">
+        <div id="auth-message" class="auth-message" role="alert" hidden></div>
+        <!-- Dashboard View -->
+        <section id="view-dashboard" class="view">
+          <div class="dashboard-header">
+            <div>
+              <h1 id="dashboard-heading">Panel de Gestión de Calidad</h1>
+              <p class="dashboard-subtitle">Resumen operativo y accesos rápidos</p>
+            </div>
+            <div class="dashboard-top-actions">
+              <button id="action-manage-catalogs" class="btn-secondary" type="button">Gestionar catálogos (Maestros)</button>
+              <button id="action-global-search" class="btn-secondary" type="button">Búsqueda global de registros</button>
+            </div>
+          </div>
+
+          <section class="dashboard-section" aria-labelledby="kpi-heading">
+            <h2 id="kpi-heading">Resumen de datos (KPIs)</h2>
+            <div class="stats-grid kpi-grid">
+              <article class="stat-card">
+                <span id="stat-lots-active" class="stat-value">0</span>
+                <span class="stat-label">Total de Lotes activos</span>
+              </article>
+              <article class="stat-card">
+                <span id="stat-products-total" class="stat-value">0</span>
+                <span class="stat-label">Total de Productos registrados</span>
+              </article>
+              <article class="stat-card">
+                <span id="stat-inspections-total" class="stat-value">0</span>
+                <span class="stat-label">Inspecciones de Calidad realizadas</span>
+              </article>
+              <article class="stat-card">
+                <span id="stat-ncr-capa-open" class="stat-value">0</span>
+                <span class="stat-label">NCR y Acciones CAPA abiertas</span>
+              </article>
+            </div>
+          </section>
+
+          <section class="dashboard-section" aria-labelledby="quick-actions-heading">
+            <h2 id="quick-actions-heading">Acciones rápidas</h2>
+            <div class="quick-actions-groups">
+              <div class="quick-group">
+                <h3>Creación de registros maestros</h3>
+                <div class="quick-actions">
+                  <button id="action-new-lot" class="action-card" type="button"><span class="action-icon">📦</span><span>Nuevo Lote</span></button>
+                  <button id="action-new-product" class="action-card" type="button"><span class="action-icon">🏷️</span><span>Nuevo Producto</span></button>
+                  <button id="action-new-area" class="action-card" type="button"><span class="action-icon">🏢</span><span>Nueva Área</span></button>
+                  <button id="action-new-employee" class="action-card" type="button"><span class="action-icon">👤</span><span>Nuevo Empleado</span></button>
+                </div>
+              </div>
+              <div class="quick-group">
+                <h3>Creación de registros operativos</h3>
+                <div class="quick-actions">
+                  <button id="action-new-inspection" class="action-card" type="button"><span class="action-icon">🔍</span><span>Nueva Inspección</span></button>
+                  <button id="action-new-ncr" class="action-card" type="button"><span class="action-icon">⚠️</span><span>Nueva NCR</span></button>
+                  <button id="action-new-capa" class="action-card" type="button"><span class="action-icon">🛠️</span><span>Nueva Acción CAPA</span></button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="dashboard-section tracking-section" aria-labelledby="tracking-heading">
+            <h2 id="tracking-heading">Seguimiento de fechas objetivo</h2>
+            <div class="tracking-controls">
+              <label for="tracking-sort">Ordenar</label>
+              <select id="tracking-sort">
+                <option value="date">Fecha (vencidas primero)</option>
+                <option value="name">Nombre</option>
+              </select>
+              <label for="tracking-status">Filtrar por estado</label>
+              <select id="tracking-status">
+                <option value="todos">Todos</option>
+                <option value="verde">Verde</option>
+                <option value="amarillo">Amarillo</option>
+                <option value="rojo">Rojo</option>
+                <option value="completada">Completada</option>
+                <option value="sin-fecha">Sin fecha</option>
+              </select>
+            </div>
+            <ul id="tracking-list"></ul>
+            <div id="tracking-empty" class="empty-state" hidden>No hay registros para el filtro seleccionado.</div>
+          </section>
+
+          <div id="dashboard-empty-state" class="empty-state" hidden>No hay registros en el almacenamiento. Usa una acción rápida para comenzar.</div>
+
+          <!-- Compatibility stats for existing tests/config -->
+          <div class="stats-grid legacy-stats" aria-hidden="true" hidden>
+            <div class="stat-card"><span id="stat-entities" class="stat-value">0</span><span id="stat-entities-label" class="stat-label">Datos maestros</span></div>
+            <div class="stat-card"><span id="stat-documents" class="stat-value">0</span><span id="stat-documents-label" class="stat-label">Registros operativos</span></div>
+            <div class="stat-card"><span id="stat-areas" class="stat-value">0</span><span class="stat-label">Áreas</span></div>
+            <div class="stat-card"><span id="stat-employees" class="stat-value">0</span><span class="stat-label">Empleados</span></div>
+            <div class="stat-card"><span id="stat-products" class="stat-value">0</span><span class="stat-label">Productos</span></div>
+            <div class="stat-card"><span id="stat-lots" class="stat-value">0</span><span class="stat-label">Lotes</span></div>
+          </div>
+          <div hidden>
+            <button id="action-new-entity"><span id="action-new-entity-title">Nueva Entidad</span></button>
+            <button id="action-new-document"><span id="action-new-document-title">Nuevo Documento</span></button>
+            <button id="action-open-entities"><span id="action-open-entities-title">Entidades</span></button>
+            <button id="action-find"><span id="action-find-title">Buscar registros</span></button>
+          </div>
+        </section>
+
+        <!-- Entities View -->
+        <section id="view-entities" class="view" hidden>
+          <h1 id="entities-view-heading">Entidades</h1>
+          <div class="form-container">
+            <h2 id="entity-form-heading">Agregar / Editar Entidad</h2>
+            <form id="entity-form">
+              <input type="hidden" id="entity-id">
+              <div class="field">
+                <label for="name">Nombre *</label>
+                <input type="text" id="name">
+                <span id="error-name" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="code">Código *</label>
+                <input type="text" id="code">
+                <span id="error-code" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="taxId">RFC / Identificador fiscal</label>
+                <input type="text" id="taxId">
+              </div>
+              <div class="field">
+                <label for="email">Correo electrónico</label>
+                <input type="email" id="email">
+                <span id="error-email" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="phone">Teléfono</label>
+                <input type="text" id="phone">
+              </div>
+              <div class="field">
+                <label for="address">Dirección</label>
+                <input type="text" id="address">
+              </div>
+              <div class="field">
+                <label for="creditLimit">Límite de crédito</label>
+                <input type="number" id="creditLimit">
+                <span id="error-creditLimit" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="paymentTerms">Condiciones de pago</label>
+                <input type="text" id="paymentTerms">
+              </div>
+              <div class="field">
+                <label for="targetDate">Fecha objetivo</label>
+                <input type="date" id="targetDate">
+                <span id="error-targetDate" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="actionType">Tipo de acción</label>
+                <select id="actionType">
+                  <option value="">Seleccione acción...</option>
+                  <option value="Inspección">Inspección</option>
+                  <option value="Reinspección">Reinspección</option>
+                  <option value="Calibración">Calibración</option>
+                  <option value="Auditoría">Auditoría</option>
+                  <option value="Capacitación">Capacitación</option>
+                </select>
+                <span id="error-actionType" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="responsible">Responsable</label>
+                <input type="text" id="responsible">
+                <span id="error-responsible" class="error"></span>
+              </div>
+              <div class="field checkbox-field">
+                <label for="completed"><input type="checkbox" id="completed"> Marcar como realizada</label>
+              </div>
+              <div id="entity-custom-fields" hidden>
+                <h3>Campos personalizados</h3>
+                <div id="entity-custom-fields-container"></div>
+              </div>
+              <button type="submit" id="save-entity"><span id="submit-button">Guardar</span></button>
+            </form>
+          </div>
+
+          <div class="management-controls">
+            <h3 id="edit-entity-heading">Editar o eliminar la entidad</h3>
+            <select id="edit-entity">
+              <option value="">Seleccione una entidad...</option>
+            </select>
+            <button id="delete-entity" type="button">Eliminar la entidad seleccionada</button>
+          </div>
+
+          <div class="list-container">
+            <ul id="entities-list"></ul>
+          </div>
+
+          <section class="quality-master-section" aria-labelledby="quality-master-heading">
+            <h2 id="quality-master-heading">Datos maestros de calidad</h2>
+            <div class="form-container">
+              <div class="field">
+                <label for="master-type-select">Tipo de dato maestro</label>
+                <select id="master-type-select"></select>
+              </div>
+              <form id="quality-master-form">
+                <input type="hidden" id="quality-master-id">
+                <div id="quality-master-fields"></div>
+                <button type="submit" id="save-quality-master">Guardar dato maestro</button>
+              </form>
+            </div>
+            <div class="list-container">
+              <ul id="quality-entities-list"></ul>
+            </div>
+          </section>
+        </section>
+
+        <!-- Documents View -->
+        <section id="view-documents" class="view" hidden>
+          <h1 id="documents-view-heading">Documentos</h1>
+          <div class="form-container">
+            <h2 id="document-form-heading">Agregar / Editar Documento</h2>
+            <form id="document-form">
+              <input type="hidden" id="document-id">
+              <div class="field">
+                <label for="document-entity">Entidad Asociada *</label>
+                <select id="document-entity">
+                  <option value="">Seleccione entidad...</option>
+                </select>
+                <span id="error-document-entity" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="series">Serie</label>
+                <input type="text" id="series">
+              </div>
+              <div class="field">
+                <label for="folio">Folio *</label>
+                <input type="number" id="folio">
+                <span id="error-folio" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="startDate">Fecha inicial</label>
+                <input type="date" id="startDate">
+                <span id="error-startDate" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="endDate">Fecha final</label>
+                <input type="date" id="endDate">
+                <span id="error-endDate" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="quantity">Cantidad</label>
+                <input type="number" id="quantity">
+                <span id="error-quantity" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="subtotal">Subtotal</label>
+                <input type="number" id="subtotal" step="any">
+                <span id="error-subtotal" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="discount">Descuento</label>
+                <input type="number" id="discount" step="any">
+                <span id="error-discount" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="taxAmount">Impuesto</label>
+                <input type="number" id="taxAmount" step="any">
+                <span id="error-taxAmount" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="totalAmount">Total</label>
+                <input type="number" id="totalAmount" step="any">
+                <span id="error-totalAmount" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="currency">Moneda</label>
+                <input type="text" id="currency">
+              </div>
+              <div class="field">
+                <label for="docPaymentTerms">Condiciones de pago</label>
+                <input type="text" id="docPaymentTerms">
+              </div>
+              <div class="field">
+                <label for="notes">Notas</label>
+                <input type="text" id="notes">
+              </div>
+              <div class="field">
+                <label for="status">Estado</label>
+                <input type="text" id="status">
+                <span id="error-status" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="document-targetDate">Fecha objetivo</label>
+                <input type="date" id="document-targetDate">
+                <span id="error-document-targetDate" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="document-actionType">Tipo de acción</label>
+                <select id="document-actionType">
+                  <option value="">Seleccione acción...</option>
+                  <option value="Inspección">Inspección</option>
+                  <option value="Reinspección">Reinspección</option>
+                  <option value="Calibración">Calibración</option>
+                  <option value="Auditoría">Auditoría</option>
+                  <option value="Capacitación">Capacitación</option>
+                </select>
+                <span id="error-document-actionType" class="error"></span>
+              </div>
+              <div class="field">
+                <label for="document-responsible">Responsable</label>
+                <input type="text" id="document-responsible">
+                <span id="error-document-responsible" class="error"></span>
+              </div>
+              <div class="field checkbox-field">
+                <label for="document-completed"><input type="checkbox" id="document-completed"> Marcar como realizada</label>
+              </div>
+              <div class="field">
+                <label for="document-type-select">Tipo de registro operativo</label>
+                <select id="document-type-select"><option value="">Seleccione...</option></select>
+              </div>
+              <div id="document-typed-fields"></div>
+              <div id="document-custom-fields" hidden>
+                <div id="document-custom-fields-container"></div>
+              </div>
+              <button type="submit" id="save-document"><span id="document-submit-button">Guardar Documento</span></button>
+            </form>
+          </div>
+
+          <div class="management-controls">
+            <h3 id="edit-document-heading">Editar o eliminar el documento</h3>
+            <select id="edit-document">
+              <option value="">Seleccione un documento...</option>
+            </select>
+            <button id="delete-document" type="button">Eliminar el documento seleccionado</button>
+          </div>
+
+          <div class="list-container">
+            <ul id="documents-list"></ul>
+          </div>
+        </section>
+
+        <!-- Search View -->
+        <section id="view-search" class="view" hidden>
+          <h1 id="search-view-heading">Buscar Entidades</h1>
+          <div class="search-container">
+            <input type="text" id="search-input" placeholder="Buscar..." aria-label="Término de búsqueda">
+          </div>
+          <div class="search-filters">
+            <label for="search-type-filter">Tipo</label>
+            <select id="search-type-filter"><option value="">Todos</option></select>
+            <label for="search-date-from">Desde</label>
+            <input type="date" id="search-date-from">
+            <label for="search-date-to">Hasta</label>
+            <input type="date" id="search-date-to">
+            <button type="button" id="search-export-csv" class="btn-secondary">Exportar CSV</button>
+            <button type="button" id="search-back-dashboard" class="btn-secondary">Volver al Panel</button>
+          </div>
+          <div id="search-empty" class="empty-state" hidden>No se encontraron coincidencias.</div>
+          <ul id="search-results-list"></ul>
+        </section>
+
+        <!-- Users View -->
+        <section id="view-users" class="view" hidden>
+          <h1 id="users-view-heading">Usuarios y roles</h1>
+          <div class="form-container">
+            <p class="hint">Seleccione el rol asignado a cada usuario y guarde los cambios.</p>
+            <ul id="role-admin-list"></ul>
+            <button type="button" id="save-roles">Guardar asignaciones</button>
+          </div>
+          <div class="form-container">
+            <h2>Catálogo de permisos</h2>
+            <ul id="permission-catalog"></ul>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>
