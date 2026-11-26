@@ -6,7 +6,7 @@ import { MASTER_TYPES, MASTER_LABELS, loadMasters, addMaster, updateMaster, dele
 import { DOCUMENT_TYPES } from './document-types.js';
 import { can, PERMISSIONS, requiredPermission, loadUsers, assignRole, getActiveUser, setActiveUser, ensureDefaultUsers } from './permissions.js';
 import { renderLogoMarkup, setActiveModule } from './components/shell.js';
-import { masterTypeOptions, documentTypeOptions } from './components/dashboard.js';
+import { masterTypeOptions, documentTypeOptions, dashboardCounts, statDefinitions, quickActionDefinitions } from './components/dashboard.js';
 import { renderQualityEntityForm, readQualityEntityForm, showQualityEntityErrors, clearQualityEntityErrors } from './components/quality-entity-form.js';
 import { renderQualityEntityList } from './components/quality-entity-list.js';
 import { renderSearchResults, matchesDateRange, toCsv } from './components/search-bar.js';
@@ -117,15 +117,16 @@ function applyRelabeling() {
     document.documentElement.style.setProperty('--accent', config.theme.accentColor);
   }
 
-  const kpiLabels = document.querySelectorAll('.kpi-grid .stat-label');
-  const kpiTexts = [
-    config.labels?.lots || 'Total de Lotes activos',
-    config.labels?.products || 'Total de Productos registrados',
-    config.labels?.inspections || 'Inspecciones de Calidad realizadas',
-    config.labels?.ncrs || 'NCR y Acciones CAPA abiertas'
-  ];
-  kpiLabels.forEach((element, index) => {
-    if (kpiTexts[index]) element.textContent = kpiTexts[index];
+  const kpiDefinitions = statDefinitions(config.labels || {});
+  const kpiLabelIds = ['stat-lots-active-label', 'stat-products-total-label', 'stat-inspections-total-label', 'stat-ncr-capa-open-label'];
+  kpiDefinitions.forEach((definition, index) => {
+    const element = qs(kpiLabelIds[index]);
+    if (element) element.textContent = definition.label;
+  });
+
+  quickActionDefinitions(config.labels || {}).forEach(([id, label]) => {
+    const element = qs(`${id}-label`);
+    if (element) element.textContent = label;
   });
 
   if (qs('users-view-heading')) qs('users-view-heading').textContent = config.labels?.users || 'Usuarios y roles';
@@ -155,7 +156,8 @@ function refreshRoleViews() {
     'action-new-entity':'create-master-data', 'action-new-document':'create-operational',
     'action-new-inspection':'register-inspections', 'action-new-ncr':'report-ncr',
     'action-new-capa':'create-operational', 'delete-entity':'delete-master-data',
-    'delete-document':'delete-operational'
+    'delete-document':'delete-operational',
+    'action-manage-catalogs':'read', 'action-global-search':'read'
   };
   for (const [id, permission] of Object.entries(visibility)) {
     if (qs(id)) qs(id).hidden = !can(active, permission);
@@ -285,20 +287,6 @@ function isActiveMaster(entity, type) {
   return true;
 }
 
-function classifyOperationalDoc(doc) {
-  const text = normalizeText(doc.tipoDoc, doc.documentType, doc.type, doc.tipo, doc.docType, doc.category, doc.status, doc.estado, doc.notes, doc.series);
-  if (text.includes('ncr') || text.includes('no conform')) return 'ncr';
-  if (text.includes('capa')) return 'capa';
-  if (text.includes('inspe')) return 'inspection';
-  return null;
-}
-
-function isOpenOperational(doc) {
-  const status = normalizeText(doc.status, doc.estado);
-  if (!status) return true;
-  return !/(cerrad|closed|complet|done|resuelt|cancel)/.test(status);
-}
-
 function safeCount(n) {
   const num = Number(n);
   return Number.isFinite(num) && num >= 0 ? num : 0;
@@ -332,24 +320,18 @@ function updateDashboardStats() {
     }
   });
 
-  const opCounts = { inspections: 0, ncrOpen: 0, capaOpen: 0 };
-  docs.forEach(d => {
-    const kind = classifyOperationalDoc(d);
-    if (kind === 'inspection') opCounts.inspections += 1;
-    if (kind === 'ncr' && isOpenOperational(d)) opCounts.ncrOpen += 1;
-    if (kind === 'capa' && isOpenOperational(d)) opCounts.capaOpen += 1;
-  });
+  const masterRows = MASTER_TYPES.flatMap(type => loadMasters(type).map(row => ({ ...row, masterType: type })));
+  const kpis = dashboardCounts(masterRows, docs);
 
   if (qs('stat-areas')) qs('stat-areas').textContent = String(safeCount(counts.areas));
   if (qs('stat-employees')) qs('stat-employees').textContent = String(safeCount(counts.employees));
   if (qs('stat-products')) qs('stat-products').textContent = String(safeCount(counts.products));
   if (qs('stat-lots')) qs('stat-lots').textContent = String(safeCount(counts.lots));
 
-  // New HU3 KPIs
-  if (qs('stat-lots-active')) qs('stat-lots-active').textContent = String(safeCount(counts.activeLots));
-  if (qs('stat-products-total')) qs('stat-products-total').textContent = String(safeCount(counts.products));
-  if (qs('stat-inspections-total')) qs('stat-inspections-total').textContent = String(safeCount(opCounts.inspections));
-  if (qs('stat-ncr-capa-open')) qs('stat-ncr-capa-open').textContent = String(safeCount(opCounts.ncrOpen + opCounts.capaOpen));
+  if (qs('stat-lots-active')) qs('stat-lots-active').textContent = String(safeCount(kpis.activeLots));
+  if (qs('stat-products-total')) qs('stat-products-total').textContent = String(safeCount(kpis.products));
+  if (qs('stat-inspections-total')) qs('stat-inspections-total').textContent = String(safeCount(kpis.inspections));
+  if (qs('stat-ncr-capa-open')) qs('stat-ncr-capa-open').textContent = String(safeCount(kpis.openFindings));
 
   const empty = qs('dashboard-empty-state');
   if (empty) empty.hidden = !(entities.length === 0 && docs.length === 0 && MASTER_TYPES.every(type => loadMasters(type).length === 0));
@@ -803,8 +785,8 @@ export async function initApp(configResult) {
     btn && (btn.onclick = () => { const permission = type === 'Inspección' ? 'register-inspections' : type === 'NCR' ? 'report-ncr' : 'create-operational'; if (can(getActiveUser(), permission)) openOperationalForm(type); });
   });
 
-  if (qs('action-manage-catalogs')) qs('action-manage-catalogs').onclick = () => showView('entities');
-  if (qs('action-global-search')) qs('action-global-search').onclick = () => { showView('search'); qs('search-input')?.focus(); };
+  if (qs('action-manage-catalogs')) qs('action-manage-catalogs').onclick = () => { if (can(getActiveUser(), 'read')) showView('entities'); };
+  if (qs('action-global-search')) qs('action-global-search').onclick = () => { if (!can(getActiveUser(), 'read')) return; showView('search'); qs('search-input')?.focus(); };
 
   // Compatibility actions for existing tests
   if (qs('action-new-entity')) qs('action-new-entity').onclick = () => { showView('entities'); resetEntityForm(); qs('name')?.focus(); };

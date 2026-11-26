@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { JSDOM } from 'jsdom';
 import { normalizeConfig } from '../../src/module-config.js';
 import { addEntity, addDocument, loadEntities } from '../../src/storage.js';
+import { addMaster } from '../../src/master-data.js';
+import { seedDemo } from '../../src/demo-data.js';
 
 const html = fs.readFileSync(fileURLToPath(new URL('../../index.html', import.meta.url)), 'utf8');
 
@@ -115,5 +117,142 @@ describe('User Story 3 - home dashboard with quick actions and record stats', ()
     qs('action-find').click();
     expect(qs('view-search').hidden).toBe(false);
     expect(document.activeElement).toBe(qs('search-input'));
+  });
+});
+
+describe('HU3 - KPIs del panel con reglas definidas', () => {
+  it('muestra 0 en las cuatro tarjetas cuando no hay registros', async () => {
+    await bootWith(undefined);
+    expect(qs('stat-lots-active').textContent).toBe('0');
+    expect(qs('stat-products-total').textContent).toBe('0');
+    expect(qs('stat-inspections-total').textContent).toBe('0');
+    expect(qs('stat-ncr-capa-open').textContent).toBe('0');
+    expect(qs('dashboard-empty-state').hidden).toBe(false);
+  });
+
+  it('muestra los recuentos reales tras cargar los datos de ejemplo', async () => {
+    await bootWith(undefined);
+    seedDemo();
+    qs('nav-dashboard').click();
+    expect(qs('stat-lots-active').textContent).toBe('4');
+    expect(qs('stat-products-total').textContent).toBe('4');
+    expect(qs('stat-inspections-total').textContent).toBe('4');
+    expect(qs('stat-ncr-capa-open').textContent).toBe('3');
+  });
+
+  it('recalcula los KPIs al volver al panel tras crear un maestro', async () => {
+    await bootWith(undefined);
+    qs('nav-entities').click();
+    addMaster('product', { codigo: 'EXTRA-1', descripcion: 'Producto extra', tipo: 'PRODUCTO', unidad_medida: 'unidad' });
+    qs('nav-dashboard').click();
+    expect(qs('stat-products-total').textContent).toBe('1');
+    expect(qs('stat-lots-active').textContent).toBe('0');
+  });
+
+  it('aplica las etiquetas configuradas a las tarjetas KPI', async () => {
+    await bootWith({ labels: { lots: 'Lotes QA', products: 'Catálogo', inspections: 'Chequeos', ncrs: 'Hallazgos abiertos' } });
+    expect(qs('stat-lots-active-label').textContent).toBe('Lotes QA');
+    expect(qs('stat-products-total-label').textContent).toBe('Catálogo');
+    expect(qs('stat-inspections-total-label').textContent).toBe('Chequeos');
+    expect(qs('stat-ncr-capa-open-label').textContent).toBe('Hallazgos abiertos');
+  });
+});
+
+describe('HU3 - acciones rápidas del panel', () => {
+  const masterActions = [
+    ['action-new-lot', 'lot', 'quality-master-id'],
+    ['action-new-product', 'product', 'quality-master-id'],
+    ['action-new-area', 'area', 'quality-master-id'],
+    ['action-new-employee', 'employee', 'quality-master-id']
+  ];
+  const operationalActions = [
+    ['action-new-inspection', 'Inspección', 'document-id'],
+    ['action-new-ncr', 'NCR', 'document-id'],
+    ['action-new-capa', 'CAPA', 'document-id']
+  ];
+
+  it('abre siete acciones en dos grupos diferenciados', async () => {
+    await bootWith(undefined);
+    const groups = document.querySelectorAll('.quick-group');
+    expect(groups.length).toBe(2);
+    expect(groups[0].querySelectorAll('button').length).toBe(4);
+    expect(groups[1].querySelectorAll('button').length).toBe(3);
+    for (const [id] of [...masterActions, ...operationalActions]) {
+      expect(qs(id)).not.toBeNull();
+    }
+  });
+
+  it('abre formularios limpios desde cada acción rápida', async () => {
+    await bootWith(undefined);
+    for (const [id, , formId] of [...masterActions, ...operationalActions]) {
+      qs('nav-dashboard').click();
+      qs(id).click();
+      expect(qs('view-dashboard').hidden).toBe(true);
+      expect(qs(formId).value).toBe('');
+    }
+  });
+
+  it('oculta los botones de creación según el perfil activo', async () => {
+    await bootWith(undefined);
+    const switcher = qs('active-user');
+    switcher.value = 'user-auditor';
+    switcher.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    for (const [id] of [...masterActions, ...operationalActions]) {
+      expect(qs(id).hidden).toBe(true);
+    }
+    switcher.value = 'user-inspector';
+    switcher.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    expect(qs('action-new-lot').hidden).toBe(false);
+    expect(qs('action-new-inspection').hidden).toBe(false);
+    expect(qs('action-new-ncr').hidden).toBe(false);
+    expect(qs('action-new-capa').hidden).toBe(true);
+  });
+
+  it('aplica etiquetas configuradas a los botones de acción rápida', async () => {
+    await bootWith({ labels: { lot: 'Lote QA', product: 'Ítem', area: 'Zona', employee: 'Persona', inspection: 'Chequeo', ncr: 'Desviación', capa: 'Mejora' } });
+    expect(qs('action-new-lot-label').textContent).toBe('Nuevo Lote QA');
+    expect(qs('action-new-product-label').textContent).toBe('Nuevo Ítem');
+    expect(qs('action-new-area-label').textContent).toBe('Nueva Zona');
+    expect(qs('action-new-employee-label').textContent).toBe('Nuevo Persona');
+    expect(qs('action-new-inspection-label').textContent).toBe('Nueva Chequeo');
+    expect(qs('action-new-ncr-label').textContent).toBe('Nueva Desviación');
+    expect(qs('action-new-capa-label').textContent).toBe('Nueva Mejora');
+  });
+});
+
+describe('HU3 - accesos a catálogos y búsqueda global', () => {
+  it('navega a gestión de catálogos y vuelve al panel', async () => {
+    await bootWith(undefined);
+    qs('action-manage-catalogs').click();
+    expect(qs('view-dashboard').hidden).toBe(true);
+    expect(qs('view-entities').hidden).toBe(false);
+    qs('nav-dashboard').click();
+    expect(qs('view-dashboard').hidden).toBe(false);
+    expect(qs('view-entities').hidden).toBe(true);
+  });
+
+  it('abre la búsqueda global con foco automático', async () => {
+    await bootWith(undefined);
+    qs('action-global-search').click();
+    expect(qs('view-search').hidden).toBe(false);
+    expect(document.activeElement.id).toBe('search-input');
+  });
+
+  it('actualiza los KPIs al regresar al panel', async () => {
+    await bootWith(undefined);
+    qs('action-global-search').click();
+    const product = addMaster('product', { codigo: 'P-NAV-01', descripcion: 'Producto navegación', tipo: 'PRODUCTO', unidad_medida: 'UN', activo: true }, 'user-manager');
+    addMaster('lot', { numero_lote: 'L-NAV-01', producto_id: product.producto_id, fecha_fabricacion: '2026-01-01', activo: true }, 'user-manager');
+    qs('nav-dashboard').click();
+    expect(qs('stat-lots-active').textContent).toBe('1');
+  });
+
+  it('mantiene ambos accesos visibles para el perfil Auditor', async () => {
+    await bootWith(undefined);
+    const switcher = qs('active-user');
+    switcher.value = 'user-auditor';
+    switcher.dispatchEvent(new dom.window.Event('change', { bubbles: true }));
+    expect(qs('action-manage-catalogs').hidden).toBe(false);
+    expect(qs('action-global-search').hidden).toBe(false);
   });
 });

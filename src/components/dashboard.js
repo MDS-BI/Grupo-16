@@ -36,16 +36,17 @@ export function emptyState(message) {
 
 export function dashboardCounts(entities, documents) {
   const counts = { areas: 0, employees: 0, products: 0, lots: 0, activeLots: 0, inspections: 0, openFindings: 0 };
+  const masterKeys = ['masterType', 'tipoItem', 'name', 'code', 'nombre', 'descripcion'];
   const byText = (record, keys, terms) => keys.some(key => terms.some(term => String(record[key] || '').toLowerCase().includes(term)));
 
   for (const entity of entities) {
-    if (byText(entity, ['masterType', 'tipoItem', 'name', 'code'], ['area', 'área'])) counts.areas += 1;
-    if (byText(entity, ['masterType', 'tipoItem', 'name', 'code'], ['emple'])) counts.employees += 1;
-    if (byText(entity, ['masterType', 'tipoItem', 'name', 'code'], ['product'])) counts.products += 1;
-    if (byText(entity, ['masterType', 'tipoItem', 'name', 'code'], ['lote', 'lot'])) {
+    if (byText(entity, masterKeys, ['area', 'área'])) counts.areas += 1;
+    if (byText(entity, masterKeys, ['emple'])) counts.employees += 1;
+    if (byText(entity, masterKeys, ['product'])) counts.products += 1;
+    if (byText(entity, masterKeys, ['lote', 'lot'])) {
       counts.lots += 1;
-      const active = !/(inactivo|inactive|cerrado)/.test(String(entity.activo === false ? 'inactivo' : entity.estado || entity.status || '').toLowerCase());
-      if (active) counts.activeLots += 1;
+      const state = String(entity.activo === false ? 'inactivo' : entity.estado || entity.status || '').toLowerCase();
+      if (!/(inactivo|inactive|cerrado)/.test(state)) counts.activeLots += 1;
     }
   }
 
@@ -54,7 +55,7 @@ export function dashboardCounts(entities, documents) {
       ? 'inspection'
       : (byText(doc, ['tipoDoc', 'type', 'docType', 'status'], ['ncr', 'capa', 'no conform']) ? 'finding' : null);
     if (kind === 'inspection') counts.inspections += 1;
-    if (kind === 'finding' && !/(cerrad|closed|resuelt)/.test(String(doc.status || '').toLowerCase())) counts.openFindings += 1;
+    if (kind === 'finding' && !/(cerrad|rechazad|resuelt|closed|resolved|complet|done|cancel)/.test(String(doc.status || doc.estado || '').toLowerCase())) counts.openFindings += 1;
   }
   return counts;
 }
