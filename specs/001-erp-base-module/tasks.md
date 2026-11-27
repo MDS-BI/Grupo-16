@@ -423,3 +423,328 @@
 - [ ] T130 [US15] Ejecutar regresión de creación, edición, búsqueda y navegación.
 
 Las tareas se mantienen abiertas hasta validar los escenarios de aceptación.
+
+---
+
+## Revisión del 26/11/2026 — tareas nuevas desde T131
+
+Estas tareas son adicionales a T001-T130. El comando /speckit.tasks se ejecutó en OpenCode; luego se ajustaron sus rutas al contrato implementado de docs/api-local.md, conservando los identificadores. HU9 y HU12 se atienden únicamente dentro de US7 (T186-T190) como consolidación histórica; no se generan tareas [US9] ni [US12] ni se duplican sus reglas. Solo se marcan tras verificación local; T221 requiere revisión humana del equipo.
+
+---
+
+## Fase 20 (US14): Servidor, sesiones y persistencia autorizada (Prioridad: P1)
+
+**Objetivo**: Sustituir la autoridad de localStorage por un servidor Node 24 con SQLite, sesiones verificadas, CSRF, auditoría y una API que derive el actor de la sesión para cada lectura o mutación.
+
+**Prueba independiente**: Una llamada directa sin sesión responde 401, una llamada con Auditor intentando mutar responde 403 sin cambios, y un Administrador autenticado crea una cuenta y vuelve a ver los datos tras recargar la página.
+
+**Depende de**: T001-T130 conservados; es la base técnica de las fases T150-T223.
+
+### Pruebas de la revisión para US14
+
+- [x] T131 [P] [US14] Probar scrypt, sal individual, contraseña incorrecta y longitudes en tests/unit/server-auth.test.js.
+- [x] T132 [P] [US14] Probar API sin sesión (401), Auditor (403) y operaciones permitidas en tests/server/service.test.js.
+- [x] T144 [P] [US14] Probar CSRF, origen, expiración, revocación, límite de intentos e instalación concurrente en tests/server/service.test.js.
+- [x] T147 [P] [US14] Comprobar que sesión y estado no exponen hashes ni código local en tests/server/service.test.js.
+
+### Implementación de la revisión para US14
+
+- [x] T133 [US14] Servir API y aplicación en loopback con server/start.js; bloquear archivos privados y servir dist en producción.
+- [x] T134 [US14] Crear esquema SQLite users, sessions, app_data y audit en server/database.js; ignorar .local-data mediante .gitignore.
+- [x] T135 [US14] Reutilizar storage.js, master-data.js y document-types.js mediante src/persistence.js y el contexto SQLite de server/service.js.
+- [x] T136 [US14] Derivar contraseñas con sal individual y comparar mediante server/auth.js.
+- [x] T137 [US14] Implementar cookies HttpOnly/SameSite, expiración absoluta e inactividad, cierre y revocación en server/service.js.
+- [x] T138 [US14] Comprobar Origin y CSRF y limitar intentos de acceso en server/service.js.
+- [x] T139 [US14] Obtener actor y rol de la sesión persistida y verificar permiso por operación en server/service.js.
+- [x] T140 [US14] Implementar /api/setup, /api/login, /api/logout y /api/session en server/service.js; proteger la instalación inicial con código local.
+- [x] T141 [US14] Proveer GET /api/state y POST /api/actions en server/service.js para consultas y mutaciones enumeradas; evitar reemplazos arbitrarios de la base.
+- [x] T142 [P] [US14] Guardar auditoría con actor, fecha, acción y destino en server/service.js y server/database.js.
+- [x] T143 [US14] Restringir /api/users a Administrador y proteger al último Administrador en server/service.js.
+- [x] T145 [US14] Retirar el selector público de identidades del flujo real en src/main.js y src/app.js; usar metadatos del servidor y copia en memoria de src/remote-session.js.
+- [x] T146 [US14] Esperar respuestas autorizadas de /api/actions antes de refrescar src/app.js, sin usar localStorage como autorización.
+- [x] T148 [US14] Añadir start, setup:local, test:api y requisito de Node 24 en package.json.
+- [x] T149 [US14] Verificar integración completa con pruebas, lint y build.
+
+**Punto de control**: La autorización real reside en el servidor: sin sesión hay 401, sin permiso hay 403, las mutaciones se registran con actor y fecha, y la interfaz ya no elige identidad ni lee contraseñas de localStorage.
+
+---
+
+## Fase 21 (US3): Indicadores y gráficos del control de calidad (Prioridad: P1)
+
+**Objetivo**: Mostrar totales reales de SQLite, barras por resultado y un Sankey Producto → Resultado → Disposición con flujos conservados, etiquetas y tabla equivalente.
+
+**Prueba independiente**: Con datos simulados identificados, las tarjetas coinciden con la base, los extremos de entrada y salida del Sankey son iguales, y sin registros aparece un estado vacío sin porcentajes inventados.
+
+**Depende de**: T133-T149, especialmente T135, T139 y T141.
+
+### Pruebas de la revisión para US3
+
+- [x] T150 [P] [US3] Probar totales guardados y exclusión de registros que no son inspecciones en tests/unit/quality-charts.test.js y tests/unit/dashboard.test.js.
+- [x] T151 [P] [US3] Probar conservación por etapa y por nodo, dirección y anchos del Sankey en tests/unit/quality-charts.test.js.
+- [x] T158 [P] [US3] Verificar ausencia de flujos y porcentajes inventados sin datos en tests/unit/quality-charts.test.js.
+
+### Implementación de la revisión para US3
+
+- [x] T152 [US3] Obtener registros autorizados mediante snapshot de server/service.js y agregar sus conteos en src/components/quality-charts.js y dashboard.js.
+- [x] T153 [US3] Mantener dashboardCounts y derivar indicadores del estado autorizado en src/app.js; identificar explícitamente la simulación.
+- [x] T154 [US3] Crear barras con título, conteos y tabla equivalente en src/components/quality-charts.js.
+- [x] T155 [US3] Dibujar Sankey de tres columnas con una escala común y offsets de entrada/salida independientes en src/components/quality-charts.js.
+- [x] T156 [US3] Añadir etiquetas, cantidades, leyenda de etapas y tabla equivalente en src/components/quality-charts.js.
+- [x] T157 [US3] Actualizar panel y gráficos al hidratar el estado autorizado en src/app.js.
+
+**Punto de control**: El panel es comprobable sin revisar registro por registro: conteos, barras y Sankey coinciden con SQLite y la alternativa tabular permite consultarlos sin depender del color.
+
+---
+
+## Fase 22 (US4): Gestión por lote en el espacio de trabajo (Prioridad: P1)
+
+**Objetivo**: Mantener la navegación entre Datos maestros y Registros de calidad, mostrar siempre el lote seleccionado y filtrar inspecciones y órdenes por su identificador.
+
+**Prueba independiente**: Al elegir un lote por número y producto, las inspecciones y órdenes mostradas pertenecen solo a ese lote; cambiar de sección conserva lo guardado y avisa si hay cambios sin guardar.
+
+**Depende de**: T141, T145-T146 y T157.
+
+### Pruebas de la revisión para US4
+
+- [x] T159 [P] [US4] Probar filtrado por lote, conservación del contexto y aviso por cambios sin guardar en tests/integration/remote-workspace.test.js.
+
+### Implementación de la revisión para US4
+
+- [x] T160 [US4] Añadir selector con número de lote y producto en index.html y src/app.js.
+- [x] T161 [US4] Filtrar registros y órdenes por el identificador del contexto en src/app.js sobre el estado autorizado, sin duplicar rutas de consulta.
+- [x] T162 [US4] Conservar navegación y lote seleccionado en src/app.js y src/components/shell.js.
+- [x] T163 [US4] Avisar antes de cambiar de sección o contexto con un formulario modificado en src/app.js.
+- [x] T164 [US4] Verificar permisos de mutación en tests/server/service.test.js y contexto de consulta en tests/integration/remote-workspace.test.js.
+
+**Punto de control**: El contexto de lote es visible, no mezcla lotes y todas sus operaciones pasan por la sesión del servidor.
+
+---
+
+## Fase 23 (US5): Configuración del módulo controlada por el servidor (Prioridad: P1)
+
+**Objetivo**: Administrar nombre del módulo, catálogos y perfiles desde una configuración validada, sin duplicar tolerancias, fechas ni estados de HU7.
+
+**Prueba independiente**: Solo un Administrador autenticado modifica /api/config; un valor inválido se rechaza con explicación y conserva la última configuración válida; un Inspector no puede cambiarla ni por llamada directa.
+
+**Depende de**: T139-T149.
+
+### Pruebas de la revisión para US5
+
+- [x] T165 [P] [US5] Verificar configuración inválida y conservación de la última válida en tests/server/service.test.js.
+- [x] T170 [P] [US5] Probar rechazo de cambios de configuración del Inspector en tests/server/service.test.js.
+
+### Implementación de la revisión para US5
+
+- [x] T166 [US5] Restringir PUT /api/config a Administrador en server/service.js; mantener GET autenticado.
+- [x] T167 [US5] Persistir configuración y cuentas en server/database.js, reutilizando catálogos tipados; mantener parámetros y fechas en HU7.
+- [x] T168 [US5] Validar nombre, etiquetas y tema antes de guardar configuración en server/service.js.
+- [x] T169 [US5] Cargar configuración autorizada en /api/session e instalarla desde src/main.js.
+
+**Punto de control**: La configuración general pertenece al Administrador y no contradice ni reemplaza las reglas de medición y estado definidas en US7.
+
+---
+
+## Fase 24 (US6): Registro guiado de inspecciones (Prioridad: P1)
+
+**Objetivo**: Guiar al inspector con etiquetas de calidad, ayuda breve con unidades, selección de registros existentes y avisos junto al campo, sin conceptos financieros ni adornos.
+
+**Prueba independiente**: El inspector elige producto y lote, ve los campos obligatorios antes de guardar, corrige un error sin perder lo escrito y recibe folio, lote y resultado al guardar.
+
+**Depende de**: T146, T160-T163 y T166-T169. La evaluación de mediciones se conecta en T184, dentro de US7, sin duplicar su lógica aquí.
+
+### Pruebas de la revisión para US6
+
+- [x] T171 [P] [US6] Probar formulario conectado, referencias existentes y ayuda de medición en tests/integration/remote-workspace.test.js.
+- [x] T177 [P] [US6] Verificar campos financieros ocultos y ausencia de adornos en tests/integration/remote-workspace.test.js y revisión visual local.
+
+### Implementación de la revisión para US6
+
+- [x] T172 [US6] Ordenar producto y lote al inicio de los campos de inspección en src/components/remote-document-fields.js y src/app.js.
+- [x] T173 [US6] Ocultar campos de compatibilidad financiera y duplicados en el flujo remoto de src/app.js; conservar módulos históricos.
+- [x] T174 [US6] Ofrecer selects de maestros existentes con etiquetas y lotes filtrados por producto en src/components/remote-document-fields.js y src/app.js.
+- [x] T175 [US6] Conservar valores y mostrar errores por campo en src/app.js y src/components/remote-document-fields.js.
+- [x] T176 [US6] Confirmar folio, lote legible y resultado al guardar en src/app.js.
+
+**Punto de control**: El flujo visible habla solo de calidad, permite elegir maestros por datos conocidos y no pierde información cuando la validación falla.
+
+---
+
+## Fase 25 (US7): Parámetros, mediciones, planificación y transiciones (Prioridad: P1)
+
+**Objetivo**: Definir parámetros por producto con unidad, límites, versión y estado; evaluar lecturas contra la versión vigente; consolidar fechas objetivo y transiciones de NCR/CAPA sin duplicar HU9 ni HU12.
+
+**Prueba independiente**: Una lectura en los extremos se acepta; una fuera de rango se guarda como RECHAZADO con alerta específica; una lectura ausente o inválida impide guardar; cambiar el parámetro después no altera la inspección anterior; una transición inválida no modifica el registro.
+
+**Depende de**: T135, T139, T174-T176 y T166-T169.
+
+### Pruebas de la revisión para US7
+
+- [x] T178 [P] [US7] Probar límites inválidos y extremos en tests/unit/quality-parameters.test.js.
+- [x] T179 [P] [US7] Probar lecturas inválidas, faltantes y extremos inclusivos en tests/unit/quality-parameters.test.js y tests/server/service.test.js.
+- [x] T180 [P] [US7] Probar alerta y conservación de evidencia en tests/server/service.test.js y tests/integration/remote-workspace.test.js.
+- [x] T190 [P] [US7] Comprobar que las transiciones inválidas no cambian la base en tests/server/service.test.js.
+- [x] T191 [P] [US7] Comprobar que cambiar un parámetro no reescribe la evidencia histórica en tests/server/service.test.js.
+
+### Implementación de la revisión para US7
+
+- [x] T181 [US7] Guardar y versionar parámetros mediante saveParameter en server/service.js, validando con src/quality-parameters.js.
+- [x] T182 [US7] Evaluar todas las lecturas activas y calcular el resultado en server/service.js con src/quality-parameters.js; ignorar resultados forzados por el cliente.
+- [x] T183 [US7] Guardar copia de límites, unidad, versión y lectura con cada inspección en server/service.js y SQLite.
+- [x] T184 [US7] Mostrar parámetros activos, intervalo y versión en src/components/remote-document-fields.js.
+- [x] T185 [US7] Mantener alerta específica de rechazo tras guardar en src/app.js y src/styles.css.
+- [x] T186 [US7] Reutilizar planificación e historial de src/storage.js dentro de server/service.js; sincronizar fecha y responsable de CAPA sin duplicar HU9.
+- [x] T187 [US7] Mostrar fecha, vencimiento, cumplimiento e historial desde el estado autorizado en src/app.js y src/components/remote-views.js.
+- [x] T188 [US7] Reutilizar catálogo único de transiciones de src/document-types.js y validar tanto status como estado en server/service.js.
+- [x] T189 [US7] Ofrecer solo transiciones válidas en src/components/remote-document-fields.js y mantener estado sincronizado en el servidor.
+
+**Punto de control**: HU7 es la única definición de parámetros, evidencia de lecturas, fechas objetivo y estados; las referencias históricas a HU9 y HU12 no generan tareas nuevas ni reglas contradictorias.
+
+---
+
+## Fase 26 (US10): Registros propios de inspección, NCR y CAPA (Prioridad: P1)
+
+**Objetivo**: Guardar evidencia concreta de cada inspección, hallazgo y acción correctiva, con relaciones verificables, permisos del servidor y trazabilidad de autor y fecha.
+
+**Prueba independiente**: El Inspector crea inspecciones y NCR; solo Gestor o Administrador edita y gestiona CAPA; el Auditor solo consulta; una referencia inválida o una acción sin permiso deja la base sin cambios.
+
+**Depende de**: T139-T149, T182-T183 y T188-T190.
+
+### Pruebas de la revisión para US10
+
+- [x] T192 [P] [US10] Conservar pruebas de campos propios en tests/unit/document-types.test.js y relaciones en tests/server/service.test.js.
+- [x] T193 [P] [US10] Verificar permisos por registro en tests/server/service.test.js.
+- [x] T200 [P] [US10] Rechazar referencias inválidas y borrado de documentos de origen en tests/server/service.test.js.
+
+### Implementación de la revisión para US10
+
+- [x] T194 [US10] Guardar Inspección mediante acciones tipadas en server/service.js y mostrar detalle con evidencia en src/components/remote-views.js.
+- [x] T195 [US10] Guardar NCR con inspección de origen y relaciones verificadas en server/service.js.
+- [x] T196 [US10] Guardar CAPA con NCR, causa, acción propuesta, responsable, fecha, evidencia y estado en server/service.js.
+- [x] T197 [US10] Verificar permiso del servidor, preservar referencias y confirmar borrados desde src/app.js.
+- [x] T198 [US10] Registrar autor y fecha de mutaciones en server/service.js; mantener historial de planificación de src/storage.js.
+- [x] T199 [US10] Conectar formularios y detalles tipados en src/app.js, remote-document-fields.js y remote-views.js.
+
+**Punto de control**: Cada registro tiene datos propios, un vínculo verificable al origen y auditoría; la interfaz no puede eludir los permisos del servidor.
+
+---
+
+## Fase 27 (US11): Consulta de todas las órdenes y trazabilidad (Prioridad: P1)
+
+**Objetivo**: Abrir la consulta con todas las órdenes, combinar filtros, consultar inspecciones y NCR/CAPA vinculadas y exportar CSV sin fórmulas activas.
+
+**Prueba independiente**: La vista abre con el total completo; al combinar texto parcial, producto, lote, estado y rango de fechas muestra solo coincidencias; limpiar filtros restaura la lista; el Auditor no puede mutar.
+
+**Depende de**: T135, T139, T199 y T203 para la trazabilidad.
+
+### Pruebas de la revisión para US11
+
+- [x] T201 [P] [US11] Probar todas las órdenes y filtros combinables en tests/unit/quality-parameters.test.js y tests/integration/remote-workspace.test.js.
+- [x] T202 [P] [US11] Probar CSV y neutralización de fórmulas en tests/unit/quality-parameters.test.js.
+- [x] T207 [P] [US11] Comprobar consulta y ausencia de escritura del Auditor en tests/server/service.test.js y tests/integration/remote-workspace.test.js.
+- [x] T209 [P] [US11] Probar restauración del total al limpiar filtros en tests/integration/remote-workspace.test.js.
+
+### Implementación de la revisión para US11
+
+- [x] T203 [US11] Incluir todas las órdenes en el estado autorizado de server/service.js y abrir la lista completa en src/app.js.
+- [x] T204 [US11] Combinar texto, producto, lote, estado y fechas con filterOrders en src/quality-parameters.js y src/app.js.
+- [x] T205 [US11] Cargar 24 órdenes y casos relacionados de forma aditiva/idempotente con simulate en server/service.js y seedDemo de src/demo-data.js.
+- [x] T206 [US11] Mostrar inspecciones y cadena NCR/CAPA de cada orden en src/components/remote-views.js.
+- [x] T208 [US11] Exportar CSV de las órdenes filtradas desde src/app.js y src/quality-parameters.js.
+
+**Punto de control**: La consulta no exige conocer un número de orden, conserva la trazabilidad y mantiene la exportación segura bajo los filtros activos.
+
+---
+
+## Fase 28 (US13): Interfaz sobria y consistente (Prioridad: P1)
+
+**Objetivo**: Conservar el marco de navegación con texto claro y paleta sobria, retirar adornos, mantener gráficos de datos con alternativa tabular y asegurar teclado y pantallas pequeñas.
+
+**Prueba independiente**: En todas las pantallas no hay emojis ni ilustraciones generadas; los gráficos tienen título, unidades y tabla equivalente; la navegación funciona con teclado y la barra lateral sigue operable en ventanas estrechas.
+
+**Depende de**: T153-T157, T145, T197 y T206.
+
+### Pruebas de la revisión para US13
+
+- [x] T210 [P] [US13] Conservar pruebas de navegación en tests/integration/workspace-shell.test.js y verificar teclado y pantalla estrecha en el navegador.
+- [x] T215 [P] [US13] Conservar pruebas de confirmación y cancelación de borrados en tests/integration/edit-delete-entity.test.js y manage-document.test.js.
+- [x] T216 [P] [US13] Verificar gráficos de datos y escape de etiquetas en tests/unit/quality-charts.test.js.
+
+### Implementación de la revisión para US13
+
+- [x] T211 [US13] Retirar emojis y decoración generada de index.html, src/components/dashboard.js y src/components/shell.js.
+- [x] T212 [US13] Añadir títulos, unidades y tablas equivalentes a gráficos en src/components/quality-charts.js.
+- [x] T213 [US13] Mantener foco visible y aria-current, con etiquetas legibles en menú reducido en src/styles.css y src/components/shell.js.
+- [x] T214 [US13] Confirmar borrados y carga de ejemplos desde src/app.js.
+
+**Punto de control**: La interfaz se reconoce por su navegación y terminología, no por adornos; la información de los gráficos sigue disponible de forma accesible.
+
+---
+
+## Fase 29 (US15): Mensajes accionables y cierre de la revisión (Prioridad: P2)
+
+**Objetivo**: Explicar qué campo está mal, qué valor se espera y qué ocurrió, distinguir un dato mal escrito de una medición fuera de tolerancia y verificar toda la revisión en la copia local.
+
+**Prueba independiente**: Ante un error se muestra el campo y la corrección esperada en español; una medición válida fuera de rango genera alerta de rechazo con evidencia; una operación correcta muestra confirmación breve sin trazas ni códigos internos.
+
+**Depende de**: T175, T185, T218 y todas las fases anteriores.
+
+### Pruebas de la revisión para US15
+
+- [x] T217 [P] [US15] Probar error de lectura vacía y alerta con lectura/rango en tests/integration/remote-workspace.test.js.
+
+### Implementación y verificación de la revisión para US15
+
+- [x] T218 [US15] Mostrar avisos en español por campo en src/app.js y sus componentes, conservando lo escrito tras un error.
+- [x] T219 [US15] Distinguir dato inválido sin guardar de lectura fuera de tolerancia guardada como rechazo en src/quality-parameters.js y src/app.js.
+- [x] T220 [US15] Confirmar operaciones correctas sin trazas internas en src/app.js.
+- [ ] T221 [US15] El equipo debe validar la redacción asistida, mensajes y límites ficticios; registrar su revisión humana en docs/revision-ayudante-2026-11-26.md.
+- [x] T222 [US15] Ejecutar la suite completa, lint, build y revisión visual; registrar resultados en docs/revision-ayudante-2026-11-26.md.
+- [x] T223 [US15] Auditar tareas nuevas y conservar T001-T130 sin cambios; marcar solo lo demostrado y dejar pendiente la validación humana T221.
+
+**Punto de control**: La revisión queda cerrada solo con pruebas, lint y build ejecutados localmente; ninguna tarea nueva se marca por una referencia de diseño.
+
+---
+
+## Dependencias y ejecución en paralelo de la revisión
+
+### Orden de dependencias
+
+- Fase 20 (US14): sin dependencias nuevas; habilita todas las demás fases.
+- Fase 21 (US3): depende de T135, T139 y T141.
+- Fase 22 (US4): depende de T141 y T145-T146.
+- Fase 23 (US5): depende de T139-T149.
+- Fase 24 (US6): depende de T146, T160-T163 y T166-T169; su conexión de mediciones ocurre en T184.
+- Fase 25 (US7): depende de T135, T139, T174-T176 y T166-T169; absorbe HU9 y HU12 sin tareas duplicadas.
+- Fase 26 (US10): depende de T182-T183 y T188-T190.
+- Fase 27 (US11): depende de T139, T199 y T203-T204.
+- Fase 28 (US13): depende de T153-T157, T145, T197 y T206.
+- Fase 29 (US15): depende de T185, T218 y de la verificación final T222.
+
+### Oportunidades en paralelo
+
+- T131, T132, T144 y T147 pueden ejecutarse en paralelo entre sí.
+- T150, T151 y T158 pueden crearse antes de T152-T157.
+- T159, T165, T171, T178-T180, T192, T193, T201, T202, T207, T209 y T210 son pruebas independientes dentro de sus fases.
+- T142, T152, T161, T166, T181, T186, T188 y T203 pueden avanzar en paralelo después de T135-T139.
+- T154 y T155 pueden avanzar en paralelo tras T153; T156 depende de ambas.
+- T194, T195 y T196 pueden ejecutarse en paralelo tras T182 y T188; T197-T199 dependen de las tres.
+- T204, T205 y T208 pueden ejecutarse en paralelo tras T203.
+- T211, T212 y T213 pueden ejecutarse en paralelo tras T153-T157 y T210.
+- T218, T219 y T220 pueden avanzar en paralelo tras T185; T221-T223 son secuenciales.
+
+### Criterios independientes por historia
+
+- US3: totales reales, barras y Sankey con flujos conservados, leyenda y tabla equivalente; estado vacío sin porcentajes.
+- US4: selector de lote con número y producto, filtros por lote, aviso de cambios sin guardar y navegación conservada.
+- US5: configuración modificable solo por Administrador, valores inválidos rechazados y última configuración válida conservada.
+- US6: formulario guiado con etiquetas de calidad, maestros existentes, avisos junto al campo y folio/lote/resultado al guardar.
+- US7: parámetros validados, extremos aceptados, rechazo con alerta, evidencia de límites y versión, fechas y transiciones consolidadas.
+- US10: campos propios y relaciones de inspección, NCR y CAPA con permisos y auditoría del servidor.
+- US11: todas las órdenes, filtros combinables, trazabilidad, Auditor de solo lectura y CSV seguro.
+- US13: marco sobrio, gráficos accesibles con tabla, teclado, pantallas pequeñas y confirmaciones sensibles.
+- US14: 401 sin sesión, 403 sin permiso, CSRF/origen, expiración, revocación, último Administrador protegido y sin secretos en respuestas.
+- US15: mensajes accionables en español, distinción entre error de dato y rechazo por tolerancia, confirmaciones breves y revisión del equipo.
+
+### Alcance sugerido para un primer incremento
+
+El MVP de esta revisión es T131-T149 (US14), seguido de T178-T191 (US7) y T192-T200 (US10): sin servidor autorizado, parámetros y registros vinculados, las pantallas posteriores no tendrían evidencia verificable.

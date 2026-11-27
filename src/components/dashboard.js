@@ -1,5 +1,6 @@
 import { MASTER_TYPES, MASTER_LABELS } from '../master-data.js';
 import { DOCUMENT_TYPES } from '../document-types.js';
+import { escapeHtml } from './html.js';
 
 export function statDefinitions(labels) {
   return [
@@ -11,11 +12,12 @@ export function statDefinitions(labels) {
 }
 
 export function renderStatCard(id, label, value) {
-  return `<article class="stat-card"><span id="${id}" class="stat-value">${Number(value) || 0}</span><span class="stat-label">${label}</span></article>`;
+  return `<article class="stat-card"><span id="${escapeHtml(id)}" class="stat-value">${Number(value) || 0}</span><span class="stat-label">${escapeHtml(label)}</span></article>`;
 }
 
-export function renderQuickAction(id, label, icon) {
-  return `<button id="${id}" class="action-card" type="button"><span class="action-icon" aria-hidden="true">${icon}</span><span>${label}</span></button>`;
+export function renderQuickAction(id, label, icon = '') {
+  const knownIcon = Object.values(ACTION_ICONS).includes(icon) ? icon : '';
+  return `<button id="${escapeHtml(id)}" class="action-card" type="button">${knownIcon ? '<span class="action-icon" aria-hidden="true">' + knownIcon + '</span>' : ''}<span>${escapeHtml(label)}</span></button>`;
 }
 
 // Iconos SVG uniformes del sistema (trazo heredado, sin emojis).
@@ -44,7 +46,7 @@ export function quickActionDefinitions(labels) {
 }
 
 export function emptyState(message) {
-  return `<li class="empty-state">${message}</li>`;
+  return `<li class="empty-state">${escapeHtml(message)}</li>`;
 }
 
 export function dashboardCounts(entities, documents) {
@@ -74,9 +76,9 @@ export function dashboardCounts(entities, documents) {
 }
 
 export function masterTypeOptions(labels) {
-  return MASTER_TYPES.map(type => `<option value="${type}">${labels[type] || MASTER_LABELS[type]}</option>`).join('');
+  return MASTER_TYPES.map(type => `<option value="${escapeHtml(type)}">${escapeHtml(labels[type] || MASTER_LABELS[type])}</option>`).join('');
 }
 
 export function documentTypeOptions(labels) {
-  return DOCUMENT_TYPES.map(type => `<option value="${type}">${labels[type.toLowerCase()] || type}</option>`).join('');
+  return DOCUMENT_TYPES.map(type => `<option value="${escapeHtml(type)}">${escapeHtml(labels[type.toLowerCase()] || type)}</option>`).join('');
 }

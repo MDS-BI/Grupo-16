@@ -367,3 +367,48 @@ li { border-radius:8px; padding:12px; overflow-wrap:anywhere; }
 .sidebar.is-collapsed .nav-module,.sidebar.is-collapsed .nav-secondary { justify-content:center; padding:12px 4px; }
 @media(max-width:768px){ .workspace-shell{height:auto;min-height:100dvh;} .workspace-body{flex-direction:column;overflow:visible;} .sidebar,.sidebar.is-collapsed{width:100%;flex-direction:row;flex-wrap:wrap;padding:8px;} .sidebar::before{display:none;} .sidebar .nav-label{display:inline;} .sidebar .nav-module,.sidebar .nav-secondary{width:auto;flex:1 1 130px;padding:10px;} .sidebar.is-collapsed .nav-label{display:none;} .sidebar.is-collapsed .nav-module,.sidebar.is-collapsed .nav-secondary{flex:1 1 40px;} .content-area{padding:16px;overflow:visible;} .topbar{padding:12px;flex-wrap:wrap;} .topbar-actions{margin-left:0;max-width:100%;} .dashboard-header{padding:20px;} .stats-grid{grid-template-columns:repeat(auto-fit,minmax(140px,1fr));} }
 @media(prefers-reduced-motion:reduce){*{transition:none!important;}}
+
+.auth-screen { min-height:100dvh; display:grid; place-items:center; padding:24px; background:#eef3f7; }
+.auth-card { width:min(100%,470px); background:white; padding:32px; border:1px solid #d4e0e8; border-radius:12px; box-shadow:0 12px 32px #17364d10; }
+.auth-card h1 { color:#173b52; }
+.auth-form { display:grid; gap:16px; margin-top:24px; }
+.auth-form h2 { margin:0; font-size:1.2rem; }
+.auth-form button { min-height:44px; }
+.auth-message { padding:14px; border:1px solid #bd7163; border-radius:8px; background:#fff2ee; color:#793c31; line-height:1.5; overflow-wrap:anywhere; }
+.auth-message.success { color:#20594d; background:#edf7f2; border-color:#79a697; }
+#auth-message { position:sticky; top:0; z-index:3; }
+.topbar-actions { display:flex; align-items:center; justify-content:flex-end; gap:14px; flex-wrap:wrap; }
+.remote-identity { color:#476077; font-size:.85rem; }
+.charts-grid { display:grid; gap:24px; }
+.chart-card { background:white; padding:20px; border:1px solid #d4e0e8; border-radius:12px; overflow:auto; }
+.chart-card h3 { margin:0 0 20px; }
+.chart-svg { width:100%; height:auto; max-height:260px; display:block; }
+.chart-svg.sankey { min-width:680px; max-height:none; }
+.data-table { width:100%; border-collapse:collapse; font-size:.85rem; text-align:left; }
+.data-table caption { text-align:left; color:#476077; margin:16px 0 8px; font-weight:600; }
+.data-table th { color:#29485e; background:#eef3f7; }
+.data-table th,.data-table td { padding:12px 10px; border-bottom:1px solid #dce5ec; vertical-align:top; }
+.data-table td { overflow-wrap:anywhere; }
+.data-table button { padding:7px 10px; font-size:.8rem; white-space:nowrap; }
+.table-scroll { overflow-x:auto; }
+.measurement-grid { display:grid; gap:16px; grid-column:1/-1; padding:20px; border:1px solid #d4e0e8; border-radius:10px; }
+.measurement-grid h3 { margin:0; }
+.account-list { padding:0; list-style:none; display:grid; gap:14px; }
+.account-list li { display:flex; gap:12px; flex-wrap:wrap; align-items:center; border:1px solid #d4e0e8; }
+.account-list select { padding:8px; }
+.remote-section { display:grid; gap:24px; }
+.lot-context { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:14px 18px; margin-bottom:24px; background:white; border:1px solid #d4e0e8; border-radius:10px; }
+.lot-context select { padding:8px; max-width:100%; }
+.record-detail { margin-top:10px; }
+.record-detail summary { cursor:pointer; color:#21665f; padding:6px 0; }
+.record-detail dl { display:grid; grid-template-columns:minmax(120px,1fr) 3fr; gap:8px 16px; font-size:.85rem; }
+.record-detail dt { color:#476077; } .record-detail dd { margin:0; }
+.sidebar.is-collapsed .nav-label { display:inline; font-size:.65rem; overflow-wrap:anywhere; }
+.sidebar.is-collapsed .nav-module,.sidebar.is-collapsed .nav-secondary { min-height:44px; }
+@media(max-width:768px) {
+  .auth-screen { padding:16px; } .auth-card { padding:24px; }
+  .topbar-actions { justify-content:flex-start; } .chart-card { padding:12px; }
+  .search-filters { align-items:stretch; } .search-filters input,.search-filters select { width:100%; }
+  .data-table { min-width:640px; } .list-container:has(.data-table),#parameter-list,#audit-list { overflow-x:auto; }
+  .sidebar.is-collapsed .nav-label { display:inline; }
+}

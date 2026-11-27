@@ -1,3 +1,5 @@
+import { escapeHtml } from './html.js';
+
 export const MASTER_SCHEMAS = {
   area: [
     { key: 'codigo', label: 'Código', type: 'text', required: true },
@@ -36,7 +38,7 @@ function referenceOptions(items, selected) {
   return `<option value="">Seleccione...</option>` + rows.map(item => {
     const value = item.value !== undefined ? item.value : (item.id || item.area_id || item.empleado_id || item.producto_id || item.lote_id || '');
     const text = item.label || item.nombre || item.descripcion || item.numero_nomina || item.numero_lote || value;
-    return `<option value="${value}" ${String(value) === String(selected) ? 'selected' : ''}>${text}</option>`;
+    return `<option value="${escapeHtml(value)}" ${String(value) === String(selected) ? 'selected' : ''}>${escapeHtml(text)}</option>`;
   }).join('');
 }
 
@@ -49,13 +51,13 @@ function fieldMarkup(field, values, options) {
     const checked = value === true || value === 'true' || value === '1' || (value === undefined && field.key === 'activo');
     control = `<input type="checkbox" id="${id}" ${checked ? 'checked' : ''}>`;
   } else if (field.type === 'select') {
-    control = `<select id="${id}"><option value="">Seleccione...</option>${field.options.map(option => `<option value="${option}" ${String(value) === option ? 'selected' : ''}>${option}</option>`).join('')}</select>`;
+    control = `<select id="${id}"><option value="">Seleccione...</option>${field.options.map(option => `<option value="${escapeHtml(option)}" ${String(value) === option ? 'selected' : ''}>${escapeHtml(option)}</option>`).join('')}</select>`;
   } else if (field.type === 'reference') {
     control = `<select id="${id}">${referenceOptions(options[field.reference], value)}</select>`;
   } else {
-    control = `<input type="${field.type}" id="${id}" value="${value === undefined || value === null ? '' : value}">`;
+    control = `<input type="${field.type}" id="${id}" value="${escapeHtml(value === undefined || value === null ? '' : value)}">`;
   }
-  return `<div class="field"><label for="${id}">${field.label}${field.required ? ' *' : ''}</label>${control}${error}</div>`;
+  return `<div class="field"><label for="${id}">${escapeHtml(field.label)}${field.required ? ' *' : ''}</label>${control}${error}</div>`;
 }
 
 export function renderQualityEntityForm(type, values = {}, options = {}) {

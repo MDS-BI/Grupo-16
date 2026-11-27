@@ -1,4 +1,5 @@
 import { MASTER_LABELS } from '../master-data.js';
+import { escapeHtml } from './html.js';
 
 function displayName(record) {
   return record.nombre || record.descripcion || record.puesto || record.numero_lote || record.name || '';
@@ -23,13 +24,13 @@ export function renderQualityEntityList(records, labels = {}, permissions = {edi
   return records.map(record => {
     const type = record.masterType;
     const id = record[type === 'area' ? 'area_id' : type === 'employee' ? 'empleado_id' : type === 'product' ? 'producto_id' : 'lote_id'];
-    return `<li class="entity-item" data-master-id="${id}" data-master-type="${type}">
-      <strong>${displayName(record)}</strong> (${displayCode(record)})
-      <span class="badge">${labels[type] || MASTER_LABELS[type] || type}</span>
-      <span class="tracking-detail">${details(record)}</span>
+    return `<li class="entity-item" data-master-id="${escapeHtml(id)}" data-master-type="${escapeHtml(type)}">
+      <strong>${escapeHtml(displayName(record))}</strong> (${escapeHtml(displayCode(record))})
+      <span class="badge">${escapeHtml(labels[type] || MASTER_LABELS[type] || type)}</span>
+      <span class="tracking-detail">${escapeHtml(details(record))}</span>
       <span class="list-actions">
-        ${permissions.edit ? `<button type="button" class="btn-edit-master" data-id="${id}" data-type="${type}">Editar</button>` : ""}
-        ${permissions.remove ? `<button type="button" class="btn-delete-master" data-id="${id}" data-type="${type}">Eliminar</button>` : ""}
+        ${permissions.edit ? `<button type="button" class="btn-edit-master" data-id="${escapeHtml(id)}" data-type="${escapeHtml(type)}">Editar</button>` : ""}
+        ${permissions.remove ? `<button type="button" class="btn-delete-master" data-id="${escapeHtml(id)}" data-type="${escapeHtml(type)}">Eliminar</button>` : ""}
       </span>
     </li>`;
   }).join('');

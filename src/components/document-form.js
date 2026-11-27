@@ -1,4 +1,5 @@
 import { DOCUMENT_TYPE_META, DOMAIN_LABELS, getTypeStatusOptions } from '../document-types.js';
+import { escapeHtml } from './html.js';
 
 function readable(value) {
   for (const group of Object.values(DOMAIN_LABELS)) {
@@ -27,7 +28,7 @@ export function statusOptionsMarkup(type, currentStatus, config = {}) {
   }
   const unique = [...new Set(statuses)];
   return `<option value="">Seleccione...</option>` + unique.map(status =>
-    `<option value="${status}" ${status === currentStatus ? 'selected' : ''}>${readable(status)}</option>`
+    `<option value="${escapeHtml(status)}" ${status === currentStatus ? 'selected' : ''}>${escapeHtml(readable(status))}</option>`
   ).join('');
 }
 
@@ -43,12 +44,12 @@ export function renderTypedDocumentFields(type, values = {}, config = {}) {
     let control;
     if (field.type === 'select') {
       control = `<select id="${id}"><option value="">Seleccione...</option>${(field.options || []).map(option =>
-        `<option value="${option}" ${String(value) === option ? 'selected' : ''}>${readable(option)}</option>`
+        `<option value="${escapeHtml(option)}" ${String(value) === option ? 'selected' : ''}>${escapeHtml(readable(option))}</option>`
       ).join('')}</select>`;
     } else {
-      control = `<input type="${field.type}" id="${id}" value="${value}">`;
+      control = `<input type="${field.type}" id="${id}" value="${escapeHtml(value)}">`;
     }
-    return `<div class="field"><label for="${id}">${field.label}${field.required ? ' *' : ''}</label>${control}${error}</div>`;
+    return `<div class="field"><label for="${id}">${escapeHtml(field.label)}${field.required ? ' *' : ''}</label>${control}${error}</div>`;
   });
   controls.push(`<div class="field"><label for="td-status">${type === 'Inspección' ? 'Resultado' : 'Estado'}</label>
     <select id="td-status">${statusOptionsMarkup(type, currentStatus, config)}</select><span id="td-error-status" class="error"></span></div>`);

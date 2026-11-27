@@ -1,4 +1,5 @@
 import { MASTER_LABELS } from '../master-data.js';
+import { escapeHtml } from './html.js';
 
 export function renderSearchResults(results, labels = {}) {
   if (!results.length) {
@@ -9,17 +10,17 @@ export function renderSearchResults(results, labels = {}) {
     const name = record.nombre || record.descripcion || record.puesto || record.numero_lote || record.name || '';
     const code = record.codigo || record.numero_nomina || record.numero_lote || record.code || '';
     const statuses = record.relatedStatuses || (record.status ? [record.status] : []);
-    const badges = statuses.filter(Boolean).map(status => `<span class="status-badge">${status}</span>`).join(' ');
+    const badges = statuses.filter(Boolean).map(status => `<span class="status-badge">${escapeHtml(status)}</span>`).join(' ');
     const custom = (labels.customFields || [])
       .filter(field => record[field.key] !== undefined && record[field.key] !== '')
-      .map(field => `${field.label}: ${record[field.key]}`)
+      .map(field => `${escapeHtml(field.label)}: ${escapeHtml(record[field.key])}`)
       .join(', ');
-    return `<li class="entity-item"><strong>${name}</strong> (${code}) <span class="badge">${labels[type] || MASTER_LABELS[type] || type}</span>${badges}${custom ? ` ${custom}` : ''}</li>`;
+    return `<li class="entity-item"><strong>${escapeHtml(name)}</strong> (${escapeHtml(code)}) <span class="badge">${escapeHtml(labels[type] || MASTER_LABELS[type] || type)}</span>${badges}${custom ? ` ${custom}` : ''}</li>`;
   }).join('');
 }
 
 export function renderSearchFilters(fields) {
-  return Object.entries(fields).map(([id, label]) => `<label for="${id}">${label}</label>`).join('');
+  return Object.entries(fields).map(([id, label]) => `<label for="${escapeHtml(id)}">${escapeHtml(label)}</label>`).join('');
 }
 
 export function matchesDateRange(record, from, to) {
