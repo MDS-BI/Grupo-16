@@ -1,3 +1,4 @@
+import { getStorage } from './persistence.js';
 import { getConfig } from './module-config.js';
 import { ACTION_TYPES, normalizeCompleted, validateTargetDate } from './target-date.js';
 import { DOCUMENT_TYPE_META, validateTypedDocument } from './document-types.js';
@@ -21,18 +22,18 @@ export function saveModelIndex() {
     keys: MODEL_KEYS,
     updatedAt: new Date().toISOString()
   };
-  localStorage.setItem(MODEL_INDEX_KEY, JSON.stringify(index));
+  getStorage().setItem(MODEL_INDEX_KEY, JSON.stringify(index));
 }
 
 export function clearAll() {
   for (const key of MODEL_KEYS) {
-    localStorage.removeItem(key);
+    getStorage().removeItem(key);
   }
-  localStorage.removeItem(MODEL_INDEX_KEY);
+  getStorage().removeItem(MODEL_INDEX_KEY);
 }
 
 export function loadEntities() {
-  const raw = localStorage.getItem('quality-entities');
+  const raw = getStorage().getItem('quality-entities');
   if (!raw) return [];
   try {
     return JSON.parse(raw);
@@ -42,12 +43,12 @@ export function loadEntities() {
 }
 
 function saveEntities(entities) {
-  localStorage.setItem('quality-entities', JSON.stringify(entities));
+  getStorage().setItem('quality-entities', JSON.stringify(entities));
   saveModelIndex();
 }
 
 export function loadDocuments() {
-  const raw = localStorage.getItem('quality-documents');
+  const raw = getStorage().getItem('quality-documents');
   if (!raw) return [];
   try {
     return JSON.parse(raw);
@@ -57,7 +58,7 @@ export function loadDocuments() {
 }
 
 function saveDocuments(docs) {
-  localStorage.setItem('quality-documents', JSON.stringify(docs));
+  getStorage().setItem('quality-documents', JSON.stringify(docs));
   saveModelIndex();
 }
 

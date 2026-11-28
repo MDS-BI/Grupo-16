@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="/src/styles.css">
 </head>
 <body>
-  <div class="workspace-shell">
+  <div class="workspace-shell" hidden>
     <header class="topbar">
       <div class="brand">
         <div id="logo-mark"></div>
@@ -19,25 +19,39 @@
     <div class="workspace-body">
       <nav class="sidebar" aria-label="Navegación principal">
         <button id="sidebar-toggle" class="sidebar-toggle" type="button" aria-expanded="true" aria-label="Comprimir menú"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
-        <button id="nav-dashboard" aria-label="Panel" title="Panel" class="nav-module" data-module="dashboard" aria-current="page">
-          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M4 10.6 12 4l8 6.6V19a1.8 1.8 0 0 1-1.8 1.8H5.8A1.8 1.8 0 0 1 4 19z"/><path d="M9.5 20.8v-5.6h5v5.6"/></svg></span><span id="nav-dashboard-label" class="nav-label">Panel</span>
+        <button id="nav-dashboard" aria-label="Panel" title="Panel" class="nav-module" data-module="dashboard" aria-current="page"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M4 10.6 12 4l8 6.6V19a1.8 1.8 0 0 1-1.8 1.8H5.8A1.8 1.8 0 0 1 4 19z"/><path d="M9.5 20.8v-5.6h5v5.6"/></svg></span>
+          <span id="nav-dashboard-label" class="nav-label">Panel</span>
         </button>
-        <button id="nav-entities" aria-label="Productos y lotes" title="Productos y lotes" class="nav-module" data-module="entities">
-          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3.8" y="3.8" width="7" height="7" rx="1.4"/><rect x="13.2" y="3.8" width="7" height="7" rx="1.4"/><rect x="3.8" y="13.2" width="7" height="7" rx="1.4"/><rect x="13.2" y="13.2" width="7" height="7" rx="1.4"/></svg></span><span id="nav-entities-label" class="nav-label">Entidades</span>
+        <button id="nav-entities" aria-label="Productos y lotes" title="Productos y lotes" class="nav-module" data-module="entities"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><rect x="3.8" y="3.8" width="7" height="7" rx="1.4"/><rect x="13.2" y="3.8" width="7" height="7" rx="1.4"/><rect x="3.8" y="13.2" width="7" height="7" rx="1.4"/><rect x="13.2" y="13.2" width="7" height="7" rx="1.4"/></svg></span>
+          <span id="nav-entities-label" class="nav-label">Entidades</span>
         </button>
-        <button id="nav-documents" aria-label="Inspecciones y registros" title="Inspecciones y registros" class="nav-module" data-module="documents">
-          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13.5h6M9 17h4"/></svg></span><span id="nav-documents-label" class="nav-label">Documentos</span>
+        <button id="nav-documents" aria-label="Inspecciones y registros" title="Inspecciones y registros" class="nav-module" data-module="documents"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13.5h6M9 17h4"/></svg></span>
+          <span id="nav-documents-label" class="nav-label">Documentos</span>
         </button>
-        <button id="nav-search" aria-label="Búsqueda" title="Búsqueda" class="nav-module" data-module="search">
-          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="11" cy="11" r="6.4"/><path d="m15.8 15.8 4.4 4.4"/></svg></span><span id="nav-search-label" class="nav-label">Búsqueda</span>
+        <button id="nav-search" aria-label="Búsqueda" title="Búsqueda" class="nav-module" data-module="search"><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="11" cy="11" r="6.4"/><path d="m15.8 15.8 4.4 4.4"/></svg></span>
+          <span id="nav-search-label" class="nav-label">Búsqueda</span>
         </button>
-        <button id="nav-users" aria-label="Usuarios y roles" title="Usuarios y roles" class="nav-secondary" data-module="users" hidden>
-          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="9" cy="8" r="3.4"/><path d="M3.2 19.8a5.8 5.8 0 0 1 11.6 0"/><path d="M16.2 5.1a3.4 3.4 0 0 1 0 5.8"/><path d="M17.6 14.6a5.8 5.8 0 0 1 3.4 5.2"/></svg></span><span id="nav-users-label" class="nav-label">Usuarios y roles</span>
+        <button id="nav-parameters" aria-label="Parámetros de medición" title="Parámetros de medición" class="nav-module" data-module="parameters" hidden>
+          <span id="nav-parameters-label" class="nav-label">Parámetros</span>
+        </button>
+        <button id="nav-orders" aria-label="Órdenes de calidad" title="Órdenes de calidad" class="nav-module" data-module="orders" hidden>
+          <span id="nav-orders-label" class="nav-label">Órdenes</span>
+        </button>
+        <button id="nav-audit" aria-label="Historial de auditoría" title="Historial de auditoría" class="nav-module" data-module="audit" hidden>
+          <span id="nav-audit-label" class="nav-label">Auditoría</span>
+        </button>
+        <button id="nav-users" aria-label="Usuarios y roles" title="Usuarios y roles" class="nav-secondary" data-module="users" hidden><span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" focusable="false"><circle cx="9" cy="8" r="3.4"/><path d="M3.2 19.8a5.8 5.8 0 0 1 11.6 0"/><path d="M16.2 5.1a3.4 3.4 0 0 1 0 5.8"/><path d="M17.6 14.6a5.8 5.8 0 0 1 3.4 5.2"/></svg></span>
+          <span id="nav-users-label" class="nav-label">Usuarios y roles</span>
         </button>
       </nav>
 
       <main class="content-area">
         <div id="auth-message" class="auth-message" role="alert" hidden></div>
+        <section id="lot-context" class="lot-context" hidden aria-label="Contexto de lote">
+          <label for="context-lot">Lote de trabajo</label>
+          <select id="context-lot"><option value="">Todos los lotes</option></select>
+          <span id="context-lot-summary" class="hint">Todos los lotes. Datos de una planta simulada.</span>
+        </section>
         <!-- Dashboard View -->
         <section id="view-dashboard" class="view">
           <div class="dashboard-header">
@@ -72,6 +86,12 @@
                 <span id="stat-ncr-capa-open-label" class="stat-label">NCR y Acciones CAPA abiertas</span>
               </article>
             </div>
+          </section>
+
+          <section class="dashboard-section" aria-labelledby="quality-charts-heading" id="quality-charts-section">
+            <h2 id="quality-charts-heading">Indicadores de inspección</h2>
+            <p class="hint">Los gráficos cuentan inspecciones, no unidades producidas. Cada inspección cuenta una vez.</p>
+            <div id="quality-charts" class="charts-grid"></div>
           </section>
 
           <section class="dashboard-section" aria-labelledby="quick-actions-heading">
@@ -392,6 +412,59 @@
           <ul id="search-results-list"></ul>
         </section>
 
+        <!-- Parameters View -->
+        <section id="view-parameters" class="view" hidden>
+          <h1 id="parameters-view-heading">Parámetros de medición</h1>
+          <p class="hint">Defina qué se mide en cada producto, la unidad y los límites inclusivos. Los ejemplos son simulados y ajustables.</p>
+          <div class="form-container">
+            <h2 id="parameter-form-heading">Nuevo parámetro</h2>
+            <form id="parameter-form">
+              <input type="hidden" id="parameter-id">
+              <div class="field"><label for="parameter-name">Nombre *</label><input type="text" id="parameter-name"><span id="parameter-error-name" class="error"></span></div>
+              <div class="field"><label for="parameter-product">Producto *</label><select id="parameter-product"><option value="">Seleccione...</option></select><span id="parameter-error-productId" class="error"></span></div>
+              <div class="field"><label for="parameter-unit">Unidad *</label><input type="text" id="parameter-unit"><span id="parameter-error-unit" class="error"></span></div>
+              <div class="field"><label for="parameter-min">Mínimo *</label><input type="number" step="any" id="parameter-min"><span id="parameter-error-min" class="error"></span></div>
+              <div class="field"><label for="parameter-max">Máximo *</label><input type="number" step="any" id="parameter-max"><span id="parameter-error-max" class="error"></span></div>
+              <div class="field checkbox-field"><label for="parameter-active"><input type="checkbox" id="parameter-active" checked> Activo</label></div>
+              <button type="submit" id="parameter-save">Guardar parámetro</button>
+              <button type="button" id="parameter-reset" class="btn-secondary">Limpiar formulario</button>
+            </form>
+          </div>
+          <div class="list-container"><div id="parameter-list"></div></div>
+        </section>
+
+        <!-- Orders View -->
+        <section id="view-orders" class="view" hidden>
+          <h1 id="orders-view-heading">Órdenes de calidad</h1>
+          <p class="hint">La vista abre con todas las órdenes. Combine filtros para reducir la lista y consulte la trazabilidad de cada una.</p>
+          <div class="search-filters">
+            <label for="order-filter-query">Texto</label><input type="text" id="order-filter-query" placeholder="Número, producto, lote o responsable">
+            <label for="order-filter-product">Producto</label><select id="order-filter-product"><option value="">Todos</option></select>
+            <label for="order-filter-lot">Lote</label><select id="order-filter-lot"><option value="">Todos</option></select>
+            <label for="order-filter-status">Estado</label><select id="order-filter-status"><option value="">Todos</option></select>
+            <label for="order-filter-from">Desde</label><input type="date" id="order-filter-from">
+            <label for="order-filter-to">Hasta</label><input type="date" id="order-filter-to">
+            <button type="button" id="order-filters-clear" class="btn-secondary">Limpiar filtros</button>
+            <button type="button" id="order-export-csv" class="btn-secondary">Exportar CSV</button>
+          </div>
+          <p id="order-count" class="hint">0 coincidencias</p>
+          <div class="list-container table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Orden</th><th>Producto</th><th>Lote</th><th>Cantidad</th><th>Responsable</th><th>Fecha objetivo</th><th>Estado</th><th>Detalle</th></tr></thead>
+              <tbody id="order-table-body"></tbody>
+            </table>
+            <div id="order-empty" class="empty-state" hidden>No hay órdenes que coincidan con los filtros.</div>
+          </div>
+          <div class="list-container"><div id="order-detail"><p class="hint">Seleccione una orden para ver sus inspecciones y NCR/CAPA vinculadas.</p></div></div>
+        </section>
+
+        <!-- Audit View -->
+        <section id="view-audit" class="view" hidden>
+          <h1 id="audit-view-heading">Historial de auditoría</h1>
+          <p class="hint">Registros de autor, fecha, acción y elemento afectado. Esta vista es de solo consulta.</p>
+          <div class="list-container"><div id="audit-list"></div></div>
+        </section>
+
         <!-- Users View -->
         <section id="view-users" class="view" hidden>
           <h1 id="users-view-heading">Usuarios y roles</h1>
@@ -403,6 +476,36 @@
           <div class="form-container">
             <h2>Catálogo de permisos</h2>
             <ul id="permission-catalog"></ul>
+          </div>
+          <div id="remote-account-section" class="remote-section" hidden>
+            <div class="form-container">
+              <h2>Cuentas del equipo</h2>
+              <div id="remote-user-list"></div>
+              <form id="create-user-form">
+                <h3>Nueva cuenta</h3>
+                <div class="field"><label for="new-user-username">Usuario *</label><input type="text" id="new-user-username" autocomplete="off"></div>
+                <div class="field"><label for="new-user-name">Nombre *</label><input type="text" id="new-user-name"></div>
+                <div class="field"><label for="new-user-password">Contraseña (mínimo 12 caracteres) *</label><input type="password" id="new-user-password" autocomplete="new-password"></div>
+                <div class="field"><label for="new-user-role">Perfil *</label><select id="new-user-role"></select></div>
+                <button type="submit" id="create-user-submit">Crear cuenta</button>
+              </form>
+            </div>
+            <div class="form-container">
+              <h2>Configuración del módulo</h2>
+              <form id="remote-config-form">
+                <div class="field"><label for="config-module-name">Nombre del módulo *</label><input type="text" id="config-module-name"></div>
+                <button type="submit" id="config-save">Guardar configuración</button>
+              </form>
+            </div>
+          </div>
+          <div class="form-container">
+            <h2>Mi cuenta</h2>
+            <form id="password-form">
+              <div class="field"><label for="current-password">Contraseña actual *</label><input type="password" id="current-password" autocomplete="current-password"></div>
+              <div class="field"><label for="new-password">Nueva contraseña (mínimo 12 caracteres) *</label><input type="password" id="new-password" autocomplete="new-password"></div>
+              <button type="submit" id="password-submit">Cambiar contraseña</button>
+            </form>
+            <button type="button" id="logout-button" class="btn-secondary">Cerrar sesión</button>
           </div>
         </section>
       </main>

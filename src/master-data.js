@@ -1,3 +1,4 @@
+import { getStorage } from './persistence.js';
 import { saveModelIndex } from './storage.js';
 
 export const MASTER_TYPES = ['area', 'employee', 'product', 'lot'];
@@ -48,18 +49,6 @@ const MODULOS = ['VENTAS', 'ADQUISICION_COMPRAS', 'MANUFACTURA_OPERACIONES', 'CO
 const ESTADOS_EMPLEADO = ['ACTIVO', 'INACTIVO', 'SUSPENDIDO'];
 const TIPOS_PRODUCTO = ['PRODUCTO', 'MATERIA_PRIMA', 'INSUMO', 'SERVICIO'];
 
-const memoryStorage = new Map();
-
-function getStorage() {
-  if (typeof globalThis.localStorage !== 'undefined' && globalThis.localStorage) {
-    return globalThis.localStorage;
-  }
-  return {
-    getItem: key => (memoryStorage.has(key) ? memoryStorage.get(key) : null),
-    setItem: (key, value) => memoryStorage.set(key, String(value)),
-    removeItem: key => memoryStorage.delete(key)
-  };
-}
 
 function hasValue(value) {
   return value !== undefined && value !== null && String(value).trim() !== '';

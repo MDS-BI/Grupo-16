@@ -1,99 +1,56 @@
-# Gestión de Calidad — Grupo 16
+# Control de Calidad — Grupo 16
 
-MVP ERP de calidad con Vite y JavaScript. Incluye catálogos de áreas, empleados, productos y lotes; registros operativos tipados, búsqueda, seguimiento de fechas y cuatro perfiles de acceso. La persistencia es local al navegador y el selector de usuarios simula roles: no es autenticación segura.
+Aplicación académica de una planta simulada. Conserva los maestros y registros tipados del grupo y añade cuentas con contraseña, base SQLite, parámetros de medición, órdenes con filtros y gráficos de resultados. Todos los ejemplos y límites son ficticios y ajustables.
 
-## Ejecutar la copia
+## Abrir en este computador
 
-Usar Node.js 24.15 o superior dentro de la rama 24 (compatible con las dependencias actuales).
+Requiere Node.js 24.15 o superior dentro de la rama 24, además de npm. Desde esta carpeta en VS Code:
 
-```bash
+```sh
 npm ci
-npm run dev -- --port 5180 --strictPort
-```
-
-Abrir http://localhost:5180 para aislar el almacenamiento del proyecto habitual. En el panel, como administrador, pulsar **Cargar datos de ejemplo**. No se borran registros existentes.
-
-```bash
-npx vitest run
-npm run build
-node --test tests/demo-smoke.mjs
-```
-
-La sección siguiente conserva la documentación histórica de la base ERP y sus campos de compatibilidad; no todos corresponden a la interfaz de calidad actual.
-
-# ERP Software Base Module (Vite + Vanilla JS)
-
-Minimal single-page app serving as an Enterprise Resource Planning (ERP) software base module. It provides the common foundation for building custom ERP modules: master data management (Entities) and linked transactional documents (Documents) with create/edit/delete/search, validation, and browser localStorage persistence — using Vite and vanilla HTML, CSS, and JavaScript.
-
-The user interface is fully in **Spanish** (default terms: Entidad / Documento; module name: Módulo Base ERP), including labels, validation messages, empty states, and dialogs.
-
-Entities carry standard ERP master-data fields (name, code, tax ID, email, phone, address, category, target date, credit limit, payment terms). Documents use series + folio numbering and carry a monetary breakdown (subtotal, discount, tax, total), currency, payment terms, notes, quantity, dates, and status.
-
-The app presents itself as a coherent ERP workspace:
-
-- **Workspace shell** — every screen lives inside a branded chrome: a top bar with a logo (an SVG monogram derived from the module name) and module name, plus a persistent sidebar of module buttons (Panel, Entidades, Documentos, Búsqueda). The active module is highlighted (`aria-current="page"`), and the sidebar collapses to an icon rail on narrow viewports.
-- **Home dashboard** — the entry screen offers quick-action buttons for key ERP tasks (new entity, new document, open management areas, find records) and live statistic cards showing record counts.
-- **Design tokens** — styling is driven by CSS custom properties in `src/styles.css`, so branding changes apply globally.
-
-## Setup
-
-Install dependencies and run the dev server:
-
-```bash
-npm install
 npm run dev
 ```
 
-Open http://localhost:5173 (or the URL Vite prints).
+Abrir [la aplicación local](http://127.0.0.1:5180). Los cambios de código aparecen al recargar. Para cambiar el puerto, definir PORT antes de iniciar el servidor.
 
-## Tests
+Al preparar la instalación se crean cuentas ficticias. Los usuarios y sus contraseñas aleatorias quedan en el archivo privado `.local-data/cuentas-locales.txt`; se abre localmente y no se sube al repositorio. Cada copia nueva debe prepararse como se indica a continuación. Los perfiles son Administrador, Gestor de Calidad, Inspector de Planta y Auditor. El Auditor consulta; no modifica registros. La cuenta del usuario del computador o de GitHub no es una cuenta de esta aplicación.
 
-Run the full test suite (unit + integration) with:
+## Instalar otra copia
 
-```bash
-npm test
+Con el servidor en ejecución, abrir otra terminal en esta carpeta y ejecutar `npm run setup:local` para crear cuatro cuentas ficticias con contraseñas nuevas y cargar ejemplos. Se realiza una sola vez; no cambia cuentas existentes. También puede crearse únicamente el primer Administrador desde la pantalla inicial usando el código privado de `.local-data/codigo-instalacion.txt`. Después, solo un Administrador autenticado crea cuentas.
+
+Desde el panel del Administrador, **Cargar datos de ejemplo** agrega la simulación de forma idempotente: cuatro productos y lotes, 24 órdenes, mediciones aceptadas/rechazadas y casos NCR/CAPA relacionados. No borra registros ni duplica una simulación ya cargada.
+
+## Uso de calidad
+
+- **Parámetros:** el Gestor o Administrador define producto, nombre, unidad y límites. Cada cambio incrementa la versión. Inspector y Auditor consultan.
+- **Inspección:** elegir producto y lote, completar área/inspector/fecha y las lecturas requeridas. Una lectura fuera del intervalo se guarda como rechazo con una alerta concreta. Una lectura vacía o inválida impide guardar.
+- **Registros:** desplegar **Ver detalle** para consultar datos y mediciones con los límites y versión aplicados. Las inspecciones anteriores conservan su evidencia.
+- **Lote de trabajo:** mantener el contexto al pasar entre maestros, registros y órdenes. La página avisa antes de salir con cambios del formulario sin guardar.
+- **Órdenes:** inicialmente aparecen todas. Combinar texto, producto, lote, estado y fechas; limpiar para volver al total del contexto. La exportación CSV respeta esos filtros.
+- **Panel:** barras y Sankey con conteos de inspecciones y tablas equivalentes. Una inspección cuenta una vez; los anchos no representan unidades fabricadas.
+
+## Verificar y ejecutar la compilación
+
+```sh
+npm test -- --run
+npm run lint
+npm run build
+npm start
 ```
 
-Or a one-off run without watch mode:
+`npm run test:api` ejecuta solo pruebas del servidor con bases temporales. `npm start` sirve la compilación y la API; no abrir dist/index.html directamente. SQLite queda en `.local-data/quality.sqlite`, fuera de los archivos públicos e ignorado por Git. Las credenciales, la base y el código de instalación no deben incluirse como código del proyecto.
 
-```bash
-npx vitest run
-```
+Este prototipo se inicia en loopback. Para un despliegue compartido necesita un servidor Node y un origen HTTPS configurado mediante PUBLIC_ORIGIN. GitHub Pages por sí solo no ejecuta la API. Esta revisión no publica ni entrega el proyecto.
 
-## Building Custom Modules
+## Historias, tareas y OpenCode
 
-Custom ERP modules built on this base define:
+La especificación vigente es `specs/001-erp-base-module/spec.md`. HU7 reúne las reglas antes separadas en HU9 y HU12; sus números se conservan como referencias. HU4 tiene responsable funcional Coordinación de Calidad y HU5 Administración de Calidad. El grupo debe validar la redacción asistida antes de usarla como documento final.
 
-- What an **Entity** represents (e.g., customer, product, asset) plus domain-specific fields.
-- What a **Document** represents (e.g., order, invoice, contract).
-- Module-specific labels and validation rules.
+La skill está en `.opencode/skills/control-calidad-g16/SKILL.md`. Aporta instrucciones y contexto, no reentrena el modelo. Se ejecutó `/speckit.tasks` en OpenCode tras la revisión y se añadieron T131–T223 sin cambiar las tareas históricas. Las rutas de las nuevas tareas se ajustaron al contrato real: `/api/state` para consultas y `/api/actions` para operaciones autorizadas, reutilizando los módulos del grupo.
 
-The base module handles identity generation, timestamps, referential integrity between entities and documents, cascade deletion, navigation, and search. See `specs/001-erp-base-module/` for the full specification.
+Ver `docs/revision-ayudante-2026-11-26.md`, `docs/api-local.md` y `docs/referencias-erp.md`. Las versiones anteriores de los documentos se conservan en `docs/historial/`.
 
-## Tailoring via Configuration
+## Git y colaboración
 
-All tailoring lives in one place: the `userConfig` object at the top of `src/module-config.js`. Developers edit this single export; no core code changes are required. Available knobs:
-
-- `moduleName` — display name shown in the top bar, dashboard, and document title; also derives the logo monogram.
-- `labels` — rename Entity/Document terms across every screen, including sidebar buttons, quick actions, forms, and messages. Spanish articles and agreements (el/la, seleccionado/a) are derived from the first word of each configured term.
-- `customFields` — declare extra fields per record type with `target` (`entity` or `document`), `key`, `label`, `type` (`text`, `number`, `decimal`, `boolean`, `date`, `select`, or `enum`), optional `required`, and `options` for `select`/`enum`. Keys must not collide with base field names (see `specs/001-erp-base-module/data-model.md`). Values persist alongside records and appear in search results.
-- `statusLifecycle` — restrict document statuses to a configured list of `statuses` with permitted `transitions` between them. Without it, status stays a free-form field.
-- `statusLifecycleByType` — define an independent lifecycle per operational document type (`NCR`, `Inspección`, `Auditoría`, `CAPA`, `Queja`, `Evaluación`). The status control only offers valid next transitions for the current record.
-- `theme.accentColor` — a hex color (e.g., `"#0f62fe"`) applied across the shell as highlights and primary controls. Invalid values fall back to the default.
-
-If the configuration is invalid (unknown types, bad keys, transitions referencing unknown statuses, non-hex accent colors), the app shows the problems in a banner and falls back to defaults instead of breaking.
-
-## Calidad: espacio de trabajo, panel y tematización
-
-- **Marco del espacio de trabajo**: `src/components/shell.js` genera el monograma SVG del módulo aplica las etiquetas configuradas a los botones de la barra lateral y resalta el módulo activo con `aria-current="page"`. La vista de administración de usuarios y roles se añade solo para perfiles con `manage-permissions`.
-- **Panel de inicio**: cuatro KPIs en vivo (lotes activos, productos registrados, inspecciones realizadas y hallazgos NCR/CAPA abiertos), acciones rápidas separadas para datos maestros y registros operativos, y accesos a catálogos y búsqueda global.
-- **Datos maestros y documentos tipados**: el módulo persiste Áreas, Empleados, Productos y Lotes en claves propias y gestiona NCR, Inspecciones, Auditorías, CAPA, Quejas y Evaluaciones con campos y transiciones específicas por tipo.
-- **Tematización**: `theme.accentColor` se aplica como propiedad CSS `--accent`; los tokens de color, espaciado y tipografía viven en `src/styles.css`. Si el valor es inválido se conserva el tema integrado.
-- **Roles y permisos**: `src/permissions.js` define el catálogo y la matriz de Administrador, Gestor de Calidad, Inspector de Planta y Auditor. Los usuarios y la sesión activa se guardan en `quality-users` y `quality-session`.
-
-## Notes
-
-- Data is persisted in `localStorage`: `quality-entities`, `quality-documents`, `quality-areas`, `quality-employees`, `quality-products`, `quality-lots`, `quality-users`, `quality-session`, plus the `quality-models` index.
-- Deleting an entity also deletes its documents; deleting an Area removes its Employees and deleting a Product removes its Lots (cascade).
-- Linting/formatting: `npm run lint`, `npm run lint:fix`, `npm run format`, and `npm run format:check`.
-- This project intentionally uses vanilla HTML, CSS, and JavaScript for simplicity.
+Guardar un archivo en VS Code modifica esta copia local. Git registra versiones y GitHub comparte las versiones subidas; instalar Git no sincroniza automáticamente. La propuesta de esta revisión se comparte mediante una rama y un Pull Request al repositorio del grupo. Cada integrante puede descargar esa rama para revisarla; incorporarla a main requiere permiso del grupo. No constituye una entrega en Canvas ni al profesor.

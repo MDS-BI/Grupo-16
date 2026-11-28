@@ -1,3 +1,4 @@
+import { getStorage } from './persistence.js';
 import { addMaster, loadMasters } from './master-data.js';
 import { addEntity, addDocument, loadEntities, loadDocuments } from './storage.js';
 import { can, getActiveUser } from './permissions.js';
@@ -6,7 +7,7 @@ import { can, getActiveUser } from './permissions.js';
 export function seedDemo() {
   if (!can(getActiveUser(), 'manage-permissions')) throw new Error('Solo un administrador puede cargar ejemplos.');
   const keys = ['quality-areas','quality-employees','quality-products','quality-lots','quality-entities','quality-documents','quality-models'];
-  const snapshot = keys.map(key => [key, localStorage.getItem(key)]);
+  const snapshot = keys.map(key => [key, getStorage().getItem(key)]);
   const count = () => ['area','employee','product','lot'].reduce((n,t)=>n+loadMasters(t).length,0)+loadEntities().length+loadDocuments().length;
   const before = count();
   const actor = 'Demostración';
@@ -30,7 +31,7 @@ export function seedDemo() {
     doc('NCR',91020,{origen:'INTERNO',area_afectada_id:area.area_id,producto_id:product.producto_id,lote_id:lot.lote_id,detectado_por:employee.empleado_id,fecha_deteccion:date(-2),gravedad:'MENOR',descripcion:'[DEMO] Etiquetado incompleto',estado:'ABIERTA',status:'ABIERTA',targetDate:date(10),responsible:'Gestor demo',actionType:'Reinspección'});
     return count()-before;
   } catch (error) {
-    for (const [key,value] of snapshot) { if(value===null) localStorage.removeItem(key); else localStorage.setItem(key,value); }
+    for (const [key,value] of snapshot) { if(value===null) getStorage().removeItem(key); else getStorage().setItem(key,value); }
     throw error;
   }
 }

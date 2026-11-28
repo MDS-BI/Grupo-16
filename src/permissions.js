@@ -1,3 +1,4 @@
+import { getStorage } from './persistence.js';
 export const PERMISSIONS = [
   { id: 'manage-records', description: 'Administrar registros de calidad' },
   { id: 'manage-config', description: 'Configurar el módulo' },
@@ -93,12 +94,12 @@ export function requiredPermission(action) {
 }
 
 export function loadUsers() {
-  const users = parseUsers(localStorage.getItem(USERS_KEY));
+  const users = parseUsers(getStorage().getItem(USERS_KEY));
   return users === null ? defaultUsers() : users.map(user => ({ ...user }));
 }
 
 export function saveUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+  getStorage().setItem(USERS_KEY, JSON.stringify(users));
   return users;
 }
 
@@ -117,7 +118,7 @@ export function assignRole(userId, role) {
 }
 
 export function getActiveUser() {
-  const raw = localStorage.getItem(SESSION_KEY);
+  const raw = getStorage().getItem(SESSION_KEY);
   if (raw !== null && raw !== undefined && raw !== '') {
     let id = raw;
     if (raw.startsWith('"')) {
@@ -140,12 +141,12 @@ export function setActiveUser(userId) {
   if (!user) {
     throw new Error('Usuario no encontrado');
   }
-  localStorage.setItem(SESSION_KEY, userId);
+  getStorage().setItem(SESSION_KEY, userId);
   return { ...user };
 }
 
 export function ensureDefaultUsers() {
-  if (localStorage.getItem(USERS_KEY) === null) {
+  if (getStorage().getItem(USERS_KEY) === null) {
     saveUsers(defaultUsers());
   }
 }

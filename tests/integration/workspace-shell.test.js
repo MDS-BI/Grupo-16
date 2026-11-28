@@ -39,24 +39,24 @@ async function bootWith(configOverride){
 }
 
 describe('User Story 13 - branded ERP workspace shell', () => {
-  it('shows a top bar with a derived SVG logo and the module name on every screen', async () => {
+  it('keeps a plain text brand and module name on every screen', async () => {
     await bootWith(brandedConfig);
-    expect(qs('logo-mark').querySelector('svg')).not.toBeNull();
+    expect(qs('logo-mark').querySelector('svg')).toBeNull();
     expect(qs('brand-name').textContent).toBe('Sales Suite');
 
     qs('nav-entities').click();
-    expect(qs('logo-mark').querySelector('svg')).not.toBeNull();
+    expect(qs('logo-mark').querySelector('svg')).toBeNull();
 
     qs('nav-documents').click();
     qs('nav-search').click();
-    expect(qs('logo-mark').querySelector('svg')).not.toBeNull();
+    expect(qs('logo-mark').querySelector('svg')).toBeNull();
     expect(document.querySelector('.topbar .brand')).not.toBeNull();
   });
 
-  it('derives the monogram letters from the module name', async () => {
+  it('shows the configured brand without decorative generated artwork', async () => {
     await bootWith(brandedConfig);
-    const text = qs('logo-mark').querySelector('svg text').textContent;
-    expect(text).toBe('SS');
+    expect(qs('brand-name').textContent).toBe('Sales Suite');
+    expect(qs('logo-mark').children.length).toBe(0);
   });
 
   it('offers sidebar module buttons using configured terminology', async () => {
@@ -65,7 +65,7 @@ describe('User Story 13 - branded ERP workspace shell', () => {
     expect(qs('nav-entities-label').textContent).toBe('Entidades');
     expect(qs('nav-documents-label').textContent).toBe('Documentos');
     expect(qs('nav-search-label').textContent).toBe('Búsqueda');
-    expect(document.querySelectorAll('.nav-module').length).toBe(4);
+    expect([...document.querySelectorAll('.nav-module')].filter(button => !button.hidden)).toHaveLength(4);
   });
 
   it('uses remapped terms on the sidebar for tailored modules', async () => {

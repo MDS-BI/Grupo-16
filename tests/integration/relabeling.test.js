@@ -87,8 +87,9 @@ describe('User Story 6 - relabel screens from configuration', () => {
     expect(qs('view-dashboard').hidden).toBe(false);
   });
 
-  it('derives the logo monogram from the configured module name', async () => {
+  it('keeps the configured name as text instead of a decorative image', async () => {
     await bootWith({ moduleName: 'Warehouse Pro' });
-    expect(qs('logo-mark').querySelector('svg text').textContent).toBe('WP');
+    expect(qs('brand-name').textContent).toBe('Warehouse Pro');
+    expect(qs('logo-mark').children.length).toBe(0);
   });
 });

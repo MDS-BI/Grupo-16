@@ -13,19 +13,31 @@ import { renderSearchResults, matchesDateRange, toCsv } from './components/searc
 import { renderTypedDocumentFields, readTypedDocumentFields, showTypedDocumentErrors, clearTypedDocumentErrors } from './components/document-form.js';
 import { statusLabel } from './components/document-list.js';
 import { renderRoleAdmin, renderPermissionCatalog, renderUserSwitcher, readRoleAssignments } from './components/role-admin.js';
+import { isRemoteMode, getRemoteSession, getRemoteState, remoteMutation, remoteAssignRole, apiRequest, installRemoteSession } from './remote-session.js';
+import { escapeHtml } from './components/html.js';
+import { renderChartsMarkup } from './components/quality-charts.js';
+import { renderRemoteDocumentFields, readRemoteDocumentFields, renderMeasurementFields, activeParameters, stateRecords } from './components/remote-document-fields.js';
+import { renderRemoteUserList, readRemoteUserChanges, renderParameterList, renderOrdersTable, renderOrderDetail, renderRecordDetail, renderAuditList, orderStatuses } from './components/remote-views.js';
+import { evaluateMeasurements, filterOrders, ordersCsv } from './quality-parameters.js';
 
 function qs(id) { return document.getElementById(id); }
 
 function currentActor() {
+  if (isRemoteMode()) return getRemoteSession()?.user?.name || '';
   if (typeof document !== 'undefined' && document.body && document.body.dataset.userName) return document.body.dataset.userName;
   if (typeof window !== 'undefined' && window.currentUser && window.currentUser.name) return window.currentUser.name;
   return 'inspector';
 }
 
-function isReadOnlyUser() {
-  const role = (typeof document !== 'undefined' && document.body && document.body.dataset.userRole) ||
+function currentRole() {
+  if (isRemoteMode()) return getRemoteSession()?.user?.role || '';
+  return (typeof document !== 'undefined' && document.body && document.body.dataset.userRole) ||
     (typeof window !== 'undefined' && window.currentUserRole) || '';
-  return ['readonly', 'read-only', 'consulta', 'solo-consulta', 'viewer'].includes(String(role).toLowerCase());
+}
+
+function isReadOnlyUser() {
+  const role = String(currentRole()).toLowerCase();
+  return ['readonly', 'read-only', 'consulta', 'solo-consulta', 'viewer'].includes(role) || (isRemoteMode() && role === 'auditor');
 }
 
 function confirmAction(message) {
@@ -37,6 +49,7 @@ function showAuthMessage(message) {
   const box = qs('auth-message');
   if (!box) return;
   box.textContent = message;
+  box.classList.remove('success');
   box.hidden = false;
 }
 
@@ -45,12 +58,30 @@ function clearAuthMessage() {
   if (box) {
     box.textContent = '';
     box.hidden = true;
+    box.classList.remove('success');
   }
 }
 
+function showNotice(message) {
+  const box = qs('auth-message');
+  if (!box) return;
+  box.textContent = message;
+  box.classList.add('success');
+  box.hidden = false;
+}
+
+function confirmation(record, action) {
+  const folio = record?.folio ?? record?.number ?? record?.id ?? '';
+  const lotId = record?.lote_id || record?.lotId || '';
+  const lot = loadMasters('lot').find(row => row.lote_id === lotId)?.numero_lote || lotId;
+  const result = record?.resultado || record?.status || '';
+  return `${action} · folio: ${folio}${lot ? ` · lote: ${lot}` : ''}${result ? ` · resultado: ${result}` : ''}.`;
+}
+
 function authorize(action, message) {
-  const permission = requiredPermission(action);
-  if (!permission || can(getActiveUser(), permission)) {
+  const permission = requiredPermission(action) || (PERMISSIONS.some(item => item.id === action) ? action : null);
+  const actor = isRemoteMode() ? getRemoteSession()?.user : getActiveUser();
+  if (!permission || can(actor, permission)) {
     clearAuthMessage();
     return true;
   }
@@ -77,6 +108,9 @@ function applyRelabeling() {
   if (qs('nav-documents-label')) qs('nav-documents-label').textContent = labelFor('documents');
   if (qs('nav-search-label')) qs('nav-search-label').textContent = 'Búsqueda';
   if (qs('nav-users-label')) qs('nav-users-label').textContent = config.labels?.users || 'Usuarios y roles';
+  if (qs('nav-parameters-label')) qs('nav-parameters-label').textContent = 'Parámetros';
+  if (qs('nav-orders-label')) qs('nav-orders-label').textContent = 'Órdenes';
+  if (qs('nav-audit-label')) qs('nav-audit-label').textContent = 'Auditoría';
 
   // Dashboard headings & actions
   if (qs('dashboard-heading')) qs('dashboard-heading').textContent = config.moduleName;
@@ -143,12 +177,16 @@ function applyRelabeling() {
 }
 
 function refreshRoleViews() {
-  ensureDefaultUsers();
-  const users = loadUsers();
-  const active = getActiveUser();
-  const canManage = can(active, 'manage-permissions');
+  const remote = isRemoteMode();
+  if (!remote) ensureDefaultUsers();
+  const users = remote ? (getRemoteState().users || []) : loadUsers();
+  const active = remote ? getRemoteSession()?.user : getActiveUser();
+  const canManage = Boolean(active && can(active, 'manage-permissions'));
   const navUsers = qs('nav-users');
-  if (navUsers) navUsers.hidden = !canManage;
+  if (navUsers) navUsers.hidden = remote ? false : !canManage;
+  for (const [id, visible] of [['nav-parameters', remote], ['nav-orders', remote], ['nav-audit', remote && can(active, 'audit')]]) {
+    if (qs(id)) qs(id).hidden = !visible;
+  }
   if (qs('action-demo')) qs('action-demo').hidden = !canManage;
   const visibility = {
     'action-new-lot':'create-master-data', 'action-new-product':'create-master-data',
@@ -170,35 +208,80 @@ function refreshRoleViews() {
   const masterWrite = can(active, 'create-master-data') || can(active, 'edit-master-data');
   const docWrite = ['create-operational','edit-operational','register-inspections','report-ncr'].some(p => can(active,p));
   for (const id of ['entity-form','quality-master-form']) if (qs(id)) qs(id).hidden = !masterWrite;
-  if (qs('document-form')) qs('document-form').hidden = !docWrite;
+  if (qs('document-form')) {
+    qs('document-form').hidden = !docWrite;
+    qs('document-form').closest('.form-container').hidden = !docWrite;
+  }
+  if (qs('parameter-form')) qs('parameter-form').closest('.form-container').hidden = !can(active, 'manage-records');
   if (qs('edit-entity')) qs('edit-entity').closest('.management-controls').hidden = !can(active,'edit-master-data');
   if (qs('edit-document')) qs('edit-document').closest('.management-controls').hidden = !can(active,'edit-operational');
-  if (!canManage && qs('view-users') && !qs('view-users').hidden) showView('dashboard');
+  if (!remote && !canManage && qs('view-users') && !qs('view-users').hidden) showView('dashboard');
   renderQualityMasters();
 
   const switcher = qs('user-switcher');
   if (switcher) {
-    switcher.innerHTML = renderUserSwitcher(users, active.id);
-    const select = qs('active-user');
-    if (select) {
-      select.onchange = () => {
-        setActiveUser(select.value);
-        clearAuthMessage();
-        applyRelabeling();
-        renderRoleViews();
-      };
+    switcher.replaceChildren();
+    if (remote) {
+      const identity = document.createElement('span');
+      identity.id = 'remote-identity';
+      identity.className = 'remote-identity';
+      identity.textContent = `${active?.name || ''} — ${active?.role || ''}`;
+      const logout = document.createElement('button');
+      logout.type = 'button';
+      logout.id = 'topbar-logout';
+      logout.className = 'btn-secondary';
+      logout.textContent = 'Cerrar sesión';
+      logout.onclick = logoutRemote;
+      switcher.append(identity, logout);
+    } else {
+      switcher.innerHTML = renderUserSwitcher(users, active.id);
+      const select = qs('active-user');
+      if (select) {
+        select.onchange = () => {
+          setActiveUser(select.value);
+          clearAuthMessage();
+          applyRelabeling();
+          renderRoleViews();
+        };
+      }
     }
   }
   renderRoleViews();
 }
 
 function renderRoleViews() {
-  const users = loadUsers();
-  const active = getActiveUser();
-  const list = qs('role-admin-list');
-  if (list) list.innerHTML = renderRoleAdmin(users, active.id);
+  const remote = isRemoteMode();
+  const users = remote ? (getRemoteState().users || []) : loadUsers();
+  const active = remote ? getRemoteSession()?.user : getActiveUser();
+  const list = qs(remote ? 'remote-user-list' : 'role-admin-list');
+  if (remote && qs('role-admin-list')) qs('role-admin-list').closest('.form-container').hidden = true;
+  if (list) {
+    list.innerHTML = remote && can(active, 'manage-permissions')
+      ? renderRemoteUserList(users, ['Administrador', 'Gestor de Calidad', 'Inspector de Planta', 'Auditor'], active?.id)
+      : remote ? '<p class="empty-state">Tu perfil no administra cuentas. Usa «Mi cuenta» para cambiar tu contraseña.</p>' : renderRoleAdmin(users, active.id);
+  }
   const catalog = qs('permission-catalog');
   if (catalog) catalog.innerHTML = renderPermissionCatalog();
+  const accountSection = qs('remote-account-section');
+  if (accountSection) accountSection.hidden = !remote || !can(active, 'manage-permissions');
+  const localRoles = qs('save-roles');
+  if (localRoles) localRoles.hidden = remote;
+  if (remote) {
+    const roleSelect = qs('new-user-role');
+    if (roleSelect && !roleSelect.options.length) {
+      roleSelect.innerHTML = ['Administrador', 'Gestor de Calidad', 'Inspector de Planta', 'Auditor'].map(role => `<option value="${role}">${role}</option>`).join('');
+    }
+    if (qs('config-module-name')) qs('config-module-name').value = getConfig().moduleName;
+  }
+}
+
+async function logoutRemote() {
+  try {
+    await apiRequest('/logout', { method: 'POST', body: {} });
+  } catch {
+    showNotice('La sesión terminó. Vuelve a entrar para continuar.');
+  }
+  window.dispatchEvent(new window.CustomEvent('quality:session-ended'));
 }
 
 function customFieldControl(field) {
@@ -206,17 +289,17 @@ function customFieldControl(field) {
   const required = field.required ? ' *' : '';
   let control;
   if (field.type === 'select' || field.type === 'enum') {
-    control = `<select id="${id}" data-key="${field.key}"><option value="">--</option>${(field.options || []).map(option => `<option value="${option}">${option}</option>`).join('')}</select>`;
+    control = `<select id="${escapeHtml(id)}" data-key="${escapeHtml(field.key)}"><option value="">--</option>${(field.options || []).map(option => `<option value="${escapeHtml(option)}">${escapeHtml(option)}</option>`).join('')}</select>`;
   } else if (field.type === 'boolean') {
-    control = `<input type="checkbox" id="${id}" data-key="${field.key}">`;
+    control = `<input type="checkbox" id="${escapeHtml(id)}" data-key="${escapeHtml(field.key)}">`;
   } else if (field.type === 'number' || field.type === 'decimal') {
-    control = `<input type="number" step="${field.type === 'decimal' ? 'any' : '1'}" id="${id}" data-key="${field.key}">`;
+    control = `<input type="number" step="${field.type === 'decimal' ? 'any' : '1'}" id="${escapeHtml(id)}" data-key="${escapeHtml(field.key)}">`;
   } else if (field.type === 'date') {
-    control = `<input type="date" id="${id}" data-key="${field.key}">`;
+    control = `<input type="date" id="${escapeHtml(id)}" data-key="${escapeHtml(field.key)}">`;
   } else {
-    control = `<input type="text" id="${id}" data-key="${field.key}">`;
+    control = `<input type="text" id="${escapeHtml(id)}" data-key="${escapeHtml(field.key)}">`;
   }
-  return `<div class="field custom-field"><label for="${id}">${field.label}${required}</label>${control}<span id="error-cf-${field.key}" class="error"></span></div>`;
+  return `<div class="field custom-field"><label for="${escapeHtml(id)}">${escapeHtml(field.label)}${required}</label>${control}<span id="error-cf-${escapeHtml(field.key)}" class="error"></span></div>`;
 }
 
 function renderCustomFieldsForms() {
@@ -239,12 +322,19 @@ function renderCustomFieldsForms() {
 }
 
 function showView(viewId) {
-  ['view-dashboard', 'view-entities', 'view-documents', 'view-search', 'view-users'].forEach(id => {
+  const current = document.querySelector('.view:not([hidden])')?.id;
+  if (isRemoteMode() && current !== `view-${viewId}` && !leaveUnsavedForms()) return false;
+  ['view-dashboard', 'view-entities', 'view-documents', 'view-search', 'view-users', 'view-parameters', 'view-orders', 'view-audit'].forEach(id => {
     const el = qs(id);
     if (el) el.hidden = (id !== `view-${viewId}`);
   });
 
   setActiveModule(viewId);
+  if (isRemoteMode()) {
+    renderLotContext();
+    if (qs('lot-context')) qs('lot-context').hidden = !['entities', 'documents', 'orders'].includes(viewId);
+    if (document.querySelector('.content-area')) document.querySelector('.content-area').scrollTop = 0;
+  }
 
   if (viewId === 'dashboard') {
     updateDashboardStats();
@@ -261,7 +351,35 @@ function showView(viewId) {
     performSearch();
   } else if (viewId === 'users') {
     renderRoleViews();
+  } else if (viewId === 'parameters') {
+    renderParameterFormOptions();
+    renderParametersList();
+  } else if (viewId === 'orders') {
+    renderOrderFilterOptions();
+    renderOrdersView();
+  } else if (viewId === 'audit') {
+    renderAuditView();
   }
+}
+
+function leaveUnsavedForms() {
+  const dirty = [...document.querySelectorAll('.view:not([hidden]) form[data-dirty="true"]')];
+  if (!dirty.length) return true;
+  if (!confirmAction('Hay cambios sin guardar. ¿Salir y continuar sin guardarlos?')) return false;
+  dirty.forEach(form => delete form.dataset.dirty);
+  return true;
+}
+
+function contextLotId() { return isRemoteMode() ? qs('context-lot')?.value || '' : ''; }
+
+function renderLotContext() {
+  const select = qs('context-lot');
+  if (!select) return;
+  const selected = select.value;
+  const products = loadMasters('product');
+  select.innerHTML = '<option value="">Todos los lotes</option>' + loadMasters('lot').map(lot => `<option value="${escapeHtml(lot.lote_id)}">${escapeHtml(lot.numero_lote)} — ${escapeHtml(products.find(product => product.producto_id === lot.producto_id)?.descripcion || '')}</option>`).join('');
+  select.value = selected;
+  if (qs('context-lot-summary')) qs('context-lot-summary').textContent = selected ? `Consultando ${select.selectedOptions[0]?.textContent || ''}. Datos simulados.` : 'Todos los lotes. Datos de una planta simulada.';
 }
 
 function normalizeText(...parts) {
@@ -336,22 +454,24 @@ function updateDashboardStats() {
   const empty = qs('dashboard-empty-state');
   if (empty) empty.hidden = !(entities.length === 0 && docs.length === 0 && MASTER_TYPES.every(type => loadMasters(type).length === 0));
   renderTrackingList();
+  const charts = qs('quality-charts');
+  if (charts) charts.innerHTML = renderChartsMarkup(docs, loadMasters('product'));
 }
 
 function populateEntitySelect() {
   const select = qs('edit-entity');
   if (!select) return;
   const entities = loadEntities();
-  select.innerHTML = `<option value="">Seleccione ${labelFor('entity').toLowerCase()}...</option>` +
-    entities.map(e => `<option value="${e.id || e.entity_id}">${e.name} — ${e.code}</option>`).join('');
+  select.innerHTML = `<option value="">Seleccione ${escapeHtml(labelFor('entity').toLowerCase())}...</option>` +
+    entities.map(e => `<option value="${escapeHtml(e.id || e.entity_id)}">${escapeHtml(e.name)} — ${escapeHtml(e.code)}</option>`).join('');
 }
 
 function populateDocumentEntitySelect() {
   const select = qs('document-entity');
   if (!select) return;
   const entities = loadEntities();
-  select.innerHTML = `<option value="">Seleccione ${labelFor('entity').toLowerCase()}...</option>` +
-    entities.map(e => `<option value="${e.entity_id || e.id}">${e.name} — ${e.code}</option>`).join('');
+  select.innerHTML = `<option value="">Seleccione ${escapeHtml(labelFor('entity').toLowerCase())}...</option>` +
+    entities.map(e => `<option value="${escapeHtml(e.entity_id || e.id)}">${escapeHtml(e.name)} — ${escapeHtml(e.code)}</option>`).join('');
 }
 
 function populateDocumentSelect() {
@@ -359,7 +479,7 @@ function populateDocumentSelect() {
   if (!select) return;
   const docs = loadDocuments();
   select.innerHTML = `<option value="">Seleccione documento...</option>` +
-    docs.map(d => `<option value="${d.id}">Folio: ${d.folio}</option>`).join('');
+    docs.map(d => `<option value="${escapeHtml(d.id)}">Folio: ${escapeHtml(d.folio)}</option>`).join('');
 }
 
 function renderEntitiesList() {
@@ -376,26 +496,29 @@ function renderEntitiesList() {
     if (config.customFields) {
       for (const cf of config.customFields) {
         if (cf.target === 'entity' && e[cf.key] !== undefined) {
-          customText += `, ${cf.label}: ${e[cf.key]}`;
+          customText += `, ${escapeHtml(cf.label)}: ${escapeHtml(e[cf.key])}`;
         }
       }
     }
     const status = getTargetDateStatus(e);
-    return `<li class="tracking-item status-${status}"><strong>${e.name}</strong> (${e.code})<span class="tracking-status status-badge">${STATUS_LABELS[status]}</span>${e.targetDate ? ` - Fecha objetivo: ${formatTargetDate(e.targetDate)}` : ''}${customText}</li>`;
+    return `<li class="tracking-item status-${status}"><strong>${escapeHtml(e.name)}</strong> (${escapeHtml(e.code)})<span class="tracking-status status-badge">${STATUS_LABELS[status]}</span>${e.targetDate ? ` - Fecha objetivo: ${escapeHtml(formatTargetDate(e.targetDate))}` : ''}${customText}</li>`;
   }).join('');
 }
 
 function renderDocumentsList() {
   const list = qs('documents-list');
   if (!list) return;
-  const docs = loadDocuments();
+  const all = loadDocuments();
+  const lot = contextLotId();
+  const belongs = document => document?.lote_id === lot || (document?.ncr_id && all.find(parent => parent.id === document.ncr_id)?.lote_id === lot);
+  const docs = lot ? all.filter(belongs) : all;
   if (docs.length === 0) {
     list.innerHTML = `<li class="empty-state">No hay registros operativos. Si tienes permiso, crea una inspección o una no conformidad.</li>`;
     return;
   }
   list.innerHTML = docs.map(d => {
     const status = getTargetDateStatus(d);
-    return `<li class="tracking-item status-${status}">${d.tipoDoc || 'Registro'} · Folio: ${d.folio} - Estado: <span class="status-badge">${statusLabel(d.status)}</span><span class="tracking-status status-badge">${STATUS_LABELS[status]}</span>${d.targetDate ? ` - Fecha objetivo: ${formatTargetDate(d.targetDate)}` : ''}</li>`;
+    return `<li class="tracking-item status-${status}"><div>${escapeHtml(d.tipoDoc || 'Registro')} · Folio: ${escapeHtml(d.folio)} - Estado: <span class="status-badge">${escapeHtml(statusLabel(d.status))}</span><span class="tracking-status status-badge">${STATUS_LABELS[status]}</span>${d.targetDate ? ` - Fecha objetivo: ${escapeHtml(formatTargetDate(d.targetDate))}` : ''}</div>${isRemoteMode() ? renderRecordDetail(d, getRemoteState()) : ''}</li>`;
   }).join('');
 }
 
@@ -489,7 +612,7 @@ function renderTrackingList() {
       record.actionType ? `Acción: ${record.actionType}` : '',
       record.responsible ? `Responsable: ${record.responsible}` : ''
     ].filter(Boolean).join(' · ');
-    return `<li class="tracking-item status-${status}"><strong>${record.displayName}</strong>${record.displayCode ? ` (${record.displayCode})` : ''}<span class="tracking-status status-badge">${STATUS_LABELS[status]}</span><span class="tracking-detail">${details}</span></li>`;
+    return `<li class="tracking-item status-${status}"><strong>${escapeHtml(record.displayName)}</strong>${record.displayCode ? ` (${escapeHtml(record.displayCode)})` : ''}<span class="tracking-status status-badge">${STATUS_LABELS[status]}</span><span class="tracking-detail">${escapeHtml(details)}</span></li>`;
   }).join('');
 }
 
@@ -538,9 +661,51 @@ function resetMasterForm() {
   if (save) save.textContent = 'Guardar dato maestro';
 }
 
+function hideRemoteLegacyFields() {
+  if (!isRemoteMode()) return;
+  ['series', 'currency', 'docPaymentTerms', 'subtotal', 'discount', 'taxAmount', 'totalAmount', 'creditLimit', 'paymentTerms', 'taxId', 'startDate', 'endDate', 'quantity', 'notes'].forEach(id => {
+    const input = qs(id);
+    const wrapper = input?.closest('.field');
+    if (input) input.value = '';
+    if (wrapper) wrapper.hidden = true;
+  });
+}
+
 function renderTypedFields(type, values = {}) {
   const container = qs('document-typed-fields');
   if (!container) return;
+  if (isRemoteMode() && type) {
+    container.innerHTML = renderRemoteDocumentFields(type, values, getRemoteState(), getConfig());
+    const form = qs('document-form');
+    const typeField = qs('document-type-select')?.closest('.field');
+    if (form && typeField) { form.insertBefore(typeField, form.firstChild); form.insertBefore(container, typeField.nextSibling); }
+    hideRemoteLegacyFields();
+    if (qs('document-custom-fields')) qs('document-custom-fields').hidden = true;
+    for (const id of ['document-targetDate', 'document-responsible']) if (qs(id)?.closest('.field')) qs(id).closest('.field').hidden = type === 'CAPA';
+    for (const id of ['status', 'document-entity']) if (qs(id)?.closest('.field')) qs(id).closest('.field').hidden = true;
+    if (qs('folio')?.closest('.field')) qs('folio').closest('.field').hidden = Boolean(container.querySelector('#td-folio'));
+    const productSelect = container.querySelector('#td-producto_id');
+    const lotSelect = container.querySelector('#td-lote_id');
+    const syncLots = () => {
+      if (!lotSelect || !productSelect) return;
+      const selected = lotSelect.value;
+      const lots = loadMasters('lot').filter(lot => !productSelect.value || lot.producto_id === productSelect.value);
+      lotSelect.innerHTML = '<option value="">Seleccione...</option>' + lots.map(lot => `<option value="${escapeHtml(lot.lote_id)}">${escapeHtml(lot.numero_lote)}</option>`).join('');
+      lotSelect.value = lots.some(lot => lot.lote_id === selected) ? selected : '';
+    };
+    syncLots();
+    if (values.parameterEvaluation) for (const select of [productSelect, lotSelect]) if (select) select.disabled = true;
+    if (productSelect) {
+      productSelect.onchange = () => {
+        syncLots();
+        const measurements = container.querySelector('#measurement-fields');
+        if (!measurements) return;
+        measurements.innerHTML = `<h3>Lecturas requeridas</h3>${renderMeasurementFields(activeParameters(getRemoteState(), productSelect.value), {})}`;
+      };
+    }
+    clearTypedDocumentErrors(type);
+    return;
+  }
   container.innerHTML = renderTypedDocumentFields(type, values, getConfig());
   clearTypedDocumentErrors(type);
 }
@@ -550,11 +715,169 @@ function currentDocumentType() {
   return select && select.value ? select.value : '';
 }
 
+function renderParameterFormOptions() {
+  const select = qs('parameter-product');
+  if (!select) return;
+  const current = select.value;
+  select.innerHTML = `<option value="">Seleccione...</option>` + loadMasters('product').map(product =>
+    `<option value="${escapeHtml(product.producto_id)}">${escapeHtml(`${product.codigo || ''} — ${product.descripcion || ''}`.trim())}</option>`).join('');
+  select.value = current;
+}
+
+function renderParametersList() {
+  const container = qs('parameter-list');
+  if (!container) return;
+  const parameters = isRemoteMode() ? (getRemoteState().parameters || []) : [];
+  const actor = isRemoteMode() ? getRemoteSession()?.user : getActiveUser();
+  container.innerHTML = renderParameterList(parameters, loadMasters('product'), can(actor, 'manage-records'));
+}
+
+function resetParameterForm() {
+  const form = qs('parameter-form');
+  if (form) form.reset();
+  if (qs('parameter-id')) qs('parameter-id').value = '';
+  if (qs('parameter-active')) qs('parameter-active').checked = true;
+  if (qs('parameter-form-heading')) qs('parameter-form-heading').textContent = 'Nuevo parámetro';
+  showParameterErrors({});
+}
+
+function showParameterErrors(errors) {
+  const keys = { name: 'name', productId: 'productId', unit: 'unit', min: 'min', max: 'max' };
+  for (const [field, id] of Object.entries(keys)) {
+    const element = qs(`parameter-error-${id}`);
+    if (element) element.textContent = errors[field] || '';
+  }
+}
+
+function currentOrderFilters() {
+  return {
+    query: qs('order-filter-query')?.value || '',
+    productId: qs('order-filter-product')?.value || '',
+    lotId: qs('order-filter-lot')?.value || '',
+    status: qs('order-filter-status')?.value || '',
+    from: qs('order-filter-from')?.value || '',
+    to: qs('order-filter-to')?.value || ''
+  };
+}
+
+function renderOrderFilterOptions() {
+  const orders = isRemoteMode() ? (getRemoteState().orders || []) : [];
+  const setOptions = (id, pairs) => {
+    const select = qs(id);
+    if (!select) return;
+    const current = select.value;
+    select.innerHTML = `<option value="">Todos</option>` + pairs.map(([value, label]) => `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`).join('');
+    select.value = current;
+  };
+  setOptions('order-filter-product', [...new Map(orders.map(order => [order.productId, [order.productId, order.productName]])).values()]);
+  setOptions('order-filter-lot', [...new Map(orders.map(order => [order.lotId, [order.lotId, `${order.lotNumber} — ${order.productName}`]])).values()]);
+  const status = qs('order-filter-status');
+  if (status) {
+    const current = status.value;
+    status.innerHTML = `<option value="">Todos</option>` + orderStatuses.map(value => `<option value="${value}">${value}</option>`).join('');
+    status.value = current;
+  }
+}
+
+function renderOrdersView() {
+  const body = qs('order-table-body');
+  if (!body) return;
+  const state = isRemoteMode() ? getRemoteState() : {};
+  const orders = filterOrders(filterOrders(state.orders || [], { lotId: contextLotId() }), currentOrderFilters());
+  body.innerHTML = renderOrdersTable(orders);
+  const count = qs('order-count');
+  if (count) count.textContent = `${orders.length} ${orders.length === 1 ? 'coincidencia' : 'coincidencias'}`;
+  const empty = qs('order-empty');
+  if (empty) empty.hidden = orders.length > 0;
+  const detail = qs('order-detail');
+  if (detail && !detail.dataset.orderId) detail.innerHTML = renderOrderDetail(null);
+}
+
+function exportOrdersCsv() {
+  const orders = filterOrders(filterOrders(getRemoteState().orders || [], { lotId: contextLotId() }), currentOrderFilters());
+  const csv = ordersCsv(orders);
+  try {
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL ? URL.createObjectURL(blob) : '';
+    if (!url) return;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = 'ordenes-calidad.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+  } catch {
+    showAuthMessage('No se pudo preparar la exportación CSV.');
+  }
+}
+
+function renderAuditView() {
+  const container = qs('audit-list');
+  if (!container) return;
+  const rows = isRemoteMode() && can(getRemoteSession()?.user, 'audit') ? (getRemoteState().audit || []) : [];
+  container.innerHTML = renderAuditList(rows);
+}
+
+function refreshRemoteViews() {
+  document.body.dataset.userName = getRemoteSession()?.user?.name || '';
+  document.body.dataset.userRole = getRemoteSession()?.user?.role || '';
+  refreshRoleViews();
+  updateDashboardStats();
+  renderParametersList();
+  renderOrderFilterOptions();
+  renderOrdersView();
+  renderAuditView();
+  renderLotContext();
+  const detail = qs('order-detail');
+  if (detail?.dataset.orderId) {
+    const order = (getRemoteState().orders || []).find(row => row.id === detail.dataset.orderId);
+    detail.innerHTML = renderOrderDetail(order, stateRecords(getRemoteState(), 'quality-documents'), getRemoteState().audit || []);
+  }
+}
+
+function measurementParameters(_type, values) {
+  const state = getRemoteState();
+  const stored = stateRecords(state, 'quality-documents').find(doc => doc.id === values.id);
+  return stored?.parameterEvaluation?.results || activeParameters(state, values.producto_id);
+}
+
+function showMeasurementErrors(errors) {
+  for (const [id, message] of Object.entries(errors || {})) {
+    const element = qs(`measurement-error-${id}`);
+    if (element) element.textContent = message;
+  }
+}
+
+function validateRemoteInspection(data, values) {
+  if (data.tipoDoc !== 'Inspección') return true;
+  const parameters = measurementParameters('Inspección', values);
+  try {
+    evaluateMeasurements(parameters, data.measurements || {});
+    return true;
+  } catch (error) {
+    showMeasurementErrors(error.fields);
+    showAuthMessage(error.message);
+    return false;
+  }
+}
+
 export async function initApp(configResult) {
   if (configResult) {
     setActiveConfig(configResult.config || configResult);
   }
   applyRelabeling();
+  if (isRemoteMode()) {
+    renderLotContext();
+    for (const form of document.querySelectorAll('form')) {
+      for (const event of ['input', 'change']) form.addEventListener(event, () => { form.dataset.dirty = 'true'; });
+      form.addEventListener('reset', () => { delete form.dataset.dirty; });
+    }
+    const context = qs('context-lot');
+    if (context) context.onchange = () => {
+      if (!leaveUnsavedForms()) { context.value = context.dataset.previous || ''; return; }
+      context.dataset.previous = context.value;
+      renderLotContext(); renderDocumentsList(); renderOrdersView();
+    };
+  }
 
   const toggle = qs('sidebar-toggle');
   if (toggle) toggle.onclick = () => {
@@ -562,18 +885,26 @@ export async function initApp(configResult) {
     toggle.setAttribute('aria-expanded', String(!collapsed));
     toggle.setAttribute('aria-label', collapsed ? 'Expandir menú' : 'Comprimir menú');
   };
-  if (qs('action-demo')) qs('action-demo').onclick = () => {
+  if (qs('action-demo')) qs('action-demo').onclick = async () => {
     if (!authorize('manage-users')) return;
     if (!confirmAction('¿Agregar registros ficticios de demostración? No se borrarán datos existentes.')) return;
-    try { const added = seedDemo(); updateDashboardStats(); showAuthMessage(added ? 'Datos de ejemplo cargados correctamente.' : 'Los datos de ejemplo ya están cargados.'); }
-    catch (error) { showAuthMessage(error.message); }
+    try {
+      let added;
+      if (isRemoteMode()) added = (await remoteMutation('seedDemo', [])).added;
+      else { added = seedDemo(); updateDashboardStats(); }
+      if (isRemoteMode()) refreshRemoteViews();
+      showNotice(added ? `Se agregaron ${added} registros ficticios sin borrar los anteriores.` : 'Los datos ficticios ya estaban cargados; no se duplicaron.');
+    } catch (error) { showAuthMessage(error.message); }
   };
   // Event listeners for navigation
-  ['dashboard', 'entities', 'documents', 'search', 'users'].forEach(mod => {
+  ['dashboard', 'entities', 'documents', 'search', 'parameters', 'orders', 'audit', 'users'].forEach(mod => {
     const btn = qs(`nav-${mod}`);
     if (btn) {
       btn.onclick = () => {
-        if (mod === 'users' && !authorize('manage-users')) return;
+        if (mod === 'users' && !isRemoteMode() && !authorize('manage-users')) return;
+        if (mod === 'parameters' && !isRemoteMode()) return;
+        if (mod === 'orders' && !isRemoteMode()) return;
+        if (mod === 'audit' && !authorize('audit')) return;
         showView(mod);
       };
     }
@@ -587,7 +918,7 @@ export async function initApp(configResult) {
 
   const qualityMasterForm = qs('quality-master-form');
   if (qualityMasterForm) {
-    qualityMasterForm.onsubmit = (e) => {
+    qualityMasterForm.onsubmit = async (e) => {
       e.preventDefault();
       const type = currentMasterType();
       const id = qs('quality-master-id').value;
@@ -595,18 +926,22 @@ export async function initApp(configResult) {
       const data = readQualityEntityForm(type);
       clearQualityEntityErrors(type);
       try {
-        if (id) {
-          updateMaster(type, id, data, getActiveUser().name);
+        if (isRemoteMode()) {
+          await remoteMutation(id ? 'updateMaster' : 'addMaster', id ? [type, id, data, currentActor()] : [type, data, currentActor()]);
+          refreshRemoteViews();
+        } else if (id) {
+          updateMaster(type, id, data, currentActor());
         } else {
-          addMaster(type, data, getActiveUser().name);
+          addMaster(type, data, currentActor());
         }
         resetMasterForm();
         renderMasterForm(type);
         renderQualityMasters();
         updateDashboardStats();
+        showNotice(id ? 'Dato maestro actualizado conservando sus referencias.' : 'Dato maestro guardado correctamente.');
       } catch (err) {
         try {
-          const errors = JSON.parse(err.message.replace(/^.*?:\s*/, ''));
+          const errors = err.fields || JSON.parse(err.message.replace(/^.*?:\s*/, ''));
           showQualityEntityErrors(type, errors);
         } catch {
           showAuthMessage(err.message);
@@ -617,7 +952,7 @@ export async function initApp(configResult) {
 
   const qualityMasterList = qs('quality-entities-list');
   if (qualityMasterList) {
-    qualityMasterList.onclick = (e) => {
+    qualityMasterList.onclick = async (e) => {
       const button = e.target.closest('button[data-id][data-type]');
       if (!button) return;
       const type = button.dataset.type;
@@ -634,10 +969,21 @@ export async function initApp(configResult) {
       } else if (button.classList.contains('btn-delete-master')) {
         if (!authorize('delete-master')) return;
         if (!confirmAction('¿Eliminar dato maestro?')) return;
-        deleteMaster(type, id, getActiveUser().name);
+        if (isRemoteMode()) {
+          try {
+            await remoteMutation('deleteMaster', [type, id, currentActor()]);
+            refreshRemoteViews();
+          } catch (error) {
+            showAuthMessage(error.message);
+            return;
+          }
+        } else {
+          deleteMaster(type, id, currentActor());
+        }
         resetMasterForm();
         renderQualityMasters();
         updateDashboardStats();
+        showNotice('Dato maestro eliminado; la trazabilidad de los registros vinculados se conserva.');
       }
     };
   }
@@ -669,6 +1015,7 @@ export async function initApp(configResult) {
   const saveRoles = qs('save-roles');
   if (saveRoles) {
     saveRoles.onclick = () => {
+      if (isRemoteMode()) return;
       if (!authorize('manage-users')) return;
       for (const assignment of readRoleAssignments()) {
         assignRole(assignment.id, assignment.role);
@@ -796,7 +1143,7 @@ export async function initApp(configResult) {
 
   // Entity form submission
   if (entityForm) {
-    entityForm.onsubmit = (e) => {
+    entityForm.onsubmit = async (e) => {
       e.preventDefault();
       const id = qs('entity-id').value;
       const data = {
@@ -832,7 +1179,10 @@ export async function initApp(configResult) {
       (config.customFields || []).filter(f => f.target === 'entity').forEach(cf => { const errEl = qs(`error-cf-${cf.key}`); if (errEl) errEl.textContent = ''; });
 
       try {
-        if (id) {
+        if (isRemoteMode()) {
+          await remoteMutation(id ? 'updateEntity' : 'addEntity', id ? [id, data] : [data]);
+          refreshRemoteViews();
+        } else if (id) {
           updateEntity(id, data, currentActor());
         } else {
           addEntity(data, currentActor());
@@ -842,9 +1192,10 @@ export async function initApp(configResult) {
         if (id && qs('edit-entity')) qs('edit-entity').value = id;
         renderEntitiesList();
         updateDashboardStats();
+        showNotice(id ? 'Registro maestro actualizado.' : 'Registro maestro guardado con folio y fecha de creación.');
       } catch (err) {
         try {
-          const errObj = JSON.parse(err.message.replace(/^.*?:\s*/, ''));
+          const errObj = err.fields || JSON.parse(err.message.replace(/^.*?:\s*/, ''));
           for (const [k, msg] of Object.entries(errObj)) {
             const errEl = qs(`error-${k}`) || qs(`error-cf-${k}`);
             if (errEl) errEl.textContent = msg;
@@ -896,12 +1247,17 @@ export async function initApp(configResult) {
   // Delete entity button
   const deleteEntityBtn = qs('delete-entity');
   if (deleteEntityBtn) {
-    deleteEntityBtn.onclick = () => {
+    deleteEntityBtn.onclick = async () => {
       const selectedId = editEntitySelect ? editEntitySelect.value : '';
       if (!selectedId) return;
       if (!authorize('delete-master')) return;
       if (!confirmAction('¿Eliminar entidad?')) return;
-      deleteEntity(selectedId);
+      if (isRemoteMode()) {
+        try { await remoteMutation('deleteEntity', [selectedId]); refreshRemoteViews(); }
+        catch (error) { showAuthMessage(error.message); return; }
+      } else {
+        deleteEntity(selectedId);
+      }
       resetEntityForm();
       populateEntitySelect();
       renderEntitiesList();
@@ -914,7 +1270,7 @@ export async function initApp(configResult) {
 
   // Document form submission
   if (documentForm) {
-    documentForm.onsubmit = (e) => {
+    documentForm.onsubmit = async (e) => {
       e.preventDefault();
       const id = qs('document-id').value;
       const docType = currentDocumentType();
@@ -957,10 +1313,12 @@ export async function initApp(configResult) {
 
       if (docType) {
         data.tipoDoc = docType;
-        const typed = readTypedDocumentFields(docType);
+        const typedContainer = qs('document-typed-fields');
+        const typed = isRemoteMode() && typedContainer ? readRemoteDocumentFields(typedContainer) : readTypedDocumentFields(docType);
         for (const [key, value] of Object.entries(typed)) {
-          if (value !== '' || key === 'status') data[key] = value;
+          if (value !== '' || key === 'status' || key === 'measurements') data[key] = value;
         }
+        if (isRemoteMode() && docType === 'Inspección' && !validateRemoteInspection(data, { ...data, id })) return;
       }
 
       ['document-entity','folio','startDate','endDate','quantity','subtotal','discount','taxAmount','totalAmount','status','document-targetDate','document-actionType','document-responsible'].forEach(k => { const el = qs(`error-${k}`); if (el) el.textContent = ''; });
@@ -968,21 +1326,28 @@ export async function initApp(configResult) {
       if (docType) clearTypedDocumentErrors(docType);
 
       try {
-        if (id) {
-          updateDocument(id, data, currentActor());
+        let saved;
+        if (isRemoteMode()) {
+          saved = await remoteMutation(id ? 'updateDocument' : 'addDocument', id ? [id, data] : [data]);
+          refreshRemoteViews();
+        } else if (id) {
+          saved = updateDocument(id, data, currentActor());
         } else {
-          addDocument(data, currentActor());
+          saved = addDocument(data, currentActor());
         }
         resetDocumentForm();
         populateDocumentSelect();
         if (id && qs('edit-document')) qs('edit-document').value = id;
         renderDocumentsList();
         updateDashboardStats();
+        showNotice(confirmation(saved || data, id ? 'Registro actualizado' : 'Registro guardado'));
+        if (saved?.parameterEvaluation && !saved.parameterEvaluation.passed) showAuthMessage(`${confirmation(saved, 'Inspección rechazada y guardada')} ${saved.parameterEvaluation.message}`);
       } catch (err) {
+        if (isRemoteMode()) showAuthMessage(err.message);
         try {
-          const errObj = JSON.parse(err.message.replace(/^.*?:\s*/, ''));
+          const errObj = typeof err.fields === 'object' && err.fields ? err.fields : JSON.parse(err.message.replace(/^.*?:\s*/, ''));
           for (const [k, msg] of Object.entries(errObj)) {
-            const errEl = qs(`error-document-${k}`) || qs(`error-${k}`) || qs(`error-cf-${k}`) || (k === 'entityId' ? qs('error-document-entity') : null);
+            const errEl = qs(`td-error-${k}`) || qs(`error-document-${k}`) || qs(`error-${k}`) || qs(`error-cf-${k}`) || qs(`measurement-error-${k}`) || (k === 'entityId' ? qs('error-document-entity') : null);
             if (errEl) errEl.textContent = msg;
           }
           if (docType) showTypedDocumentErrors(docType, errObj);
@@ -1042,12 +1407,17 @@ export async function initApp(configResult) {
 
   const deleteDocumentBtn = qs('delete-document');
   if (deleteDocumentBtn) {
-    deleteDocumentBtn.onclick = () => {
+    deleteDocumentBtn.onclick = async () => {
       const selectedId = editDocumentSelect ? editDocumentSelect.value : '';
       if (!selectedId) return;
       if (!authorize('delete-document')) return;
       if (!confirmAction('¿Eliminar documento?')) return;
-      deleteDocument(selectedId);
+      if (isRemoteMode()) {
+        try { await remoteMutation('deleteDocument', [selectedId]); refreshRemoteViews(); }
+        catch (error) { showAuthMessage(error.message); return; }
+      } else {
+        deleteDocument(selectedId);
+      }
       resetDocumentForm();
       populateDocumentSelect();
       renderDocumentsList();
@@ -1065,6 +1435,159 @@ export async function initApp(configResult) {
   if (trackingSort) trackingSort.onchange = () => renderTrackingList();
   const trackingStatus = qs('tracking-status');
   if (trackingStatus) trackingStatus.onchange = () => renderTrackingList();
+
+  const parameterForm = qs('parameter-form');
+  if (parameterForm) {
+    parameterForm.onsubmit = async event => {
+      event.preventDefault();
+      if (!isRemoteMode() || !authorize('manage-records')) return;
+      const data = {
+        id: qs('parameter-id').value || undefined,
+        name: qs('parameter-name').value,
+        productId: qs('parameter-product').value,
+        unit: qs('parameter-unit').value,
+        min: qs('parameter-min').value,
+        max: qs('parameter-max').value,
+        active: qs('parameter-active').checked
+      };
+      try {
+        const saved = await remoteMutation('saveParameter', [data]);
+        renderParametersList();
+        resetParameterForm();
+        showNotice(`Parámetro «${saved.name}» guardado en su versión ${saved.version}.`);
+      } catch (error) {
+        showParameterErrors(error.fields || {});
+        showAuthMessage(error.message);
+      }
+    };
+  }
+  if (qs('parameter-reset')) qs('parameter-reset').onclick = () => resetParameterForm();
+  const parameterList = qs('parameter-list');
+  if (parameterList) {
+    parameterList.onclick = async event => {
+      const button = event.target.closest('button[data-parameter-action]');
+      if (!button || !isRemoteMode() || !authorize('manage-records')) return;
+      const parameter = (getRemoteState().parameters || []).find(row => row.id === button.dataset.parameterId);
+      if (!parameter) return;
+      if (button.dataset.parameterAction === 'edit') {
+        qs('parameter-id').value = parameter.id;
+        qs('parameter-name').value = parameter.name;
+        qs('parameter-product').value = parameter.productId;
+        qs('parameter-unit').value = parameter.unit;
+        qs('parameter-min').value = parameter.min;
+        qs('parameter-max').value = parameter.max;
+        qs('parameter-active').checked = parameter.active !== false;
+        qs('parameter-form-heading').textContent = 'Editar parámetro';
+      } else {
+        try {
+          await remoteMutation('saveParameter', [{ ...parameter, active: parameter.active === false }]);
+          renderParametersList();
+          showNotice(parameter.active === false ? 'Parámetro activado.' : 'Parámetro desactivado; las inspecciones anteriores conservan sus límites.');
+        } catch (error) { showAuthMessage(error.message); }
+      }
+    };
+  }
+
+  ['order-filter-query', 'order-filter-product', 'order-filter-lot', 'order-filter-status', 'order-filter-from', 'order-filter-to'].forEach(id => {
+    const element = qs(id);
+    if (!element) return;
+    element.oninput = () => renderOrdersView();
+    element.onchange = () => renderOrdersView();
+  });
+  if (qs('order-filters-clear')) {
+    qs('order-filters-clear').onclick = () => {
+      ['order-filter-query', 'order-filter-product', 'order-filter-lot', 'order-filter-status', 'order-filter-from', 'order-filter-to'].forEach(id => { const element = qs(id); if (element) element.value = ''; });
+      renderOrdersView();
+      showNotice('Filtros limpiados: se muestran todas las órdenes.');
+    };
+  }
+  if (qs('order-export-csv')) qs('order-export-csv').onclick = () => exportOrdersCsv();
+  const orderTable = qs('order-table-body');
+  if (orderTable) {
+    orderTable.onclick = event => {
+      const button = event.target.closest('button[data-order-id]');
+      if (!button) return;
+      const detail = qs('order-detail');
+      if (!detail) return;
+      detail.dataset.orderId = button.dataset.orderId;
+      const order = (getRemoteState().orders || []).find(row => row.id === button.dataset.orderId);
+      detail.innerHTML = renderOrderDetail(order, stateRecords(getRemoteState(), 'quality-documents'), getRemoteState().audit || []);
+    };
+  }
+
+  const createUserForm = qs('create-user-form');
+  if (createUserForm) {
+    createUserForm.onsubmit = async event => {
+      event.preventDefault();
+      if (!isRemoteMode() || !authorize('manage-users')) return;
+      const body = {
+        username: qs('new-user-username').value,
+        name: qs('new-user-name').value,
+        password: qs('new-user-password').value,
+        role: qs('new-user-role').value
+      };
+      try {
+        await apiRequest('/users', { method: 'POST', body });
+        createUserForm.reset();
+        refreshRoleViews();
+        showNotice(`Cuenta «${body.username}» creada con el perfil ${body.role}.`);
+      } catch (error) { showAuthMessage(error.message); }
+    };
+  }
+  const remoteUserList = qs('remote-user-list');
+  if (remoteUserList) {
+    remoteUserList.onclick = async event => {
+      const button = event.target.closest('button[data-account-save]');
+      if (!button || !authorize('manage-users')) return;
+      const change = readRemoteUserChanges(remoteUserList).find(row => row.id === button.dataset.accountSave);
+      const original = (getRemoteState().users || []).find(row => row.id === change?.id);
+      if (!change || !original) return;
+      try {
+        if (change.role !== original.role) await remoteAssignRole(change.id, change.role);
+        if (change.name !== original.name || change.active !== Boolean(original.active)) {
+          await apiRequest(`/users/${encodeURIComponent(change.id)}`, { method: 'PATCH', body: { name: change.name, active: change.active } });
+        }
+        refreshRoleViews();
+        showNotice(`Cuenta de ${change.name} actualizada.`);
+      } catch (error) { showAuthMessage(error.message); }
+    };
+  }
+  const configForm = qs('remote-config-form');
+  if (configForm) {
+    configForm.onsubmit = async event => {
+      event.preventDefault();
+      if (!isRemoteMode() || !authorize('manage-config')) return;
+      try {
+        const payload = await apiRequest('/config', { method: 'PUT', body: { moduleName: qs('config-module-name').value } });
+        setActiveConfig(payload.config);
+        applyRelabeling();
+        showNotice('Nombre del módulo actualizado y conservado en el servidor.');
+      } catch (error) { showAuthMessage(error.message); }
+    };
+  }
+  const passwordForm = qs('password-form');
+  if (passwordForm) {
+    passwordForm.onsubmit = async event => {
+      event.preventDefault();
+      if (!isRemoteMode()) return;
+      try {
+        const payload = await apiRequest('/password', { method: 'POST', body: {
+          currentPassword: qs('current-password').value,
+          newPassword: qs('new-password').value
+        } });
+        installRemoteSession(payload);
+        passwordForm.reset();
+        refreshRemoteViews();
+        showNotice('Contraseña actualizada. Las sesiones anteriores quedaron cerradas.');
+      } catch (error) { showAuthMessage(error.message); }
+    };
+  }
+  if (qs('logout-button')) qs('logout-button').onclick = () => logoutRemote();
+
+  if (typeof window !== 'undefined') {
+    window.addEventListener('quality:state', () => { if (isRemoteMode()) refreshRemoteViews(); });
+    window.addEventListener('quality:alert', event => showAuthMessage(event.detail || 'La inspección fue rechazada; revisa la alerta con el valor, la unidad y el rango.'));
+  }
 
   function applyReadOnlyMode() {
     if (!isReadOnlyUser()) return;
